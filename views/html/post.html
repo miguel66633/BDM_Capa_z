@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio / Z </title>
+    <link rel="stylesheet" href="../css/home.css">
+    <script defer src="../js/home.js"></script>
+</head>
+<body>
+    
+    <div class="container">
+        <!-- Barra lateral izquierda -->
+        <nav class="sidebar">
+            <div class="logo" onclick="window.location.href='../html/home.html'">Z</div>
+            <button class="submit-btn" onclick="window.location.href='../html/home.html'">
+                <img src="../images/inicio.svg" alt="Icono de Inicio" class="icono-btn">Inicio</button>
+            <button class="submit-btn" onclick="window.location.href='../html/messages.html'">
+                <img src="../images/mensajes.svg" alt="Icono de Inicio" class="icono-btn">Mensajes</button>
+            <button class="submit-btn" onclick="window.location.href='../html/guardados.html'">
+                <img src="../images/guardados.svg" alt="Icono de Inicio" class="icono-btn">Guardados</button>
+            <button class="submit-btn" onclick="window.location.href='../html/perfil.html'">
+                <img src="../images/perfil.svg" alt="Icono de Inicio" class="icono-btn">Perfil</button>
+
+            <!-- Botón "Postear" arriba del perfil -->
+            <button class="submit-btn postear-btn" onclick="openModal()">Postear</button>
+
+            <!-- Contenedor del perfil en la parte inferior de la sidebar -->
+            <div class="profile-container" onclick="toggleMenu()">
+                <img src="../images/perfil.jpg" alt="Foto de perfil" class="profile-pic">
+                <div class="profile-info">
+                  <p class="username">Miguel Reyes</p>
+                  <p class="user-handle">@migueriro</p>
+                </div>
+              
+                <!-- Menú flotante dentro del mismo contenedor -->
+                <div id="profile-menu" class="profile-menu">
+                  <button onclick="logout()">Cerrar sesión</button>
+                </div>
+              </div>
+        </nav>
+
+
+
+
+        <!-- Sección central donde se carga el contenido -->
+        <main id="contenido">
+            <div class="scrollable-content">
+                <div class="post-header">
+                    <button class="back-btn" onclick="window.location.href='../html/home.html'">
+                        <img src="../images/atras.svg" alt="Atrás">
+                    </button>
+                    <h2>Post</h2>
+                </div>
+
+                <div class="publicacion">
+                    <!-- Encabezado de la publicación: foto y nombre de usuario -->
+                    <div class="publicacion-header">
+                    <img src="../images/perfil.jpg" alt="Foto de perfil" class="publicacion-profile-pic">
+                    <div class="publicacion-info">
+                        <span class="publicacion-username">Miguel Reyes</span>
+                        <span class="publicacion-user-handle">@migueriro • 10 feb.</span>
+                    </div>
+                </div>
+                <div class="publicacion-contenido">
+                    <p>Yippie yippieee</p>
+                    <img src="../images/ejemplo1.png" alt="Imagen de la publicación" class="publicacion-imagen">
+                </div>
+                
+                <div class="publicacion-acciones">
+                    <div class="accion">
+                      <button class="accion-btn like-btn">
+                        <img src="../images/like.svg" class="accion-icon">
+                      </button>
+                      <span class="accion-count">123</span>
+                    </div>
+                    <div class="accion">
+                        <button class="accion-btn repost-btn">
+                          <img src="../images/repost.svg" class="accion-icon" alt="Repost">
+                        </button>
+                        <span class="accion-count">45</span>
+                      </div>
+                    <div class="accion">
+                      <button class="accion-btn">
+                        <img src="../images/comments.svg" class="accion-icon">
+                      </button>
+                      <span class="accion-count">67</span>
+                    </div>
+                    <div class="accion">
+                      <button class="accion-btn saved-btn">
+                        <img src="../images/saved.svg" class="accion-icon">
+                      </button>
+                      <span class="accion-count">89</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="comentarios">
+                    <div class="post-header">
+                        <h2>Comentarios</h2>
+                    </div>
+
+                    <div class="comentar">
+                        <!-- Imagen de perfil del usuario -->
+                        <img src="../images/perfil.jpg" alt="Foto de perfil" class="comentar-profile-pic">
+                      
+                        <!-- Contenedor principal del textarea e íconos -->
+                        <div class="comentar-content">
+                          <!-- Área de texto para escribir la respuesta -->
+                          <textarea class="comentar-textarea" placeholder="Postea tu respuesta"></textarea>
+                          
+                          <!-- Barra inferior con íconos y botón -->
+                          <div class="comentar-footer">
+                            <div class="comentar-icons">
+                              <!-- Íconos de ejemplo -->
+                              <img src="../images/img.svg" alt="Subir imagen" />
+                            </div>
+                            <!-- Botón de Responder -->
+                            <button class="responder-btn">Responder</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      
+                    <div class="comentario">
+                        <div class="comentario-header">
+                            <img src="../images/perfil.jpg" alt="Foto de perfil" class="comentario-profile-pic">
+                            <div class="comentario-info">
+                                <span class="comentario-username">Rodrigo S.</span>
+                                <span class="comentario-user-handle">@redr2k • 11 feb.</span>
+                            </div>
+                        </div>
+                        <p>Me encanta</p> 
+                        <div class="publicacion-acciones">
+                            <div class="accion">
+                                <button class="accion-btn like-btn">
+                                    <img src="../images/like.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count">500</span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn repost-btn">
+                                    <img src="../images/repost.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn saved-btn">
+                                    <img src="../images/saved.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="comentario">
+                        <div class="comentario-header">
+                            <img src="../images/perfil.jpg" alt="Foto de perfil" class="comentario-profile-pic">
+                            <div class="comentario-info">
+                                <span class="comentario-username">Jorge Rosas</span>
+                                <span class="comentario-user-handle">@George_R_S • 12h</span>
+                            </div>
+                        </div>
+                        <p>mira mi perro</p>
+                        <div class="img">
+                            <img src="../images/ejemplo2.jpg"/>
+                          </div>
+                        <div class="publicacion-acciones">
+                            <div class="accion">
+                                <button class="accion-btn like-btn">
+                                    <img src="../images/like.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count">199</span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn repost-btn">
+                                    <img src="../images/repost.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn saved-btn">
+                                    <img src="../images/saved.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="comentario">
+                        <div class="comentario-header">
+                            <img src="../images/perfil2.png" alt="Foto de perfil" class="comentario-profile-pic">
+                            <div class="comentario-info">
+                                <span class="comentario-username">AlexMisterGT</span>
+                                <span class="comentario-user-handle">@AlexMisterGT • 7h</span>
+                            </div>
+                        </div>
+                        <p>TE ODIO</p>
+                        <div class="publicacion-acciones">
+                            <div class="accion">
+                                <button class="accion-btn like-btn">
+                                    <img src="../images/like.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count">76</span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn repost-btn">
+                                    <img src="../images/repost.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                            <div class="accion">
+                                <button class="accion-btn saved-btn">
+                                    <img src="../images/saved.svg" class="accion-icon">
+                                </button>
+                                <span class="accion-count"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                
+
+
+                   
+            
+        </main>
+        
+        
+        
+        <!-- Sección derecha (puede cambiar con cada sección) -->
+        <aside id="lateral">
+            <div class="search-bar">
+                <img src="../images/buscar.svg" alt="Buscar" class="search-icon">
+                <input type="text" placeholder="Buscar" class="search-input">
+            </div>
+            
+            <h3></h3>
+            <!-- <p>Contenido adicional aquí.</p> -->
+        </aside>
+    </div>
+
+    <!-- VENTANA MODAL PARA POSTEAR -->
+  <div class="modal" id="postModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <!-- <h2>¿Qué está pasando?</h2> -->
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <img src="../images/perfil.jpg" alt="Foto de perfil" class="modal-profile-pic">
+        <textarea class="post-textarea" placeholder="¿Qué quieres compartir?"></textarea>
+        
+        <div class="modal-footer">
+          <!-- Etiqueta para cargar imagen -->
+          <label for="postImage" class="image-upload-label">
+            <img src="../images/img.svg" alt="" />
+          </label>
+          <!-- Input file oculto -->
+          <input type="file" id="postImage" accept="image/*,video/*" style="display: none;"/>
+        
+          <button class="submit-btn" id="SubirPost" onclick="submitAndConfirmPost()">Postear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
