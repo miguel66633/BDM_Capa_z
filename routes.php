@@ -1,13 +1,13 @@
 <?php
 
-//return [
-//    '/' => 'controllers/index.php',
-//    '/about' => 'controllers/about.php',
-//    '/contact' => 'controllers/contact.php',
-//    '/notes' => 'controllers/notes.php',
-//    '/note' => 'controllers/note.php',
-//    '/note/create' => 'controllers/note-create.php',
-//];
+// return [
+//     '/' => 'controllers/index.php',
+//     '/about' => 'controllers/about.php',
+//     '/contact' => 'controllers/contact.php',
+//     '/notes' => 'controllers/notes.php',    '/note' => 'controllers/note.php',
+//     '/note/create' => 'controllers/note-create.php',
+// ];
+
 
 $router->get('/', 'controllers/index.php');
 $router->get('/about', 'controllers/about.php');
@@ -25,3 +25,7 @@ $router->post('/notes', 'controllers/notes/store.php');
 
 $router->get('/register', 'controllers/registration/create.php')->only('guest');
 $router->post('/register', 'controllers/registration/store.php');
+
+$router->get('/Z', 'controllers/inicioSesion.php');
+
+

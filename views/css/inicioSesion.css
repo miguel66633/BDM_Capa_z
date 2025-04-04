@@ -1,10 +1,10 @@
 @font-face {
     font-family: Airstrike;
-    src: url('fonts/airstrikebold.ttf') format('truetype');
+    src: url('/static.php?file=fonts/airstrikebold.ttf') format('truetype');
 }
 
 body {
-    background-color: #313131;
+    background-color: #111111;
     color: white;
     font-family: sans-serif;
     display: flex;
@@ -35,7 +35,7 @@ body {
 }
 
 .left-column {
-    background-color: #313131;
+    background-color: #111111;
     color: white;
     width: 40%;
     display: flex;
@@ -44,7 +44,7 @@ body {
 }
 
 .right-column {
-    background-color: #313131;
+    background-color: #111111;
     width: 60%;
     display: flex;
     flex-direction: column;

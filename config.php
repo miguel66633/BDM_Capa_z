@@ -4,8 +4,8 @@ return [
     "database" => [
         "host" => "localhost",
         "user" => "root",
-        "password" => "12345",
-        "dbname" => "pwci_c1",
+        "password" => "1234",
+        "dbname" => "BDM_capa",
         "port" => "3306",
     ],
 ];

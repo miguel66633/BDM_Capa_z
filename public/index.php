@@ -5,6 +5,12 @@ const BASE_PATH = __DIR__.'/../';
 
 require BASE_PATH.'Core/functions.php';
 
+// Manejar solicitudes de recursos estáticos
+if (isset($_GET['file'])) {
+    require BASE_PATH . 'static.php';
+    exit;
+}
+
 spl_autoload_register(function ($class) {
     $class = str_replace('\\', DIRECTORY_SEPARATOR, $class);
 
