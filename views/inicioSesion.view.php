@@ -70,7 +70,7 @@
                 <span class="toggle-password" onclick="togglePassword()">👁️</span>
                 <e> Tu contraseña esta incorrecta </e>
             </div>
-            <button class="submit-btn" onclick="window.location.href='../html/home.html'">Iniciar sesión</button>
+            <button class="submit-btn" onclick="window.location.href='/Inicio'">Iniciar sesión</button>
             <p>¿No tienes una cuenta? <a href="#" onclick="registrate()">Regístrate</a></p>
         </div>
     </div>
