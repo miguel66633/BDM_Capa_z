@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión en Z</title>
-    <link rel="stylesheet" href="/static.php?file=css/inicioSesion.css">
-    <script src="/static.php?file=js/inicioSesion.js"></script>
+    <link rel="stylesheet" href="css/inicioSesion.css">
+    <script src="js/inicioSesion.js"></script>
 </head>
 <body>
     <div class="main-container">
@@ -70,7 +70,7 @@
                 <span class="toggle-password" onclick="togglePassword()">👁️</span>
                 <e> Tu contraseña esta incorrecta </e>
             </div>
-            <button class="submit-btn" onclick="window.location.href='/Inicio'">Iniciar sesión</button>
+            <button class="submit-btn" onclick="window.location.href='/inicio'">Iniciar sesión</button>
             <p>¿No tienes una cuenta? <a href="#" onclick="registrate()">Regístrate</a></p>
         </div>
     </div>

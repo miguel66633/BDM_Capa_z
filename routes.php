@@ -27,6 +27,11 @@ $router->get('/register', 'controllers/registration/create.php')->only('guest');
 $router->post('/register', 'controllers/registration/store.php');
 
 $router->get('/Z', 'controllers/inicioSesion.php');
-$router->get('/Inicio', 'controllers/home.php');
+$router->get('/inicio', 'controllers/home.php');
+$router->get('/guardados', 'controllers/guardados.php');
+$router->get('/mensajes', 'controllers/mensajes.php');
+$router->get('/perfil', 'controllers/perfil.php');
+$router->get('/admin', 'controllers/admin.php');
+
 
 
