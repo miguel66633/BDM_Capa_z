@@ -1,6 +1,6 @@
 <aside id="lateral">
     <div class="search-bar">
-        <img src="../images/buscar.svg" alt="Buscar" class="search-icon">
+        <img src="Resources/images/buscar.svg" alt="Buscar" class="search-icon">
         <input type="text" placeholder="Buscar" class="search-input">
     </div>
     

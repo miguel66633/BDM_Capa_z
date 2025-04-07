@@ -4,8 +4,8 @@ function toggleMenu() {
 }
 
 function logout() {
-    window.location.href = "../html/inicioSesion.html";
-}
+//     window.location.href = "../html/inicioSesion.html";
+ }
 
 document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
@@ -62,7 +62,7 @@ function openModal() {
   }
   
   function logout() {
-    window.location.href = "../html/inicioSesion.html";
+    // window.location.href = "../html/inicioSesion.html";
   }
   
   document.addEventListener("DOMContentLoaded", function () {
@@ -89,10 +89,10 @@ document.querySelectorAll('.like-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const img = this.querySelector('.accion-icon');
       // Si la imagen actual es like.svg, se cambia a likeP.svg; de lo contrario, vuelve a like.svg
-      if (img.getAttribute('src') === '../images/like.svg') {
-        img.setAttribute('src', '../images/likeP.svg');
+      if (img.getAttribute('src') === 'Resources/images/like.svg') {
+        img.setAttribute('src', 'Resources/images/likeP.svg');
       } else {
-        img.setAttribute('src', '../images/like.svg');
+        img.setAttribute('src', 'Resources/images/like.svg');
       }
     });
   });
@@ -102,10 +102,10 @@ document.querySelectorAll('.like-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const img = this.querySelector('.accion-icon');
       // Si la imagen actual es saved.svg, se cambia a guardados.svg; de lo contrario, vuelve a saved.svg
-      if (img.getAttribute('src') === '../images/saved.svg') {
-        img.setAttribute('src', '../images/guardados.svg');
+      if (img.getAttribute('src') === 'Resources/images/saved.svg') {
+        img.setAttribute('src', 'Resources/images/guardados.svg');
       } else {
-        img.setAttribute('src', '../images/saved.svg');
+        img.setAttribute('src', 'Resources/images/saved.svg');
       }
     });
   });
