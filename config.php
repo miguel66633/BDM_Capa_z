@@ -5,7 +5,7 @@ return [
         "host" => "localhost",
         "user" => "root",
         "password" => "1234",
-        "dbname" => "BDM_capa",
+        "dbname" => "PROYECTO_Z",
         "port" => "3306",
     ],
 ];

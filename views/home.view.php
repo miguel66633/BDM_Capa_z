@@ -3,7 +3,6 @@
     <?php require base_path('views/partials/nav.z.php'); ?>
 
     <main id="contenido">
-
             <div class="scrollable-content">
                 <div class="main-header">
                   <div class="header-content">

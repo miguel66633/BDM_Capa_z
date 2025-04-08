@@ -1,226 +1,175 @@
 <?php
+ob_start();
+session_start();
 
-// include 'Models\Database.php';
+header('Content-Type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
 
-// $database = new Database();
-// $conn = $database->getConnection();
+use Core\App;
+use Core\Database;
+use Core\Validator;
 
-// $response = [];
+ob_clean();
 
-// switch ($_SERVER['REQUEST_METHOD']) {
-//     case 'GET':
-//         if (isset($_GET['idUsuario'])) {
-//             $idUsuario = $_GET['idUsuario'];
-//             $query = "SELECT * FROM usuarios WHERE idUsuario = :idUsuario";
-//             $stmt = $conn->prepare($query);
-//             $stmt->bindParam(':idUsuario', $idUsuario, PDO::PARAM_INT);
-//             $stmt->execute();
-//             $response = $stmt->fetch(PDO::FETCH_ASSOC);
-//         } else {
-//             $query = "SELECT * FROM usuarios";
-//             $stmt = $conn->query($query);
-//             $response = $stmt->fetchAll(PDO::FETCH_ASSOC);
-//         }
-//         break;
+$method = $_SERVER['REQUEST_METHOD'];
+$action = $_GET['action'] ?? '';
+$response = ['success' => false];
 
-//     case 'POST':
-//         if (isset($_POST['accion']) && $_POST['accion'] === 'registro') {
+try {
+    $db = App::resolve(Database::class);
+    
+    try {
+        $db->query('SELECT 1')->find();
+    } catch (PDOException $e) {
+        throw new Exception('Error de conexión a la base de datos: ' . $e->getMessage());
+    }
 
-//             if (!empty($_POST['full_name']) && !empty($_POST['correo']) && !empty($_POST['contrasena']) && !empty($_POST['role']) && !empty($_POST['gender']) && !empty($_POST['birthdate'])) {
-//                 $nombre = $_POST['full_name'];
-//                 $correo = $_POST['correo'];
-//                 $password = $_POST['contrasena'];
-//                 $genero = $_POST['gender'];
-//                 $fecha_nacimiento = $_POST['birthdate'];
-//                 $id_rol = ($_POST['role'] === 'instructor') ? 2 : 3;
+    $data = null;
+    if ($method === 'POST') {
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception('JSON inválido: ' . json_last_error_msg());
+        }
+    }
 
+    switch ($action) {
+        case 'register':
+            if ($method === 'POST') {
+                try {
+                    // Log de datos recibidos
+                    file_put_contents('register_debug.log', 
+                        date('Y-m-d H:i:s') . " - Datos recibidos: " . json_encode($data) . "\n", 
+                        FILE_APPEND
+                    );
+        
+                    // Validaciones
+                    $errors = [];
+                    if (!Validator::email($data['email'])) {
+                        $errors['email'] = 'Email inválido';
+                    }
+                    if (!Validator::string($data['password'], 7, 255)) {
+                        $errors['password'] = 'Contraseña inválida';
+                    }
+        
+                    if (!empty($errors)) {
+                        throw new Exception('Errores de validación: ' . json_encode($errors));
+                    }
+        
+                    // // Verificar si la tabla existe
+                    // $tables = $db->query("SHOW TABLES LIKE 'users'")->get();
+                    // if (empty($tables)) {
+                    //     // Crear la tabla si no existe
+                    //     $db->query("
+                    //         CREATE TABLE users (
+                    //             id INT AUTO_INCREMENT PRIMARY KEY,
+                    //             email VARCHAR(255) UNIQUE NOT NULL,
+                    //             password VARCHAR(255) NOT NULL,
+                    //             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    //         )
+                    //     ");
+                    // }
+        
+                    // Insertar usuario
+                    $result = $db->query('INSERT INTO users(email, password) VALUES(:email, :password)', [
+                        'email' => $data['email'],
+                        'password' => password_hash($data['password'], PASSWORD_DEFAULT)
+                    ]);
+        
+                    // Verificar inserción
+                    $newUser = $db->query('SELECT * FROM users WHERE email = :email', [
+                        'email' => $data['email']
+                    ])->find();
+        
+                    if ($newUser) {
+                        file_put_contents('register_debug.log', 
+                            date('Y-m-d H:i:s') . " - Usuario creado con ID: " . $newUser['id'] . "\n", 
+                            FILE_APPEND
+                        );
+        
+                        $_SESSION['user'] = [
+                            'id' => $newUser['id'],
+                            'email' => $newUser['email']
+                        ];
+        
+                        $response = [
+                            'success' => true,
+                            'message' => 'Usuario registrado exitosamente',
+                            'user_id' => $newUser['id']
+                        ];
+                    } else {
+                        throw new Exception('Error al crear usuario - no se encontró después de la inserción');
+                    }
+        
+                } catch (Exception $e) {
+                    file_put_contents('register_debug.log', 
+                        date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", 
+                        FILE_APPEND
+                    );
+                    throw $e;
+                }
+            }
+            break;
 
-//                 $foto_avatar = null;
-//                 if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
+        case 'login':
+            if ($method === 'POST') {
+                $user = $db->query('SELECT * FROM users WHERE email = :email', [
+                    'email' => $data['email']
+                ])->find();
 
-//                     $targetDir = "uploads/";
-//                     $foto_avatar = $targetDir . basename($_FILES['photo']['name']);
+                if (!$user) {
+                    throw new Exception('Usuario no encontrado', 401);
+                }
 
+                if (!password_verify($data['password'], $user['password'])) {
+                    throw new Exception('Contraseña incorrecta', 401);
+                }
 
-//                     if (!move_uploaded_file($_FILES['photo']['tmp_name'], $foto_avatar)) {
-//                         $response['error'] = "Error al subir la foto.";
-//                     }
-//                 }
+                $_SESSION['user'] = [
+                    'id' => $user['id'],
+                    'email' => $user['email']
+                ];
 
-//                 // Verificar correo ya exigitste
-//                 $query = "SELECT idUsuario FROM usuarios WHERE correo = :correo";
-//                 $stmt = $conn->prepare($query);
-//                 $stmt->bindParam(':correo', $correo);
-//                 $stmt->execute();
+                $response = [
+                    'success' => true,
+                    'message' => 'Login exitoso'
+                ];
+            }
+            break;
 
-//                 if ($stmt->rowCount() > 0) {
-//                     $response['error'] = "El correo ya está registrado. Por favor, usa otro.";
-//                 } else {
-//                     $query = "INSERT INTO usuarios (nombre, genero, fecha_nacimiento, foto_avatar, correo, contrasena, id_rol) 
-//                               VALUES (:nombre, :genero, :fecha_nacimiento, :foto_avatar, :correo, :contrasena, :id_rol)";
-//                     $stmt = $conn->prepare($query);
-//                     $stmt->bindParam(':nombre', $nombre);
-//                     $stmt->bindParam(':genero', $genero);
-//                     $stmt->bindParam(':fecha_nacimiento', $fecha_nacimiento);
-//                     $stmt->bindParam(':foto_avatar', $foto_avatar);
-//                     $stmt->bindParam(':correo', $correo);
-//                     $stmt->bindParam(':contrasena', $password);
-//                     $stmt->bindParam(':id_rol', $id_rol);
+        case 'logout':
+            session_destroy();
+            $response = [
+                'success' => true,
+                'message' => 'Sesión cerrada'
+            ];
+            break;
+        case 'test':
+            $response = [
+                'success' => true,
+                'message' => 'API funcionando correctamente',
+                'time' => date('Y-m-d H:i:s')
+            ];
+            break;
 
-//                     if ($stmt->execute()) {
-//                         $response['message'] = "Usuario creado con éxito";
-//                         $response['user_id'] = $conn->lastInsertId();
-//                     } else {
-//                         $response['error'] = "Error al crear el usuario: " . $stmt->errorInfo()[2];
-//                     }
-//                 }
-//             } else {
-//                 $response['error'] = "Faltan datos. Por favor, completa todos los campos.";
-//             }
-//         } elseif (isset($_POST['accion']) && $_POST['accion'] === 'inicio_sesion') {
-//             $correo = $_POST['correo'];
-//             $password = $_POST['contrasena'];
+        default:
+            throw new Exception('Endpoint no encontrado', 404);
+    }
 
-//             $query = "SELECT * FROM usuarios WHERE correo = :correo";
-//             $stmt = $conn->prepare($query);
-//             $stmt->bindParam(':correo', $correo);
-//             $stmt->execute();
-//             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    echo json_encode($response);
 
-//             if (!$user) {
-//                 $response['error'] = "El correo no está registrado.";
-//             } elseif ($user && $user['activo'] == 0) {
-//                 $response['error'] = "La cuenta está desactivada. Contacta al administrador.";
-//             } elseif ($user && $password !== $user['contrasena']) {
-//                 $stmt = $conn->prepare("UPDATE usuarios SET intentos_fallidos = intentos_fallidos + 1 WHERE idUsuario = :idUsuario");
-//                 $stmt->bindParam(':idUsuario', $user['idUsuario']);
-//                 $stmt->execute();
+} catch (Exception $e) {
 
-//                 if ($user['intentos_fallidos'] + 1 >= 3) {
-//                     $stmt = $conn->prepare("UPDATE usuarios SET activo = 0 WHERE idUsuario = :idUsuario");
-//                     $stmt->bindParam(':idUsuario', $user['idUsuario']);
-//                     $stmt->execute();
-//                     $response['error'] = "La cuenta ha sido desactivada después de múltiples intentos fallidos.";
-//                 } else {
-//                     $response['error'] = "Contraseña incorrecta.";
-//                 }
-//             } else {
-//                 $stmt = $conn->prepare("UPDATE usuarios SET intentos_fallidos = 0 WHERE idUsuario = :idUsuario");
-//                 $stmt->bindParam(':idUsuario', $user['idUsuario']);
-//                 $stmt->execute();
+    $code = $e->getCode() ?: 500;
+    http_response_code($code);
+    
+    if (!isset($response['errors'])) {
+        $response['error'] = $e->getMessage();
+    }
+    
+    echo json_encode($response);
+} finally {
 
-//                 $response['message'] = "Inicio de sesión exitoso";
-//                 $response['user'] = $user;
-//             }
-//         } elseif (isset($_POST['accion']) && $_POST['accion'] === 'modificar') {
-//             if (!empty($_POST['idUsuario'])) {
-//                 $idUsuario = $_POST['idUsuario'];
-
-//                 $fieldsToUpdate = [];
-//                 $params = [];
-
-//                 if (!empty($_POST['full_name'])) {
-//                     $fieldsToUpdate[] = "nombre = :nombre";
-//                     $params[':nombre'] = $_POST['full_name'];
-//                 }
-
-//                 if (!empty($_POST['correo'])) {
-//                     $fieldsToUpdate[] = "correo = :correo";
-//                     $params[':correo'] = $_POST['correo'];
-//                 }
-
-//                 if (!empty($_POST['contrasena'])) {
-//                     $fieldsToUpdate[] = "contrasena = :contrasena";
-//                     $params[':contrasena'] = $_POST['contrasena'];
-//                 }
-
-//                 if (!empty($_POST['fecha_nacimiento'])) {
-//                     $fecha_nacimiento = date('Y-m-d', strtotime($_POST['fecha_nacimiento'])); // Asegura el formato correcto
-//                     $fieldsToUpdate[] = "fecha_nacimiento = :fecha_nacimiento";
-//                     $params[':fecha_nacimiento'] = $fecha_nacimiento;
-//                 }
-
-//                 if (!empty($_POST['role'])) {
-//                     $id_rol = intval($_POST['role']);
-//                     $fieldsToUpdate[] = "id_rol = :id_rol";
-//                     $params[':id_rol'] = $id_rol;
-//                 }
-
-//                 if (!empty($_POST['genero'])) {
-//                     $genero = $_POST['genero'];
-//                     $fieldsToUpdate[] = "genero = :genero";
-//                     $params[':genero'] = $genero;
-//                 }
-
-//                 if (isset($_FILES['photo']) && $_FILES['photo']['error'] === UPLOAD_ERR_OK) {
-//                     $targetDir = "uploads/";
-//                     $foto_avatar = $targetDir . basename($_FILES['photo']['name']);
-//                     if (move_uploaded_file($_FILES['photo']['tmp_name'], $foto_avatar)) {
-//                         $fieldsToUpdate[] = "foto_avatar = :foto_avatar";
-//                         $params[':foto_avatar'] = $foto_avatar;
-//                     } else {
-//                         $response['error'] = "Error al subir la foto.";
-//                     }
-//                 }
-
-//                 // Verificar si hay al menos un campo para actualizar
-//                 if (count($fieldsToUpdate) > 0) {
-//                     // Construimos la consulta dinámica
-//                     $query = "UPDATE usuarios SET " . implode(", ", $fieldsToUpdate) . " WHERE idUsuario = :idUsuario";
-//                     $stmt = $conn->prepare($query);
-
-//                     // Añadir el idUsuario al array de parámetros
-//                     $params[':idUsuario'] = $idUsuario;
-
-//                     if ($stmt->execute($params)) {
-//                         // Si la actualización es exitosa, actualizar la sesión
-//                         session_start();
-
-//                         if (!empty($_POST['full_name'])) {
-//                             $_SESSION['user_name'] = $_POST['full_name'];
-//                         }
-
-//                         if (!empty($_POST['role'])) {
-//                             $_SESSION['user_role'] = $id_rol;
-//                         }
-
-//                         if (isset($foto_avatar)) {
-//                             $_SESSION['user_img'] = $foto_avatar; // Actualizar la imagen en la sesión
-//                         }
-
-//                         $response['message'] = "Usuario modificado con éxito";
-//                         $response['user_name'] = $_SESSION['user_name'];
-//                         $response['user_role'] = $_SESSION['user_role'];
-//                         $response['user_img'] = $_SESSION['user_img'];
-//                     } else {
-//                         $response['error'] = "Error al modificar el usuario: " . implode(" ", $stmt->errorInfo());
-//                     }
-//                 } else {
-//                     $response['error'] = "No hay campos para modificar.";
-//                 }
-//             } else {
-//                 $response['error'] = "El ID de usuario es obligatorio.";
-//             }
-//         }
-
-//         break;
-//     case 'DELETE':
-//         //HAY QUE CAMBIAR PARA QUE EN VEZ DE QUE SE BORRE SOLO SE DESACTIVE
-//         $idUsuario = $_GET['idUsuario'];
-//         $query = "DELETE FROM usuarios WHERE idUsuario = :idUsuario";
-//         $stmt = $conn->prepare($query);
-//         $stmt->bindParam(':idUsuario', $idUsuario, PDO::PARAM_INT);
-
-//         if ($stmt->execute()) {
-//             $response['message'] = "Usuario eliminado con éxito";
-//         } else {
-//             $response['error'] = "Error al eliminar el usuario";
-//         }
-//         break;
-
-//     default:
-//         $response['error'] = "Método no permitido";
-// }
-
-// header('Content-Type: application/json');
-// echo json_encode($response);
+    exit();
+}

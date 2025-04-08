@@ -26,6 +26,11 @@ $router->post('/notes', 'controllers/notes/store.php');
 $router->get('/register', 'controllers/registration/create.php')->only('guest');
 $router->post('/register', 'controllers/registration/store.php');
 
+// Rutas para la API
+$router->post('/api', 'api.php');
+$router->get('/api', 'api.php');
+
+
 $router->get('/Z', 'controllers/inicioSesion.php');
 $router->get('/inicio', 'controllers/home.php');
 $router->get('/guardados', 'controllers/guardados.php');

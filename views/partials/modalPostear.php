@@ -21,7 +21,6 @@
       </div>
     </div>
   </div>
-
     <!-- Ventana emergente: Confirmar carga de post -->
     <div id="popup" class="popup-container">
       <div class="popup">

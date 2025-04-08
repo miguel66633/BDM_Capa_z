@@ -1,6 +1,6 @@
 @font-face {
     font-family: Airstrike;
-    src: url('/static.php?file=fonts/airstrikebold.ttf') format('truetype');
+    src: url('../Resources/fonts/airstrikebold.ttf') format('truetype');
 }
 
 body {
@@ -16,7 +16,7 @@ body {
 
 /* Logo */
 .logo {
-    font-family: Airstrike, sans-serif;
+    /* font-family: Airstrike, sans-serif; */
     font-size: 300px;
     font-weight: bold;
     color: white;

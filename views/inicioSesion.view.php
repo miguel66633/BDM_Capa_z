@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión en Z</title>
     <link rel="stylesheet" href="css/inicioSesion.css">
-    <script src="js/inicioSesion.js"></script>
+
 </head>
 <body>
     <div class="main-container">
@@ -30,50 +30,55 @@
         <div class="popup">
             <span class="close" onclick="cerrarGooglePopup()">&times;</span>
             <h2>Regístrate</h2>
-            <div class="input-container">
-                <label>Correo electrónico</label>
-                <input type="text" id="email-registro">
-                <e class="alerta" id="alerta-email">El correo electrónico debe contener un "@"</e>
-            </div>
-
-            <div class="input-container password-container">
-                <label>Contraseña</label>
-                <div class="password-container">
-                    <input type="password" id="password-registro">
-                    <span class="toggle-Goggle-password" onclick="togglePassword()">👁️</span>
+            <form id="registerForm" onsubmit="handleRegister(event)">
+                <div class="input-container">
+                    <label>Correo electrónico</label>
+                    <input type="text" id="email-registro" name="email">
+                    <e class="alerta" id="alerta-email">El correo electrónico debe contener un "@"</e>
                 </div>
-                <e class="alerta" id="alerta-longitud">La contraseña debe tener de 4 a 12 caracteres</e>
-                <e class="alerta" id="alerta-mayuscula">La contraseña debe tener mayusculas y minusculas</e>
-                <e class="alerta" id="alerta-numero">La contraseña debe tener numeros</e>
-            </div>
 
-            <button class="submit-btn">Registrarse</button>
+                <div class="input-container password-container">
+                    <label>Contraseña</label>
+                    <div class="password-container">
+                        <input type="password" id="password-registro" name="password">
+                        <span class="toggle-Goggle-password" onclick="togglePassword()">👁️</span>
+                    </div>
+                    <e class="alerta" id="alerta-longitud">La contraseña debe tener de 4 a 12 caracteres</e>
+                    <e class="alerta" id="alerta-mayuscula">La contraseña debe tener mayusculas y minusculas</e>
+                    <e class="alerta" id="alerta-numero">La contraseña debe tener numeros</e>
+                </div>
+
+                <button type="submit" class="submit-btn">Registrarse</button>
+            </form>
         </div>
     </div>
-
 
     <!-- Ventana emergente de inicio de sesión -->
     <div id="popup" class="popup-container">
-        <div class="popup">
-            <span class="close" onclick="cerrarPopup()">&times;</span>
-            <h2>Introduce Usuario y Contraseña</h2>
-    
+    <div class="popup">
+        <span class="close" onclick="cerrarPopup()">&times;</span>
+        <h2>Introduce Usuario y Contraseña</h2>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="input-container">
                 <label>Correo electrónico</label>
-                <input type="text" value="usuario@example.com">
-                <e> Correo electronico no existe </e>
+                <input type="text" id="email-login" name="email">
+                <e id="error-login-email" style="display: none">Correo electrónico no existe</e>
             </div>
     
             <div class="input-container password-container">
                 <label>Contraseña</label>
-                <input type="password" id="password">
+                <input type="password" id="password-login" name="password">
                 <span class="toggle-password" onclick="togglePassword()">👁️</span>
-                <e> Tu contraseña esta incorrecta </e>
+                <e id="error-login-password" style="display: none">Tu contraseña esta incorrecta</e>
             </div>
-            <button class="submit-btn" onclick="window.location.href='/inicio'">Iniciar sesión</button>
-            <p>¿No tienes una cuenta? <a href="#" onclick="registrate()">Regístrate</a></p>
+            <button type="submit" class="submit-btn">Iniciar sesión</button>
+            <!-- <p>¿No tienes una cuenta? <a href="#" onclick="registrate()">Regístrate</a></p> -->
+        </form>
         </div>
-    </div>
+    </div> 
+
+    <script src="js/inicioSesion.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,96 @@
+2025-04-08 03:10:11 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:10:11 - Usuario creado con ID: 1
+2025-04-08 03:14:03 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:14:03 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:15:39 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:15:39 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:18:23 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:18:23 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:21:33 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:21:33 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:21:38 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:21:38 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:33:39 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:33:39 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:33:47 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:33:48 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:37:17 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:37:17 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:38:45 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:38:45 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:40:08 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:40:08 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:40:09 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:40:10 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:40:16 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:40:16 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:40:57 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:40:57 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:41:18 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:41:18 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:42:14 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:42:14 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:53:33 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:53:33 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:53:51 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:53:51 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:54:13 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:54:13 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 03:54:22 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 03:54:22 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:02:13 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:02:13 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:06:56 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:06:56 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:18 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:18 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:20 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:20 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:30 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:30 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:49 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:49 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:51 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:51 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:07:54 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:07:54 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:08:17 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:08:17 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:12:15 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:12:15 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:15:48 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:15:48 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:15:58 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:15:58 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:16:08 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:16:08 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:33:08 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:33:08 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:33:45 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:33:45 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:39:14 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:39:14 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:49:46 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:49:46 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:52:31 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:52:31 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:54:57 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:54:57 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:55:01 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:55:01 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:59:20 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:59:20 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 04:59:22 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 04:59:22 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 05:21:03 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 05:21:03 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 05:21:42 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 05:21:42 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 05:23:48 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 05:23:48 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 05:26:43 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 05:26:43 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 05:28:24 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 05:28:24 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
+2025-04-08 09:50:58 - Datos recibidos: {"email":"miguel.papirofleci@gmail.com","password":"2134234Aaa"}
+2025-04-08 09:50:58 - Error: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'miguel.papirofleci@gmail.com' for key 'users.email'
