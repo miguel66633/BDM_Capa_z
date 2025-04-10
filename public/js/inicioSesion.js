@@ -163,14 +163,14 @@ document.querySelector('#loginForm').addEventListener('submit', function (event)
     .then(data => {
         // Mostrar mensajes de éxito o error
         if (data.error) {
-            alert(data.error);
+            //alert(data.error);
         } else if (data.message) {
-            alert(data.message);
+           // alert(data.message);
             window.location.href = '/inicio'; // Redirigir al inicio
         }
     })
     .catch(error => {
         console.error('Error en la solicitud:', error);
-        alert('Error al iniciar sesión. Intenta nuevamente.');
+       // alert('Error al iniciar sesión. Intenta nuevamente.');
     });
 });

@@ -14,10 +14,10 @@
 
     <!-- Contenedor del perfil en la parte inferior de la sidebar -->
     <div class="profile-container" onclick="toggleMenu()">
-        <img src="Resources/images/perfilpre.jpg" alt="Foto de perfil" class="profile-pic">
+    <img src="<?php echo isset($_SESSION['user_img']) && !empty($_SESSION['user_img']) ? 'data:image/jpeg;base64,' . $_SESSION['user_img'] : 'Resources/images/perfilpre.jpg'; ?>" alt="Foto de perfil" class="profile-pic">
+
         <div class="profile-info">
-            <p class="username">Miguel Reyes</p>
-            <!-- <p class="user-handle">@migueriro</p> -->
+            <p class="username"><?php echo $_SESSION['user_name']; ?></p>           
         </div>
         
         <!-- Menú flotante dentro del mismo contenedor -->
