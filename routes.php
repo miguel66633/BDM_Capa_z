@@ -9,7 +9,7 @@
 // ];
 
 
-$router->get('/Z', 'controllers/index.php');
+$router->get('/', 'controllers/inicioSesion.php');
 $router->get('/about', 'controllers/about.php');
 $router->get('/contact', 'controllers/contact.php');
 
@@ -31,7 +31,7 @@ $router->post('/api', 'api.php');
 $router->get('/api', 'api.php');
 
 
-$router->get('/Z', 'controllers/inicioSesion.php');
+//$router->get('/Z', 'controllers/inicioSesion.php');
 $router->get('/inicio', 'controllers/home.php');
 $router->get('/guardados', 'controllers/guardados.php');
 $router->get('/mensajes', 'controllers/mensajes.php');
