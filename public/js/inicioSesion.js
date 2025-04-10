@@ -139,8 +139,9 @@ document.querySelector('#loginForm').addEventListener('submit', function (event)
     }
 
     // Validación contraseña
-    if (password === '') {
-        errores.push({ id: 'error-login-password', mensaje: 'La contraseña no puede estar vacía.' });
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$/;
+    if (password === '' || !passwordRegex.test(password)) {
+        errores.push({ id: 'error-login-password', mensaje: 'La contraseña no es correcta.' });
     }
 
     // Mostrar errores si hay
