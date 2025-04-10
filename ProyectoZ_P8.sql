@@ -7,7 +7,7 @@ CREATE TABLE Usuario(
     UsuarioID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	NombreUsuario VARCHAR(50),
 	Correo VARCHAR(50),
-	PasswordUsu VARCHAR (20),
+	PasswordUsu VARCHAR (255),
 	Biografia VARCHAR(100),
 	FechaRegistro DATE DEFAULT (CURRENT_DATE),
 	ImagenPerfil LONGBLOB,

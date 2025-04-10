@@ -1,175 +1,84 @@
 <?php
-ob_start();
-session_start();
 
-header('Content-Type: application/json');
-header('Cache-Control: no-cache, must-revalidate');
+require_once __DIR__ . '/bootstrap.php';
 
 use Core\App;
-use Core\Database;
-use Core\Validator;
 
-ob_clean();
+$database = App::resolve(Core\Database::class); // Resuelve la instancia desde el contenedor
+$conn = $database->getConnection();
 
-$method = $_SERVER['REQUEST_METHOD'];
-$action = $_GET['action'] ?? '';
-$response = ['success' => false];
+$response = [];
 
-try {
-    $db = App::resolve(Database::class);
-    
-    try {
-        $db->query('SELECT 1')->find();
-    } catch (PDOException $e) {
-        throw new Exception('Error de conexión a la base de datos: ' . $e->getMessage());
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
 
-    $data = null;
-    if ($method === 'POST') {
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('JSON inválido: ' . json_last_error_msg());
+    $correo = $_POST['correo'] ?? '';
+    $password = $_POST['contrasena'] ?? '';
+
+    if ($action === 'register') {
+        $nombre = $_POST['nombre_completo'] ?? '';
+
+        if (!empty($nombre) && !empty($correo) && !empty($password)) {
+            // Verificar si el correo ya está registrado
+            $query = "SELECT UsuarioID FROM Usuario WHERE Correo = :correo";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':correo', $correo);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                $response['error'] = "El correo ya está registrado. Por favor, usa otro.";
+            } else {
+                // Hashear la contraseña
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+                // Insertar usuario
+                $query = "INSERT INTO Usuario (NombreUsuario, Correo, PasswordUsu, Biografia, TipoUsuario)
+                          VALUES (:nombre, :correo, :password, '', 0)";
+                $stmt = $conn->prepare($query);
+                $stmt->bindParam(':nombre', $nombre);
+                $stmt->bindParam(':correo', $correo);
+                $stmt->bindParam(':password', $hashedPassword);
+
+                if ($stmt->execute()) {
+                    $response['message'] = "Usuario registrado con éxito.";
+                } else {
+                    $response['error'] = "Error al registrar el usuario: " . $stmt->errorInfo()[2];
+                }
+            }
+        } else {
+            $response['error'] = "Todos los campos son obligatorios.";
         }
-    }
 
-    switch ($action) {
-        case 'register':
-            if ($method === 'POST') {
-                try {
-                    // Log de datos recibidos
-                    file_put_contents('register_debug.log', 
-                        date('Y-m-d H:i:s') . " - Datos recibidos: " . json_encode($data) . "\n", 
-                        FILE_APPEND
-                    );
-        
-                    // Validaciones
-                    $errors = [];
-                    if (!Validator::email($data['email'])) {
-                        $errors['email'] = 'Email inválido';
-                    }
-                    if (!Validator::string($data['password'], 7, 255)) {
-                        $errors['password'] = 'Contraseña inválida';
-                    }
-        
-                    if (!empty($errors)) {
-                        throw new Exception('Errores de validación: ' . json_encode($errors));
-                    }
-        
-                    // // Verificar si la tabla existe
-                    // $tables = $db->query("SHOW TABLES LIKE 'users'")->get();
-                    // if (empty($tables)) {
-                    //     // Crear la tabla si no existe
-                    //     $db->query("
-                    //         CREATE TABLE users (
-                    //             id INT AUTO_INCREMENT PRIMARY KEY,
-                    //             email VARCHAR(255) UNIQUE NOT NULL,
-                    //             password VARCHAR(255) NOT NULL,
-                    //             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    //         )
-                    //     ");
-                    // }
-        
-                    // Insertar usuario
-                    $result = $db->query('INSERT INTO users(email, password) VALUES(:email, :password)', [
-                        'email' => $data['email'],
-                        'password' => password_hash($data['password'], PASSWORD_DEFAULT)
-                    ]);
-        
-                    // Verificar inserción
-                    $newUser = $db->query('SELECT * FROM users WHERE email = :email', [
-                        'email' => $data['email']
-                    ])->find();
-        
-                    if ($newUser) {
-                        file_put_contents('register_debug.log', 
-                            date('Y-m-d H:i:s') . " - Usuario creado con ID: " . $newUser['id'] . "\n", 
-                            FILE_APPEND
-                        );
-        
-                        $_SESSION['user'] = [
-                            'id' => $newUser['id'],
-                            'email' => $newUser['email']
-                        ];
-        
-                        $response = [
-                            'success' => true,
-                            'message' => 'Usuario registrado exitosamente',
-                            'user_id' => $newUser['id']
-                        ];
-                    } else {
-                        throw new Exception('Error al crear usuario - no se encontró después de la inserción');
-                    }
-        
-                } catch (Exception $e) {
-                    file_put_contents('register_debug.log', 
-                        date('Y-m-d H:i:s') . " - Error: " . $e->getMessage() . "\n", 
-                        FILE_APPEND
-                    );
-                    throw $e;
-                }
-            }
-            break;
+    } elseif ($action === 'login') {
+        if (!empty($correo) && !empty($password)) {
+            $query = "SELECT * FROM Usuario WHERE Correo = :correo";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':correo', $correo);
+            $stmt->execute();
 
-        case 'login':
-            if ($method === 'POST') {
-                $user = $db->query('SELECT * FROM users WHERE email = :email', [
-                    'email' => $data['email']
-                ])->find();
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                if (!$user) {
-                    throw new Exception('Usuario no encontrado', 401);
-                }
-
-                if (!password_verify($data['password'], $user['password'])) {
-                    throw new Exception('Contraseña incorrecta', 401);
-                }
-
-                $_SESSION['user'] = [
-                    'id' => $user['id'],
-                    'email' => $user['email']
+            if ($usuario && password_verify($password, $usuario['PasswordUsu'])) {
+                $response['message'] = "Inicio de sesión exitoso.";
+                $response['user'] = [
+                    'UsuarioID' => $usuario['UsuarioID'],
+                    'NombreUsuario' => $usuario['NombreUsuario'],
+                    'Correo' => $usuario['Correo'],
+                    'Biografia' => $usuario['Biografia'],
+                    'TipoUsuario' => $usuario['TipoUsuario']
                 ];
-
-                $response = [
-                    'success' => true,
-                    'message' => 'Login exitoso'
-                ];
+            } else {
+                $response['error'] = "Correo o contraseña incorrectos.";
             }
-            break;
-
-        case 'logout':
-            session_destroy();
-            $response = [
-                'success' => true,
-                'message' => 'Sesión cerrada'
-            ];
-            break;
-        case 'test':
-            $response = [
-                'success' => true,
-                'message' => 'API funcionando correctamente',
-                'time' => date('Y-m-d H:i:s')
-            ];
-            break;
-
-        default:
-            throw new Exception('Endpoint no encontrado', 404);
+        } else {
+            $response['error'] = "Correo y contraseña son obligatorios.";
+        }
+    } else {
+        $response['error'] = "Acción inválida.";
     }
-
-    echo json_encode($response);
-
-} catch (Exception $e) {
-
-    $code = $e->getCode() ?: 500;
-    http_response_code($code);
-    
-    if (!isset($response['errors'])) {
-        $response['error'] = $e->getMessage();
-    }
-    
-    echo json_encode($response);
-} finally {
-
-    exit();
+} else {
+    $response['error'] = "Método no permitido.";
 }
+
+header('Content-Type: application/json');
+echo json_encode($response);

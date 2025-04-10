@@ -18,6 +18,11 @@ class Database
         ]);
     }
 
+    public function getConnection()
+    {
+        return $this->connection;
+    }
+
     public function query($query, $params = [])
     {
         $this->statement = $this->connection->prepare($query);
@@ -41,7 +46,7 @@ class Database
     {
         $result = $this->find();
 
-        if (! $result) {
+        if (!$result) {
             abort();
         }
 

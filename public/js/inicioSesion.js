@@ -4,10 +4,8 @@ function mostrarGooglePopup() {
 
 function cerrarGooglePopup() {
     document.getElementById("googlePopup").style.display = "none";
-    document.getElementById("alerta-email").style.display = "none";
-    document.getElementById("alerta-longitud").style.display = "none" ;
-    document.getElementById("alerta-mayuscula").style.display = "none";
-    document.getElementById("alerta-numero").style.display = "none";
+    // Limpiar alertas al cerrar
+    limpiarAlertas();
 }
 
 function mostrarPopup() {
@@ -16,117 +14,163 @@ function mostrarPopup() {
 
 function cerrarPopup() {
     document.getElementById("popup").style.display = "none";
+    // Limpiar errores al cerrar
+    document.getElementById("error-login-email").style.display = "none";
+    document.getElementById("error-login-password").style.display = "none";
 }
 
-function registrate(){
-    document.getElementById("popup").style.display = "none";
-    document.getElementById("googlePopup").style.display = "flex";
+function limpiarAlertas() {
+    document.getElementById("alerta-email").style.display = "none";
+    document.getElementById("alerta-longitud").style.display = "none";
+    document.getElementById("alerta-mayuscula").style.display = "none";
+    document.getElementById("alerta-numero").style.display = "none";
 }
 
-// document.addEventListener("DOMContentLoaded", function () {
-//     // Función para validar el correo electrónico y la contraseña
-//     function validarFormulario() {
-//         const email = document.getElementById("email-registro").value;
-//         const contrasena = document.getElementById("password-registro").value;
-
-//         const tieneArroba = email.includes("@");
-//         const longitudValida = contrasena.length >= 4 && contrasena.length <= 12;
-//         const tieneMayuscula = /[A-Z]/.test(contrasena);
-//         const tieneMinuscula = /[a-z]/.test(contrasena);
-//         const tieneNumero = /[0-9]/.test(contrasena);
-
-//         document.getElementById("alerta-email").style.display = tieneArroba ? "none" : "block";
-//         document.getElementById("alerta-longitud").style.display = longitudValida ? "none" : "block";
-//         document.getElementById("alerta-mayuscula").style.display = tieneMayuscula && tieneMinuscula ? "none" : "block";
-//         document.getElementById("alerta-numero").style.display = tieneNumero ? "none" : "block";
-
-//         return tieneArroba && longitudValida && tieneMayuscula && tieneMinuscula && tieneNumero;
-//     }
-
-//     // Evento para el botón de registro
-//     document.querySelector(".submit-btn").addEventListener("click", function (event) {
-//         if (!validarFormulario()) {
-//             event.preventDefault(); // Evita que el formulario se envíe si no es válido
-//         } else {
-//             window.location.href = '../html/home.html'; // Redirigir si el formulario es válido
-//         }
-//     });
-// });
-
-
-
-async function handleRegister(event) {
-    event.preventDefault();
-    
-    try {
-
-        const response = await fetch('/api?action=register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ 
-                email: document.getElementById('email-registro').value,
-                password: document.getElementById('password-registro').value 
-            })
-        });
-
-        // Debug mejorado
-        console.log('URL:', response.url);
-        console.log('Status:', response.status);
-        console.log('Headers:', Object.fromEntries(response.headers));
-
-        const textResponse = await response.text();
-        console.log('Response text:', textResponse);
-
-        try {
-            const data = JSON.parse(textResponse);
-            if (data.success) {
-                window.location.href = '/inicio';
-            } else {
-                alert(data.error || 'Error al registrar usuario');
-            }
-        } catch (jsonError) {
-            console.error('Error parsing JSON:', jsonError, 'Raw text:', textResponse);
-            throw new Error('Error procesando respuesta del servidor');
-        }
-    } catch (error) {
-        console.error('Error detallado:', {
-            message: error.message,
-            type: error.name,
-        });
-        alert(`Error al conectar con el servidor: ${error.message}`);
+function togglePassword() {
+    const passwordInput = document.activeElement.parentElement.querySelector('input[type="password"]');
+    if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+    } else {
+        passwordInput.type = "password";
     }
 }
 
-// También actualiza la función de login
-async function handleLogin(event) {
+
+document.querySelector('#registerForm').addEventListener('submit', function (event) {
     event.preventDefault();
-    
-    const formData = {
-        email: document.getElementById('email-login').value,
-        password: document.getElementById('password-login').value
-    };
 
-    try {
-        const response = await fetch('/api?action=login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        });
+    // Obtener los valores de los campos
+    const fullName = document.getElementById('full-name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-        const data = await response.json();
-        if (data.success) {
-            window.location.href = '/BDM_Capa_Z/inicio';
-        } else {
-            alert(data.error || 'Error en el inicio de sesión');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al conectar con el servidor');
+    // Limpiar errores anteriores
+    document.getElementById('error-fullname').innerHTML = '';
+    document.getElementById('error-email').innerHTML = '';
+    document.getElementById('error-password').innerHTML = '';
+
+    let errores = [];
+
+    // Validación nombre
+    if (fullName === '') {
+        errores.push({ id: 'error-fullname', mensaje: 'El nombre de usuario no puede estar vacío.' });
+    } else if (!/^[a-zA-Z\s]+$/.test(fullName)) {
+        errores.push({ id: 'error-fullname', mensaje: 'El nombre de usuario solo debe contener letras.' });
     }
-}
+
+    // Validación correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email === '') {
+        errores.push({ id: 'error-email', mensaje: 'El correo electrónico no puede estar vacío.' });
+    } else if (!emailRegex.test(email)) {
+        errores.push({ id: 'error-email', mensaje: 'Por favor, introduce un correo electrónico válido.' });
+    }
+
+    // Validación contraseña
+    if (password === '') {
+        errores.push({ id: 'error-password', mensaje: 'La contraseña no puede estar vacía.' });
+    } else {
+        if (password.length < 8) {
+            errores.push({ id: 'error-password', mensaje: 'La contraseña debe tener al menos 8 caracteres.' });
+        }
+        if (!/[A-Z]/.test(password)) {
+            errores.push({ id: 'error-password', mensaje: 'La contraseña debe contener al menos una letra mayúscula.' });
+        }
+        if (!/[0-9]/.test(password)) {
+            errores.push({ id: 'error-password', mensaje: 'La contraseña debe contener al menos un número.' });
+        }
+        if (!/[!@#$%^&*]/.test(password)) {
+            errores.push({ id: 'error-password', mensaje: 'La contraseña debe contener al menos un carácter especial (!@#$%^&*).' });
+        }
+    }
+
+    // Mostrar errores si hay
+    if (errores.length > 0) {
+        errores.forEach(error => {
+            document.getElementById(error.id).innerHTML = `<p>${error.mensaje}</p>`;
+        });
+        return;
+    }
+
+    // Enviar datos si no hay errores
+    const formData = new FormData(this);
+    formData.append('action', 'register'); // Agregar acción de registro
+
+    fetch('api/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Aquí puedes mostrar mensajes de éxito o redirigir
+        if (data.error) {
+            alert(data.error);
+        } else if (data.message) {
+            alert(data.message);
+            window.location.href = '/inicio';
+        }
+    })
+    .catch(error => {
+        console.error('Error en la solicitud:', error);
+        alert('Error al enviar los datos. Intenta nuevamente.');
+    });
+});
+
+
+document.querySelector('#loginForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    // Obtener los valores de los campos
+    const email = document.getElementById('email-login').value.trim();
+    const password = document.getElementById('password-login').value.trim();
+
+    // Limpiar errores anteriores
+    document.getElementById('error-login-email').innerHTML = '';
+    document.getElementById('error-login-password').innerHTML = '';
+
+    let errores = [];
+
+    // Validación correo
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email === '') {
+        errores.push({ id: 'error-login-email', mensaje: 'El correo electrónico no puede estar vacío.' });
+    } else if (!emailRegex.test(email)) {
+        errores.push({ id: 'error-login-email', mensaje: 'Por favor, introduce un correo electrónico válido.' });
+    }
+
+    // Validación contraseña
+    if (password === '') {
+        errores.push({ id: 'error-login-password', mensaje: 'La contraseña no puede estar vacía.' });
+    }
+
+    // Mostrar errores si hay
+    if (errores.length > 0) {
+        errores.forEach(error => {
+            document.getElementById(error.id).innerHTML = `<p>${error.mensaje}</p>`;
+        });
+        return;
+    }
+
+    // Enviar datos si no hay errores
+    const formData = new FormData(this);
+    formData.append('action', 'login'); // Agregar acción de inicio de sesión
+
+    fetch('/api', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Mostrar mensajes de éxito o error
+        if (data.error) {
+            alert(data.error);
+        } else if (data.message) {
+            alert(data.message);
+            window.location.href = '/inicio'; // Redirigir al inicio
+        }
+    })
+    .catch(error => {
+        console.error('Error en la solicitud:', error);
+        alert('Error al iniciar sesión. Intenta nuevamente.');
+    });
+});

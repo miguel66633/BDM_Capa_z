@@ -14,6 +14,11 @@ body {
     margin: 0;
 }
 
+.form-group{
+    padding: 12px;
+
+}
+
 /* Logo */
 .logo {
     /* font-family: Airstrike, sans-serif; */
