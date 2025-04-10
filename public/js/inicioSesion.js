@@ -163,14 +163,15 @@ document.querySelector('#loginForm').addEventListener('submit', function (event)
     .then(data => {
         // Mostrar mensajes de éxito o error
         if (data.error) {
-            //alert(data.error);
+            // Asignar el mensaje de error al elemento correspondiente
+            document.getElementById('error-login-email').innerHTML = `<p>${data.error}</p>`;
         } else if (data.message) {
-           // alert(data.message);
+            // alert(data.message);
             window.location.href = '/inicio'; // Redirigir al inicio
         }
     })
     .catch(error => {
         console.error('Error en la solicitud:', error);
-       // alert('Error al iniciar sesión. Intenta nuevamente.');
+        document.getElementById('error-login-email').innerHTML = `<p>Error al iniciar sesión. Intenta nuevamente.</p>`;
     });
 });

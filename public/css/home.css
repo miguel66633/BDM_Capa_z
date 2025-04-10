@@ -225,9 +225,9 @@ aside {
 
 .user-list {
   background-color: #111111;
-  padding: 10px;
-  border-radius: 5px;
-  box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.5); /* Sombra blanca debajo */
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.05); /* Sombra blanca debajo */
 }
 
 .user-list .list-header {
@@ -235,6 +235,7 @@ aside {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  
   font-size: 16px;
   color: white;
 }
@@ -242,16 +243,16 @@ aside {
 .user-list .clear-all {
   background-color: transparent; 
   color: white;
-  border: 2px solid  #111111; 
-  padding: 5px 10px;
+  border: 0px solid #000000; /* Borde color */
+  padding: 10px 10px;
   border-radius: 7px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .user-list .clear-all:hover {
-  background-color: #ffffff88; /* Fondo blanco al hacer hover */
-  color: #111111; /* Color del texto al hacer hover */
+  background-color: #1c1c1cf9; /* Fondo blanco al hacer hover */
+  color: #a1a1a1; /* Color del texto al hacer hover */
 }
 
 .user-list ul {
@@ -282,9 +283,10 @@ aside {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  border: 0px solid #ffffff00; /* Borde circular */
   background-color: #111111;
   color: white;
-  font-size: 24px;
+  font-size: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -294,8 +296,8 @@ aside {
 }
 
 .user-list ul li .remove-user:hover {
-  background-color: #ffffff88; /* Fondo blanco al hacer hover */
-  color: #111111; /* Color del texto al hacer hover */
+  background-color: #1c1c1cf9; /* Fondo blanco al hacer hover */
+  color: #a1a1a1; /* Color del texto al hacer hover */
 }
 
 .modal {
