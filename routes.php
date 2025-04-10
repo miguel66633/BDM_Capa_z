@@ -9,7 +9,7 @@
 // ];
 
 
-$router->get('/', 'controllers/index.php');
+$router->get('/Z', 'controllers/index.php');
 $router->get('/about', 'controllers/about.php');
 $router->get('/contact', 'controllers/contact.php');
 
