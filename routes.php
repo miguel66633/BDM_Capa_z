@@ -40,4 +40,3 @@ $router->get('/admin', 'controllers/admin.php');
 $router->get('/logout', 'controllers/logout.php');
 
 
-

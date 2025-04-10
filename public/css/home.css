@@ -11,9 +11,9 @@ body {
 
   /* Evita que se haga scroll en todo el body */
   height: 100vh;
-  overflow: hidden;          /* No permite scroll en el body */
-  -ms-overflow-style: none;  /* IE y Edge */
-  scrollbar-width: none;     /* Firefox */
+  overflow: hidden; /* No permite scroll en el body */
+  -ms-overflow-style: none; /* IE y Edge */
+  scrollbar-width: none; /* Firefox */
 }
 /* Ocultar scroll en navegadores basados en Webkit */
 body::-webkit-scrollbar {
@@ -28,130 +28,126 @@ body::-webkit-scrollbar {
 }
 
 .sidebar {
-    width: 20%;
-    background-color: #111111;  /*#000*/
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    
+  width: 20%;
+  background-color: #111111; /*#000*/
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-  
 .profile-container {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-radius: 30px;
-    background-color: #111111;  /*#000*/
-    cursor: pointer;
-    margin-top: auto;
-    position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 30px;
+  background-color: #111111; /*#000*/
+  cursor: pointer;
+  margin-top: auto;
+  position: relative;
 }
 
 .icono-btn {
-  width: 24px;     
+  width: 24px;
   height: 24px;
-  margin-right: 8px;   
+  margin-right: 8px;
   vertical-align: middle;
   filter: brightness(0) invert(1);
 }
 
-
 .profile-container:hover {
-    background-color: #202020;   /*#333*/
+  background-color: #202020; /*#333*/
 }
 
 .profile-container:hover:has(.profile-menu:hover) {
-    background-color: #000;
+  background-color: #000;
 }
 .profile-menu button:hover {
-    background-color: #444;
-    border-radius: 30px;
+  background-color: #444;
+  border-radius: 30px;
 }
 .profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    /* border: 2px solid white; */
-    margin-right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  /* border: 2px solid white; */
+  margin-right: 10px;
 }
 
 .profile-info {
-    color: white;
-    display: flex;
-    flex-direction: column;
+  color: white;
+  display: flex;
+  flex-direction: column;
 }
 
 .username {
-    font-size: 14px;
-    font-weight: bold;
-    margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
 }
 
 .user-handle {
-    font-size: 12px;
-    color: #aaa;
-    margin: 0;
+  font-size: 12px;
+  color: #aaa;
+  margin: 0;
 }
 
 /* Menú flotante*/
 .profile-menu {
-    display: none;
-    position: absolute; 
-    bottom: calc(100% + 10px); 
-    left: 0px;
-    width: 100%;        
-    background-color: #111111;
-    padding: 0px;
-    border-radius: 30px;
-    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
-    z-index: 100;
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0px;
+  width: 100%;
+  background-color: #111111;
+  padding: 0px;
+  border-radius: 30px;
+  box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
+  z-index: 100;
 }
 
 .profile-menu.active {
-    display: block;
+  display: block;
 }
 
 .profile-menu button {
-    background: none;
-    border: none;
-    color: white;
-    padding: 10px;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  padding: 10px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
 .sidebar button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    padding: 15px;
-    text-align: left;
-    cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
 }
-.logo  {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 48px;
-    padding: 15px;
-    text-align: left;
-    cursor: pointer;
+.logo {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 48px;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
 }
 .logo:hover {
-    background-color: #222;
-    border-radius: 30px;
+  background-color: #222;
+  border-radius: 30px;
 }
 
 .sidebar button:hover {
-    background-color: #222;
-    border-radius: 30px;
+  background-color: #222;
+  border-radius: 30px;
 }
 
 main {
-  
   width: 50%;
   border-left: 1px solid #333;
   border-right: 1px solid #333;
@@ -164,7 +160,7 @@ main {
 
 .main-header {
   display: flex;
-  align-items: center; 
+  align-items: center;
   gap: 10px;
   font-size: 14px;
   position: sticky;
@@ -174,16 +170,16 @@ main {
   left: 20px;
   right: 0;
   z-index: 10;
-  background: rgba(17, 17, 17, 0.5);      
-  backdrop-filter: blur(10px);         
-  -webkit-backdrop-filter: blur(10px); 
+  background: rgba(17, 17, 17, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding-left: 20px;
   /* border-bottom: 1px solid #333;       */
 }
 
 .post-header {
   display: flex;
-  align-items: center; 
+  align-items: center;
   gap: 10px;
   font-size: 14px;
   position: sticky;
@@ -193,9 +189,9 @@ main {
   left: 0;
   right: 0;
   z-index: 10;
-  background: rgba(17, 17, 17, 0.5);      
-  backdrop-filter: blur(10px);         
-  -webkit-backdrop-filter: blur(10px); 
+  background: rgba(17, 17, 17, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding-left: 20px;
   /* border-bottom: 1px solid #333;  */
 }
@@ -209,7 +205,7 @@ main {
 
 .scrollable-content {
   position: absolute;
-  top: 0px; 
+  top: 0px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -228,7 +224,6 @@ aside {
 }
 
 .user-list {
-  display: none;
   background-color: #111111;
   padding: 10px;
   border-radius: 5px;
@@ -245,18 +240,18 @@ aside {
 }
 
 .user-list .clear-all {
-  background-color: transparent; /* Fondo transparente */
+  background-color: transparent; 
   color: white;
-  border: 2px solid #ff5722; /* Borde color */
+  border: 2px solid  #111111; 
   padding: 5px 10px;
-  border-radius: 5px; /* Borde rectangular */
+  border-radius: 7px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .user-list .clear-all:hover {
-  background-color: #ffffff; /* Fondo blanco al hacer hover */
-  color: #ff5722; /* Color del texto al hacer hover */
+  background-color: #ffffff88; /* Fondo blanco al hacer hover */
+  color: #111111; /* Color del texto al hacer hover */
 }
 
 .user-list ul {
@@ -270,146 +265,149 @@ aside {
   align-items: center;
   justify-content: flex-start;
   margin: 10px 0; /* Aumentamos el espacio entre los usuarios */
-  font-size: 14px;
-  border-bottom: 1px solid #444;
+  font-size: 18px;
   padding: 5px 0;
 }
 
 .user-list ul li .user-img {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  margin-right: 15px; /* Espacio entre la imagen y el nombre */
+  margin-right: 20px; 
+  margin-left: 15px; 
 }
 
 .user-list ul li .remove-user {
-  margin-left: auto; /* Alinea el botón a la derecha */
-  background-color: transparent; /* Fondo transparente */
+  margin-left: auto; 
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #111111;
   color: white;
-  border: 2px solid #ff5722; /* Borde circular */
-  padding: 5px;
-  border-radius: 50%; /* Forma circular */
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.3s ease;
+  transition: color 0.4s;
 }
 
 .user-list ul li .remove-user:hover {
-  background-color: #ffffff; /* Fondo blanco al hacer hover */
-  color: #ff5722; /* Color del texto al hacer hover */
+  background-color: #ffffff88; /* Fondo blanco al hacer hover */
+  color: #111111; /* Color del texto al hacer hover */
 }
-
 
 .modal {
-    display: none; 
-    position: fixed;          
-    z-index: 999;             
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;      
-    background: rgba(17,17,17, 0.8);
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: rgba(17, 17, 17, 0.8);
 }
 
-  .modal-content {
-    background-color: #111111;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #333;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 20px;
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .modal-header h2 {
-    margin: 0;
-  }
-  
-  .close {
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .modal-body {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .modal-profile-pic {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-bottom: 10px;
-  }
-  
-  .post-textarea {
-    width: 100%;
-    height: 80px;
-    background-color: #111111;
-    border: 0px solid #000000; 
-    /* border-radius: 5px; */
-    color: #fff;
-    padding: 0px;
-    margin-bottom: 10px;
-    resize: none;
-    font-family: Arial, sans-serif;
-  }
-  
-  .modal-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .image-upload-label img {
-    width: 24px;       
-    height: 24px;
-    cursor: pointer;   
-    filter: brightness(0) invert(1);
-  }
-  .image-upload-label:hover {
-    background-color: #222222;
-    border-radius: 8px;
-  }
+.modal-content {
+  background-color: #111111;
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid #333;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 20px;
+}
 
-  .submit-btn {
-    background-color: #111111; 
-    border: none;
-    color: white;           
-    font-size: 18px;
-    padding: 15px;
-    text-align: left;       
-    cursor: pointer;
-    border-radius: 30px;
-    margin-bottom: 10px;
-  }
-  .submit-btn:hover {
-    background-color: #444;  
-  }
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.close {
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-body {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-profile-pic {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.post-textarea {
+  width: 100%;
+  height: 80px;
+  background-color: #111111;
+  border: 0px solid #000000;
+  /* border-radius: 5px; */
+  color: #fff;
+  padding: 0px;
+  margin-bottom: 10px;
+  resize: none;
+  font-family: Arial, sans-serif;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.image-upload-label img {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  filter: brightness(0) invert(1);
+}
+.image-upload-label:hover {
+  background-color: #222222;
+  border-radius: 8px;
+}
+
+.submit-btn {
+  background-color: #111111;
+  border: none;
+  color: white;
+  font-size: 18px;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 30px;
+  margin-bottom: 10px;
+}
+.submit-btn:hover {
+  background-color: #444;
+}
 
 .postear-btn {
-  background-color: #fff !important; 
-  color: #111111 !important;         
-  text-align: center !important;     
+  background-color: #fff !important;
+  color: #111111 !important;
+  text-align: center !important;
   width: 100%;
-  padding: 15px ;
+  padding: 15px;
   margin: 5px auto;
   font-size: 16px;
   font-weight: bold;
   border-radius: 30px;
-  display: block; 
+  display: block;
 }
 .postear-btn:hover {
-  background-color: #eee;  
+  background-color: #eee;
 }
 
 /* Popup */
@@ -420,7 +418,7 @@ aside {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(17,17,17, 0.8);
+  background: rgba(17, 17, 17, 0.8);
   justify-content: center;
   align-items: center;
 }
@@ -447,7 +445,6 @@ aside {
   cursor: pointer;
 }
 
-  
 /* derecha */
 .search-bar {
   display: flex;
@@ -483,15 +480,12 @@ aside {
   color: #777;
 }
 
-
-
 /* publicaciones */
 
 .publicacion {
-  background-color: #111; 
+  background-color: #111;
   border: 1px solid #333;
 
-  
   border-radius: 10px;
   margin-bottom: 20px;
   padding: 15px;
@@ -534,57 +528,55 @@ aside {
 }
 
 .publicacion-imagen {
-  max-width: 100%;  /* Se ajusta al ancho máximo del contenedor */
-  height: auto;     /* Mantiene la proporción original de la imagen */
+  max-width: 100%; /* Se ajusta al ancho máximo del contenedor */
+  height: auto; /* Mantiene la proporción original de la imagen */
   border-radius: 10px;
   margin-top: 10px;
-  width: 100%;      /* Se adapta al ancho del contenedor */
+  width: 100%; /* Se adapta al ancho del contenedor */
   object-fit: cover;
-
 }
 /* Contenedor general del carrusel */
 .carousel-container {
   position: relative;
-  width: auto;  
+  width: auto;
   /* max-width: 600px;   Ajusta según tu diseño */
-  height:auto;     /* Mantiene la proporción original de la imagen */     /* Ajusta la altura según tu diseño */
-  overflow:hidden;  /* Oculta las imágenes que estén fuera del contenedor */
+  height: auto; /* Mantiene la proporción original de la imagen */ /* Ajusta la altura según tu diseño */
+  overflow: hidden; /* Oculta las imágenes que estén fuera del contenedor */
   margin-top: 10px;
   border-radius: 10px; /* Opcional: si deseas esquinas redondeadas */
   align-items: center;
-  justify-content: center;    /* Centrado horizontal */
-  background-color:#000;
+  justify-content: center; /* Centrado horizontal */
+  background-color: #000;
 }
 
 /* Contenedor que agrupa todas las imágenes en fila */
 .carousel-slide {
   display: flex;
-  transition: transform 0.4s ease-in-out; 
+  transition: transform 0.4s ease-in-out;
 }
 /* Cada slide ocupa el ancho completo y centra la imagen */
 .slide {
-  min-width: 100%;            /* Cada slide ocupa el 100% del contenedor */
-  display: flex;              
-  align-items: center;        /* Centrado vertical */
-  justify-content: center;    /* Centrado horizontal */
+  min-width: 100%; /* Cada slide ocupa el 100% del contenedor */
+  display: flex;
+  align-items: center; /* Centrado vertical */
+  justify-content: center; /* Centrado horizontal */
 }
 
 /* Ajustes de las imágenes para que se adapten y se centren */
 .slide img {
-  max-width: 100%;   /* Que no rebase el ancho del contenedor */
-  max-height: 100%;  /* Evita que rebase la altura del contenedor */
+  max-width: 100%; /* Que no rebase el ancho del contenedor */
+  max-height: 100%; /* Evita que rebase la altura del contenedor */
   object-fit: contain; /* O "contain" si quieres que se vea completa */
 }
-
 
 /* Cada imagen ocupa 100% del ancho del carrusel */
 .carousel-slide img {
   min-width: 100%;
-  height: 100%;          /* Para ocupar la altura del contenedor */
-  object-fit: auto;     /* Recorta la imagen si es muy alta/ancha */
+  height: 100%; /* Para ocupar la altura del contenedor */
+  object-fit: auto; /* Recorta la imagen si es muy alta/ancha */
   border-radius: 10px;
   align-items: center;
-  justify-content: center;    /* Centrado horizontal */
+  justify-content: center; /* Centrado horizontal */
 }
 
 /* Botones de flecha */
@@ -592,7 +584,7 @@ aside {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   border: none;
   color: #fff;
   font-size: 24px;
@@ -618,20 +610,14 @@ aside {
 
 /* Hover para indicar interactividad */
 .carousel-arrow:hover {
-  background-color: rgba(255,255,255,0.3);
+  background-color: rgba(255, 255, 255, 0.3);
 }
-
-
-
 
 .publicacion-acciones {
   display: flex;
   justify-content: space-around;
   margin-top: 10px;
 }
-
-
-
 
 .accion-btn {
   background: none;
@@ -654,15 +640,11 @@ aside {
   transition: background-color 0.2s ease;
   padding: 5px; /* Opcional: para darle un poco de espacio alrededor del icono */
   border-radius: 50%; /* Si deseas un efecto redondeado en el fondo */
-
-
 }
 
 .repost-btn.active {
   background-color: #444; /* Color más claro para indicar la acción */
 }
-
-
 
 .back-btn {
   background: none;
@@ -675,7 +657,6 @@ aside {
   height: 20px;
   filter: brightness(0) invert(1);
 }
-
 
 .comentarios {
   margin-top: 20px;
@@ -690,8 +671,8 @@ aside {
   padding-top: 15px;
 }
 .comentario img {
-  max-width: 100%; 
-  max-height: 100%;  
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   border-radius: 15px;
 }
@@ -745,23 +726,23 @@ aside {
 
 /* Contenedor del textarea e íconos */
 .comentar-content {
-  flex-grow: 1;            
+  flex-grow: 1;
   display: flex;
-  flex-direction: column;  /* Coloca el textarea arriba y la barra de íconos/botón abajo */
+  flex-direction: column; /* Coloca el textarea arriba y la barra de íconos/botón abajo */
 }
 
 /* Área de texto */
 .comentar-textarea {
   width: 95%;
-  background-color: #333;  /* Fondo negro */
-  border: 0px solid #161616;  /* Borde sutil */
+  background-color: #333; /* Fondo negro */
+  border: 0px solid #161616; /* Borde sutil */
   color: #fff;
   resize: none;
-  min-height: 30px;        /* Altura mínima */
+  min-height: 30px; /* Altura mínima */
   padding: 10px;
   border-radius: 10px;
-  margin-bottom: 10px;     /* Espacio entre el textarea y los íconos/botón */
-  font-family: inherit;    /* Mantiene la fuente principal */
+  margin-bottom: 10px; /* Espacio entre el textarea y los íconos/botón */
+  font-family: inherit; /* Mantiene la fuente principal */
 }
 
 /* Barra inferior (íconos + botón) */
@@ -801,7 +782,6 @@ aside {
   background-color: #777;
 }
 
-
 .accion {
   display: flex;
   align-items: center;
@@ -821,9 +801,6 @@ aside {
   font-size: 0.9em;
   color: #ccc;
 }
-
-
-
 
 /* Banner */
 .profile-banner img {
@@ -863,7 +840,7 @@ aside {
 .name-and-edit {
   display: flex;
   justify-content: space-between;
-  align-items:end;
+  align-items: end;
 }
 
 .name-username h2 {
@@ -923,8 +900,6 @@ aside {
   font-size: 16px;
 }
 
-
-
 .modalB {
   position: fixed;
   top: 0;
@@ -962,14 +937,13 @@ aside {
 
 .close-modalB {
   color: none;
-  cursor: pointer;  
+  cursor: pointer;
   font-size: 16px;
   background: none;
   border: none;
   color: white;
 }
 .save-modalB {
-
   background: white;
   border-radius: 30px;
   padding: 5px;
@@ -978,11 +952,10 @@ aside {
   color: #000000;
   font-size: 16px;
   cursor: pointer;
-
 }
 
-
-.close-modalB:hover, .save-modalB:hover {
+.close-modalB:hover,
+.save-modalB:hover {
   opacity: 0.8;
 }
 
@@ -1040,7 +1013,7 @@ aside {
   position: absolute;
   bottom: 0;
   right: 0;
-  transform: translate(50%, 50%); 
+  transform: translate(50%, 50%);
   /* Mueve el ícono para que quede “afuera” del borde inferior-derecho. 
      Ajusta según tu gusto. */
 }
