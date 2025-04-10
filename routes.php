@@ -37,6 +37,7 @@ $router->get('/guardados', 'controllers/guardados.php');
 $router->get('/mensajes', 'controllers/mensajes.php');
 $router->get('/perfil', 'controllers/perfil.php');
 $router->get('/admin', 'controllers/admin.php');
+$router->get('/logout', 'controllers/logout.php');
 
 
 

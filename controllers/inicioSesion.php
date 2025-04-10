@@ -14,10 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $correo_valor = $correo;
 
-    $url = '/api'; // URL de tu API
+    $url = '/api'; 
 
     $data = array(
-        'action' => 'login', // Acción esperada por la API
+        'action' => 'login', 
         'correo' => $correo,
         'contrasena' => $password
     );
@@ -71,5 +71,7 @@ view("inicioSesion.view.php", [
     'error_contrasena' => $error_contrasena,
     'correo_valor' => $correo_valor
 ]);
+
+
 
 

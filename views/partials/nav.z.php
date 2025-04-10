@@ -14,15 +14,15 @@
 
     <!-- Contenedor del perfil en la parte inferior de la sidebar -->
     <div class="profile-container" onclick="toggleMenu()">
-        <img src="Resources/images/perfil.jpg" alt="Foto de perfil" class="profile-pic">
+        <img src="Resources/images/perfilpre.jpg" alt="Foto de perfil" class="profile-pic">
         <div class="profile-info">
             <p class="username">Miguel Reyes</p>
-            <p class="user-handle">@migueriro</p>
+            <!-- <p class="user-handle">@migueriro</p> -->
         </div>
         
         <!-- Menú flotante dentro del mismo contenedor -->
         <div id="profile-menu" class="profile-menu">
-            <button class="submit-btn" onclick="window.location.href='/Z'">Cerrar sesion</button>
+            <button class="submit-btn" onclick="window.location.href='/logout'">Cerrar sesion</button>
             <button onclick="window.location.href='/admin'">Admin</button>
         </div>
     </div>
