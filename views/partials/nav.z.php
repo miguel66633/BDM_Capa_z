@@ -11,7 +11,6 @@
 
     <!-- Botón "Postear" arriba del perfil -->
     <button class="submit-btn postear-btn" onclick="openModal()">Postear</button>
-    <button class="submit-btn postear-btn" onclick="openModal()">Pilin</button>
 
     <!-- Contenedor del perfil en la parte inferior de la sidebar -->
     <div class="profile-container" onclick="toggleMenu()">
