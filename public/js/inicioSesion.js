@@ -15,15 +15,19 @@ function mostrarPopup() {
 function cerrarPopup() {
     document.getElementById("popup").style.display = "none";
     // Limpiar errores al cerrar
+    
     document.getElementById("error-login-email").style.display = "none";
     document.getElementById("error-login-password").style.display = "none";
 }
 
 function limpiarAlertas() {
-    document.getElementById("alerta-email").style.display = "none";
-    document.getElementById("alerta-longitud").style.display = "none";
-    document.getElementById("alerta-mayuscula").style.display = "none";
-    document.getElementById("alerta-numero").style.display = "none";
+    const alertas = ["alerta-email", "alerta-longitud", "alerta-mayuscula", "alerta-numero"];
+    alertas.forEach(alertaId => {
+        const alerta = document.getElementById(alertaId);
+        if (alerta && alerta.style.display !== "none") {
+            alerta.style.display = "none";
+        }
+    });
 }
 
 function togglePassword() {
@@ -106,8 +110,9 @@ document.querySelector('#registerForm').addEventListener('submit', function (eve
         if (data.error) {
             alert(data.error);
         } else if (data.message) {
-            alert(data.message);
-            window.location.href = '/inicio';
+            // cerrarGooglePopup();
+            // return;
+            // window.location.href = '/inicio';
         }
     })
     .catch(error => {

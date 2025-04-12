@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 $stmt->bindParam(':password', $hashedPassword);
 
                 if ($stmt->execute()) {
-                    // $response['message'] = "Usuario registrado con éxito.";
+                    $response['message'] = "Usuario registrado con éxito.";
                 } else {
                     $response['error'] = "Error al registrar el usuario: " . $stmt->errorInfo()[2];
                 }
