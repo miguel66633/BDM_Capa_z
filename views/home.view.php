@@ -18,7 +18,14 @@
                         <img src="<?php echo isset($publicacion['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($publicacion['ImagenPerfil']) : 'Resources/images/perfilpre.jpg'; ?>" alt="Foto de perfil" class="publicacion-profile-pic">
                         <div class="publicacion-info">
                             <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['NombreUsuario']); ?></span>
-                            <span class="publicacion-user-handle">@<?php echo htmlspecialchars($publicacion['NombreUsuario']); ?> • <?php echo htmlspecialchars($publicacion['FechaPublicacion']); ?></span>
+                            <span class="publicacion-user-handle">
+                                @<?php echo htmlspecialchars($publicacion['NombreUsuario']); ?> • 
+                                <?php 
+                                    // Formatear la fecha y hora
+                                    $fechaHora = new DateTime($publicacion['FechaPublicacion']);
+                                    echo $fechaHora->format('d/m/Y H:i'); // Ejemplo: 22/04/2025 14:30
+                                ?>
+                            </span>
                         </div>
                     </div>
 

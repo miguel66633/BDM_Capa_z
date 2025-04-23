@@ -29,7 +29,7 @@ $query = "
         p.FechaPublicacion DESC;
 ";
 
-$publicaciones = $db->query($query)->get(); // Cambiado fetchAll() por get()
+$publicaciones = $db->query($query)->get();
 
 // Pasar las publicaciones a la vista
 view("home.view.php", [
