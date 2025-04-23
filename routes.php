@@ -40,3 +40,6 @@ $router->get('/admin', 'controllers/admin.php');
 $router->get('/logout', 'controllers/logout.php');
 
 
+
+$router->post('/crear-publicacion', 'controllers/publicacion/crear.php');
+

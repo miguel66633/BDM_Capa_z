@@ -4,7 +4,7 @@ function toggleMenu() {
 }
 
 function logout() {
-//     window.location.href = "../html/inicioSesion.html";
+
  }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -53,16 +53,13 @@ function openModal() {
 
 
 
-
-  
-  // Resto de tus funciones existentes
   function toggleMenu() {
     let menu = document.getElementById("profile-menu");
     menu.classList.toggle("active");
   }
   
   function logout() {
-    // window.location.href = "../html/inicioSesion.html";
+
   }
   
   document.addEventListener("DOMContentLoaded", function () {
@@ -88,7 +85,6 @@ function openModal() {
 document.querySelectorAll('.like-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       const img = this.querySelector('.accion-icon');
-      // Si la imagen actual es like.svg, se cambia a likeP.svg; de lo contrario, vuelve a like.svg
       if (img.getAttribute('src') === 'Resources/images/like.svg') {
         img.setAttribute('src', 'Resources/images/likeP.svg');
       } else {
