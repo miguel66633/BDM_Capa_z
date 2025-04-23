@@ -43,14 +43,18 @@
 
                     <!-- Acciones de la publicación -->
                     <div class="publicacion-acciones">
-                      <div class="accion">
-                          <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
-                              <img src="Resources/images/like.svg" class="accion-icon">
-                          </button>
-                          <span class="accion-count" id="like-count-<?php echo $publicacion['PublicacionID']; ?>">
-                              <?php echo $publicacion['Likes'] ?? 0; ?>
-                          </span>
-                      </div>
+                    <div class="accion">
+                            <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img 
+                                    src="Resources/images/<?php echo $publicacion['YaDioLike'] ? 'likeP.svg' : 'like.svg'; ?>" 
+                                    class="accion-icon"
+                                    alt="Botón de like"
+                                >
+                            </button>
+                            <span class="accion-count" id="like-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['Likes'] ?? 0; ?>
+                            </span>
+                        </div>
                         <div class="accion">
                             <button class="accion-btn repost-btn">
                                 <img src="Resources/images/repost.svg" class="accion-icon" alt="Repost">

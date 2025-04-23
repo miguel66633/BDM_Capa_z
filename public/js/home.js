@@ -3,10 +3,6 @@ function toggleMenu() {
     // menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
-function logout() {
-
- }
-
 document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
     const profileMenu = document.querySelector(".profile-menu");

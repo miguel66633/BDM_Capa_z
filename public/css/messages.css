@@ -137,7 +137,7 @@ aside {
     bottom: calc(100% + 10px); 
     left: 0px;
     width: 100%;        
-    background-color: #000000;
+    background-color: #111111;
     padding: 0px;
     border-radius: 30px;
     box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
@@ -198,7 +198,8 @@ aside {
 }
 
   .modal-content {
-    background-color: #000;
+    background-color: #111111;
+    z-index: 1000; 
     margin: 5% auto;
     padding: 20px;
     border: 1px solid #333;
@@ -567,3 +568,48 @@ aside {
 /* .send-button img:hover {
     filter: invert(42%) sepia(86%) saturate(2396%) hue-rotate(88deg) brightness(103%) contrast(101%);
 } */
+/* 
+.profile-menu {
+  display: none;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #111;
+  border: 1px solid #333;
+  border-radius: 30px;
+  z-index: 1000;
+  padding: 10px;
+}
+
+.profile-menu.active {
+  display: block;
+} */
+
+
+.search-results {
+  position: absolute;
+  background: #111111;
+  border-top: 1px solid #333333;
+  width: 100%;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 80;
+}
+
+.search-result {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.search-result:hover {
+  background: #333333;
+}
+
+.search-result img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
