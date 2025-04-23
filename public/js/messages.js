@@ -76,37 +76,56 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="mensaje-nombre">${usuario.NombreUsuario}</span>
                         </div>
                     `).join('');
+
+                    // Agregar el evento de clic solo si hay resultados
+                    searchResults.querySelectorAll('.search-result').forEach(result => {
+                        result.addEventListener('click', () => {
+                            const usuarioId = result.getAttribute('data-usuario-id');
+                            const nombreUsuario = result.querySelector('.mensaje-nombre').textContent;
+
+                            // Enviar la solicitud al servidor para crear el chat
+                            fetch('/crear-chat', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                },
+                                body: `destinatario_id=${encodeURIComponent(usuarioId)}`
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    alert(data.error);
+                                } else {
+                                    // Agregar el usuario como un nuevo mensaje en la lista de chats
+                                    const nuevoMensaje = document.createElement('div');
+                                    nuevoMensaje.classList.add('mensaje');
+                                    nuevoMensaje.innerHTML = `
+                                        <img src="../images/perfil.jpg" class="mensaje-img" alt="${nombreUsuario}">
+                                        <div class="mensaje-info">
+                                            <div class="mensaje-header">
+                                                <span class="mensaje-nombre">${nombreUsuario}</span>
+                                                <span class="mensaje-handle">@${nombreUsuario.toLowerCase()}</span>
+                                                <span class="mensaje-fecha">• Ahora</span>
+                                            </div>
+                                            <div class="mensaje-texto">Nuevo chat iniciado</div>
+                                        </div>
+                                    `;
+                                    messageList.appendChild(nuevoMensaje); // Agregar al final de la lista de mensajes
+                                    searchResults.innerHTML = ''; // Limpiar los resultados de búsqueda
+                                    searchInput.value = ''; // Limpiar el campo de búsqueda
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                        });
+                    });
                 } else {
                     searchResults.innerHTML = '<p>No se encontraron usuarios.</p>';
                 }
             })
-            .catch(error => console.error('Error:', error));
-        }
-    });
-
-    // Manejar la selección de un usuario
-    searchResults.addEventListener('click', (event) => {
-        const result = event.target.closest('.search-result');
-        if (result) {
-            const usuarioId = result.getAttribute('data-usuario-id');
-            const nombreUsuario = result.querySelector('.mensaje-nombre').textContent;
-
-            // Agregar el usuario como un nuevo mensaje
-            const nuevoMensaje = document.createElement('div');
-            nuevoMensaje.classList.add('mensaje');
-            nuevoMensaje.innerHTML = `
-                <img src="../images/perfil.jpg" class="mensaje-img" alt="${nombreUsuario}">
-                <div class="mensaje-info">
-                    <div class="mensaje-header">
-                        <span class="mensaje-nombre">${nombreUsuario}</span>
-                        <span class="mensaje-fecha">• Ahora</span>
-                    </div>
-                    <div class="mensaje-texto">Nuevo chat iniciado</div>
-                </div>
-            `;
-            messageList.appendChild(nuevoMensaje); // Agregar al final de la lista de mensajes
-            searchResults.innerHTML = ''; // Limpiar los resultados de búsqueda
-            searchInput.value = ''; // Limpiar el campo de búsqueda
+            .catch(error => {
+                console.error('Error:', error);
+                searchResults.innerHTML = '<p>Ocurrió un error al buscar usuarios.</p>';
+            });
         }
     });
 });

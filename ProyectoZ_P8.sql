@@ -33,8 +33,9 @@ CREATE TABLE Publicacion(
 CREATE TABLE Chat (
     ChatID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     UsuarioID INT,
-    FOREIGN KEY (UsuarioID) REFERENCES Usuario(UsuarioID),
     DestinatarioID INT,
+    FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (UsuarioID) REFERENCES Usuario(UsuarioID),
     FOREIGN KEY (DestinatarioID) REFERENCES Usuario(UsuarioID)
 );
 

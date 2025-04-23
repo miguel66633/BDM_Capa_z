@@ -20,29 +20,23 @@
 
                 <div id="search-results" class="search-results"></div>
 
-                <div class="mensaje">
-                    <img src="../images/perfil.jpg" class="mensaje-img">
-                    <div class="mensaje-info">
-                        <div class="mensaje-header">
-                            <span class="mensaje-nombre">NachoBIT</span>
-                            <span class="mensaje-handle">@TheNachoBIT</span>
-                            <span class="mensaje-fecha">• 16 dic. 2021</span>
+                            <?php if (!empty($chats)): ?>
+                    <?php foreach ($chats as $chat): ?>
+                        <div class="mensaje">
+                            <img src="<?php echo $chat['ImagenPerfil']; ?>" class="mensaje-img" alt="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
+                            <div class="mensaje-info">
+                                <div class="mensaje-header">
+                                    <span class="mensaje-nombre"><?php echo htmlspecialchars($chat['NombreUsuario']); ?></span>
+                                    <span class="mensaje-handle">@<?php echo htmlspecialchars(strtolower($chat['NombreUsuario'])); ?></span>
+                                    <span class="mensaje-fecha">• <?php echo date('d M. Y', strtotime($chat['FechaCreacion'])); ?></span>
+                                </div>
+                                <div class="mensaje-texto">Nuevo chat iniciado</div>
+                            </div>
                         </div>
-                        <div class="mensaje-texto">Epico xd</div>
-                    </div>
-                </div>
-
-                <div class="mensaje">
-                    <img src="../images/perfil.jpg" class="mensaje-img">
-                    <div class="mensaje-info">
-                        <div class="mensaje-header">
-                            <span class="mensaje-nombre">NachoBIT</span>
-                            <span class="mensaje-handle">@TheNachoBIT</span>
-                            <span class="mensaje-fecha">• 16 dic. 2021</span>
-                        </div>
-                        <div class="mensaje-texto">Epico xd</div>
-                    </div>
-                </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No tienes chats activos.</p>
+                <?php endif; ?>
 
         </div>
         </main>
