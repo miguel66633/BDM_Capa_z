@@ -42,4 +42,5 @@ $router->get('/logout', 'controllers/logout.php');
 
 
 $router->post('/crear-publicacion', 'controllers/publicacion/crear.php');
-
+$router->post('/like', 'controllers/like.php');
+$router->post('/guardar', 'controllers/guardar.php');

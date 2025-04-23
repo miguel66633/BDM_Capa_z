@@ -82,29 +82,80 @@ function openModal() {
 
 
   // Función para alternar la imagen del botón "like"
-document.querySelectorAll('.like-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const img = this.querySelector('.accion-icon');
-      if (img.getAttribute('src') === 'Resources/images/like.svg') {
-        img.setAttribute('src', 'Resources/images/likeP.svg');
-      } else {
-        img.setAttribute('src', 'Resources/images/like.svg');
-      }
+  document.addEventListener('DOMContentLoaded', () => {
+    const likeButtons = document.querySelectorAll('.like-btn');
+
+    likeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const publicacionId = button.getAttribute('data-publicacion-id');
+            const likeCountElement = document.getElementById(`like-count-${publicacionId}`);
+            const img = button.querySelector('.accion-icon');
+
+            fetch('/like', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `publicacion_id=${publicacionId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const currentLikes = parseInt(likeCountElement.textContent, 10);
+                    if (data.liked) {
+                        likeCountElement.textContent = currentLikes + 1;
+                        img.setAttribute('src', 'Resources/images/likeP.svg'); // Cambiar a imagen de "like activo"
+                    } else {
+                        likeCountElement.textContent = currentLikes - 1;
+                        img.setAttribute('src', 'Resources/images/like.svg'); // Cambiar a imagen de "like inactivo"
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
     });
-  });
-  
+});
+
+
+
   // Función para alternar la imagen del botón "saved"
-  document.querySelectorAll('.saved-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      const img = this.querySelector('.accion-icon');
-      // Si la imagen actual es saved.svg, se cambia a guardados.svg; de lo contrario, vuelve a saved.svg
-      if (img.getAttribute('src') === 'Resources/images/saved.svg') {
-        img.setAttribute('src', 'Resources/images/guardados.svg');
-      } else {
-        img.setAttribute('src', 'Resources/images/saved.svg');
-      }
+  document.addEventListener('DOMContentLoaded', () => {
+    const saveButtons = document.querySelectorAll('.saved-btn');
+
+    saveButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const publicacionId = button.getAttribute('data-publicacion-id');
+            const saveCountElement = document.getElementById(`save-count-${publicacionId}`);
+            const img = button.querySelector('.accion-icon');
+
+            fetch('/guardar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `publicacion_id=${publicacionId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const currentSaves = parseInt(saveCountElement.textContent, 10);
+                    if (data.guardado) {
+                        saveCountElement.textContent = currentSaves + 1;
+                        img.setAttribute('src', 'Resources/images/guardados.svg'); // Cambiar a imagen de "guardado activo"
+                    } else {
+                        saveCountElement.textContent = currentSaves - 1;
+                        img.setAttribute('src', 'Resources/images/saved.svg'); // Cambiar a imagen de "guardado inactivo"
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
     });
-  });
+});
   
   
   document.querySelectorAll('.repost-btn').forEach(function(btn) {

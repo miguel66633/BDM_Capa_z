@@ -10,7 +10,10 @@ if (session_status() === PHP_SESSION_NONE) {
 // Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
 
-// Recuperar publicaciones y multimedia
+// Obtener el ID del usuario actual
+$usuarioId = $_SESSION['user_id'] ?? null;
+
+// Recuperar publicaciones, likes y guardados
 $query = "
     SELECT 
         p.PublicacionID,
@@ -18,7 +21,20 @@ $query = "
         p.FechaPublicacion,
         u.NombreUsuario,
         u.ImagenPerfil,
-        m.TipoMultimedia
+        m.TipoMultimedia,
+        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS Likes,
+        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados,
+        EXISTS (
+            SELECT 1 
+            FROM PublicacionLike pl
+            INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = :usuarioId AND pl.PublicacionID = p.PublicacionID
+        ) AS YaDioLike,
+        EXISTS (
+            SELECT 1 
+            FROM Guardado g
+            WHERE g.UsuarioID = :usuarioId AND g.PublicacionID = p.PublicacionID
+        ) AS YaGuardado
     FROM 
         Publicacion p
     LEFT JOIN 
@@ -29,7 +45,7 @@ $query = "
         p.FechaPublicacion DESC;
 ";
 
-$publicaciones = $db->query($query)->get();
+$publicaciones = $db->query($query, ['usuarioId' => $usuarioId])->get();
 
 // Pasar las publicaciones a la vista
 view("home.view.php", [

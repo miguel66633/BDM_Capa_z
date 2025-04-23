@@ -43,12 +43,14 @@
 
                     <!-- Acciones de la publicación -->
                     <div class="publicacion-acciones">
-                        <div class="accion">
-                            <button class="accion-btn like-btn">
-                                <img src="Resources/images/like.svg" class="accion-icon">
-                            </button>
-                            <span class="accion-count">123</span>
-                        </div>
+                      <div class="accion">
+                          <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                              <img src="Resources/images/like.svg" class="accion-icon">
+                          </button>
+                          <span class="accion-count" id="like-count-<?php echo $publicacion['PublicacionID']; ?>">
+                              <?php echo $publicacion['Likes'] ?? 0; ?>
+                          </span>
+                      </div>
                         <div class="accion">
                             <button class="accion-btn repost-btn">
                                 <img src="Resources/images/repost.svg" class="accion-icon" alt="Repost">
@@ -62,10 +64,16 @@
                             <span class="accion-count">67</span>
                         </div>
                         <div class="accion">
-                            <button class="accion-btn saved-btn">
-                                <img src="Resources/images/saved.svg" class="accion-icon">
+                            <button class="accion-btn saved-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img 
+                                    src="Resources/images/<?php echo $publicacion['YaGuardado'] ? 'guardados.svg' : 'saved.svg'; ?>" 
+                                    class="accion-icon"
+                                    alt="Botón de guardado"
+                                >
                             </button>
-                            <span class="accion-count">89</span>
+                            <span class="accion-count" id="save-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['Guardados'] ?? 0; ?>
+                            </span>
                         </div>
                     </div>
                 </div>
