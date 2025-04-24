@@ -2,20 +2,21 @@ document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
     const profileMenu = document.querySelector("#profile-menu");
 
-    profileContainer.addEventListener("click", function (event) {
-        event.stopPropagation(); // Evita que el evento se propague
-        profileMenu.classList.toggle("active");
-    });
+    if (profileContainer && profileMenu) {
+        profileContainer.addEventListener("click", function (event) {
+            event.stopPropagation();
+            profileMenu.classList.toggle("active");
+        });
 
-    // Cierra el menú si se hace clic fuera de él
-    document.addEventListener("click", function (event) {
-        if (!profileContainer.contains(event.target) && !profileMenu.contains(event.target)) {
-            profileMenu.classList.remove("active");
-        }
-    });
+        document.addEventListener("click", function (event) {
+            if (!profileContainer.contains(event.target) && !profileMenu.contains(event.target)) {
+                profileMenu.classList.remove("active");
+            }
+        });
+    }
 });
 
-
+    // seleccion de un chat en la lista
 document.querySelectorAll('.mensaje').forEach(mensaje => {
     mensaje.addEventListener('click', function() {
         document.querySelectorAll('.mensaje').forEach(m => m.classList.remove('seleccionado'));
@@ -24,23 +25,8 @@ document.querySelectorAll('.mensaje').forEach(mensaje => {
     });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-    const profileContainer = document.querySelector(".profile-container");
-    const profileMenu = document.querySelector(".profile-menu");
 
-    profileContainer.addEventListener("click", function (event) {
-        event.stopPropagation(); // Evita que se cierre inmediatamente al hacer clic
-        profileMenu.classList.toggle("active");
-    });
-
-    // Cierra el menú si se hace clic fuera de él
-    document.addEventListener("click", function (event) {
-        if (!profileContainer.contains(event.target) && !profileMenu.contains(event.target)) {
-            profileMenu.classList.remove("active");
-        }
-    });
-});
-
+//Manejo de la Búsqueda de Usuarios
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const searchResults = document.getElementById('search-results');
@@ -126,6 +112,40 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error:', error);
                 searchResults.innerHTML = '<p>Ocurrió un error al buscar usuarios.</p>';
             });
+        }
+    });
+});
+
+//Cargar Información del Chat Seleccionado
+document.addEventListener('DOMContentLoaded', () => {
+    const messageList = document.getElementById('message-list'); // Contenedor de los mensajes
+    const chatHeaderName = document.querySelector('.chat-header-name'); // Nombre del usuario en la parte derecha
+    const chatHeaderImg = document.querySelector('.chat-header-img'); // Imagen del usuario en la parte derecha
+
+    // Manejar el clic en un chat
+    messageList.addEventListener('click', (event) => {
+        const chatElement = event.target.closest('.mensaje');
+        if (chatElement) {
+            const chatId = chatElement.getAttribute('data-chat-id');
+    
+            fetch('/cargar-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `chat_id=${encodeURIComponent(chatId)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    console.log('Imagen de perfil:', data.ImagenPerfil); // Depuración
+                    chatHeaderName.textContent = data.NombreUsuario;
+                    chatHeaderImg.src = data.ImagenPerfil;
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
     });
 });

@@ -46,4 +46,6 @@ $router->post('/like', 'controllers/like.php');
 $router->post('/guardar', 'controllers/guardar.php');
 
 $router->post('/buscar-usuario', 'controllers/buscarUsuario.php');
+
 $router->post('/crear-chat', 'controllers/chat/crear.php');
+$router->post('/cargar-chat', 'controllers/chat/cargar.php');

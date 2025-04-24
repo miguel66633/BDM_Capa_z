@@ -4,7 +4,11 @@
 
     <main id="contenido">
         <div class="scrollable-content">
-            <h2>Publicaciones Guardadas</h2>
+            <div class="main-header">
+                <div class="header-content">
+                    <h2>Guardados</h2>
+                </div>
+            </div>
             <?php if (empty($publicaciones)): ?>
                 <p>No tienes publicaciones guardadas.</p>
             <?php else: ?>
