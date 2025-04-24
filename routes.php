@@ -49,3 +49,6 @@ $router->post('/buscar-usuario', 'controllers/buscarUsuario.php');
 
 $router->post('/crear-chat', 'controllers/chat/crear.php');
 $router->post('/cargar-chat', 'controllers/chat/cargar.php');
+
+$router->post('/mensaje/cargar', 'controllers/mensaje/cargar.php');
+$router->post('/mensaje/enviar', 'controllers/mensaje/enviar.php');

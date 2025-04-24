@@ -35,10 +35,15 @@ $queryUser = "
     INNER JOIN 
         Usuario u ON (u.UsuarioID = c.DestinatarioID AND c.ChatID = :chatId)
         OR (u.UsuarioID = c.UsuarioID AND c.ChatID = :chatId)
+    WHERE 
+        u.UsuarioID != :currentUserId
     LIMIT 1;
 ";
 
-$userInfo = $db->query($queryUser, ['chatId' => $chatId])->find();
+$userInfo = $db->query($queryUser, [
+    'chatId' => $chatId,
+    'currentUserId' => $_SESSION['user_id']
+])->find();
 
 if (!$userInfo) {
     echo json_encode(['error' => 'No se encontró información del chat.']);

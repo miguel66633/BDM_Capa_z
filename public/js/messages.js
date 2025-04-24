@@ -118,34 +118,126 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //Cargar Información del Chat Seleccionado
 document.addEventListener('DOMContentLoaded', () => {
-    const messageList = document.getElementById('message-list'); // Contenedor de los mensajes
-    const chatHeaderName = document.querySelector('.chat-header-name'); // Nombre del usuario en la parte derecha
-    const chatHeaderImg = document.querySelector('.chat-header-img'); // Imagen del usuario en la parte derecha
+    const chatHeaderImg = document.querySelector('.chat-header-img');
+    const chatHeaderName = document.querySelector('.chat-header-name');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatIdInput = document.getElementById('chat-id');
+    const messageList = document.getElementById('message-list');
 
-    // Manejar el clic en un chat
-    messageList.addEventListener('click', (event) => {
-        const chatElement = event.target.closest('.mensaje');
-        if (chatElement) {
-            const chatId = chatElement.getAttribute('data-chat-id');
-    
-            fetch('/cargar-chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `chat_id=${encodeURIComponent(chatId)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    console.log('Imagen de perfil:', data.ImagenPerfil); // Depuración
-                    chatHeaderName.textContent = data.NombreUsuario;
-                    chatHeaderImg.src = data.ImagenPerfil;
-                }
-            })
-            .catch(error => console.error('Error:', error));
+    // Manejar la selección de un chat
+    if (messageList) {
+        messageList.addEventListener('click', (event) => {
+            const chatElement = event.target.closest('.mensaje');
+            if (chatElement) {
+                const chatId = chatElement.getAttribute('data-chat-id');
+                chatIdInput.value = chatId;
+
+                // Marcar el chat como seleccionado
+                document.querySelectorAll('.mensaje').forEach((m) => m.classList.remove('seleccionado'));
+                chatElement.classList.add('seleccionado');
+
+                // Cargar información del chat y mensajes
+                fetch('/chat/cargar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `chat_id=${encodeURIComponent(chatId)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // Actualizar encabezado del chat
+                        chatHeaderImg.src = data.ImagenPerfil || 'Resources/images/perfilPre.jpg';
+                        chatHeaderName.textContent = data.NombreUsuario || 'Usuario desconocido';
+
+                        // Cargar los mensajes en el contenedor
+                        chatMessages.innerHTML = data.Mensajes.map(mensaje => `
+                            <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
+                                <p>${mensaje.ContenidoMensaje}</p>
+                                <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
+                            </div>
+                        `).join('');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    }
+});
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+    const chatIdInput = document.getElementById('chat-id');
+
+    // Cargar mensajes de un chat
+    function cargarMensajes(chatId) {
+        fetch('/mensaje/cargar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `chat_id=${encodeURIComponent(chatId)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                chatMessages.innerHTML = data.map(mensaje => `
+                    <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
+                        <p>${mensaje.ContenidoMensaje}</p>
+                        <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
+                    </div>
+                `).join('');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Enviar un mensaje
+    sendButton.addEventListener('click', () => {
+        const chatId = chatIdInput.value;
+        const contenido = chatInput.value.trim();
+
+        if (!contenido) {
+            alert('El mensaje no puede estar vacío.');
+            return;
         }
+
+        fetch('/mensaje/enviar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `chat_id=${encodeURIComponent(chatId)}&contenido=${encodeURIComponent(contenido)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                chatInput.value = '';
+                cargarMensajes(chatId); // Recargar los mensajes
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    // Manejar la selección de un chat
+    document.querySelectorAll('.mensaje').forEach(chat => {
+        chat.addEventListener('click', () => {
+            const chatId = chat.getAttribute('data-chat-id');
+            chatIdInput.value = chatId;
+            cargarMensajes(chatId);
+        });
     });
 });

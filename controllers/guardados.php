@@ -23,7 +23,13 @@ $query = "
         u.ImagenPerfil,
         m.TipoMultimedia,
         (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS Likes,
-        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados
+        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados,
+        EXISTS (
+            SELECT 1 
+            FROM PublicacionLike pl
+            INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = :usuarioId AND pl.PublicacionID = p.PublicacionID
+        ) AS YaDioLike
     FROM 
         Guardado g
     INNER JOIN 
@@ -35,7 +41,7 @@ $query = "
     WHERE 
         g.UsuarioID = :usuarioId
     ORDER BY 
-        g.FechaGuardado DESC; -- Ordenar por la fecha en que fueron guardadas
+        g.FechaGuardado DESC;
 ";
 
 $publicacionesGuardadas = $db->query($query, ['usuarioId' => $usuarioId])->get();
