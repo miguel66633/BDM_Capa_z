@@ -20,17 +20,19 @@
 
               <div id="search-results" class="search-results"></div>
 
-              <?php if (!empty($chats)): ?>
+                <?php if (!empty($chats)): ?>
                 <?php foreach ($chats as $chat): ?>
                     <div class="mensaje" data-chat-id="<?php echo $chat['ChatID']; ?>" data-imagen-perfil="<?php echo $chat['ImagenPerfil']; ?>" data-nombre-usuario="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
                         <img src="<?php echo $chat['ImagenPerfil']; ?>" class="mensaje-img" alt="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
                         <div class="mensaje-info">
                             <div class="mensaje-header">
                                 <span class="mensaje-nombre"><?php echo htmlspecialchars($chat['NombreUsuario']); ?></span>
-                                <span class="mensaje-handle">@<?php echo htmlspecialchars(strtolower($chat['NombreUsuario'])); ?></span>
-                                <span class="mensaje-fecha">• <?php echo date('d M. Y', strtotime($chat['FechaCreacion'])); ?></span>
+                                <!-- <span class="mensaje-handle">@<?php echo htmlspecialchars(strtolower($chat['NombreUsuario'])); ?></span> -->
+                                <span class="mensaje-fecha">• <?php echo !empty($chat['HoraUltimoMensaje']) ? date('d M. Y H:i', strtotime($chat['HoraUltimoMensaje'])) : ''; ?></span>
                             </div>
-                            <div class="mensaje-texto">Nuevo chat iniciado</div>
+                            <div class="mensaje-texto">
+                                <?php echo !empty($chat['UltimoMensaje']) ? htmlspecialchars($chat['UltimoMensaje']) : 'Comienza a conversar'; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>

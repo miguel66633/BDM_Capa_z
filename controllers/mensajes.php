@@ -19,7 +19,7 @@ $db = App::resolve(Database::class);
 // Obtener el ID del usuario actual
 $usuarioId = $_SESSION['user_id'];
 
-// Consultar los chats del usuario
+// Consultar los chats del usuario con el último mensaje
 $query = "
     SELECT 
         c.ChatID,
@@ -35,7 +35,17 @@ $query = "
             WHEN c.UsuarioID = :usuarioId THEN u2.ImagenPerfil
             ELSE u1.ImagenPerfil
         END AS ImagenPerfil,
-        c.FechaCreacion
+        c.FechaCreacion,
+        (SELECT m.ContenidoMensaje 
+         FROM Mensaje m 
+         WHERE m.ChatID = c.ChatID 
+         ORDER BY m.FechaMensaje DESC 
+         LIMIT 1) AS UltimoMensaje,
+        (SELECT m.FechaMensaje 
+         FROM Mensaje m 
+         WHERE m.ChatID = c.ChatID 
+         ORDER BY m.FechaMensaje DESC 
+         LIMIT 1) AS HoraUltimoMensaje
     FROM 
         Chat c
     INNER JOIN 
@@ -52,7 +62,6 @@ $chats = $db->query($query, ['usuarioId' => $usuarioId])->get();
 
 // Convertir las imágenes a base64
 foreach ($chats as &$chat) {
-    
     if (!empty($chat['ImagenPerfil'])) {
         $chat['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($chat['ImagenPerfil']);
     } else {
