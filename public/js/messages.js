@@ -122,50 +122,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatHeaderName = document.querySelector('.chat-header-name');
     const chatMessages = document.getElementById('chat-messages');
     const chatIdInput = document.getElementById('chat-id');
-    const messageList = document.getElementById('message-list');
+    const messageList = document.querySelectorAll('.mensaje');
 
     // Manejar la selección de un chat
-    if (messageList) {
-        messageList.addEventListener('click', (event) => {
-            const chatElement = event.target.closest('.mensaje');
-            if (chatElement) {
-                const chatId = chatElement.getAttribute('data-chat-id');
-                chatIdInput.value = chatId;
+    messageList.forEach(chatElement => {
+        chatElement.addEventListener('click', () => {
+            const chatId = chatElement.getAttribute('data-chat-id');
+            const chatName = chatElement.getAttribute('data-nombre-usuario');
+            const chatImg = chatElement.getAttribute('data-imagen-perfil');
 
-                // Marcar el chat como seleccionado
-                document.querySelectorAll('.mensaje').forEach((m) => m.classList.remove('seleccionado'));
-                chatElement.classList.add('seleccionado');
+            // Actualizar el encabezado del chat
+            chatHeaderImg.src = chatImg;
+            chatHeaderName.textContent = chatName;
 
-                // Cargar información del chat y mensajes
-                fetch('/chat/cargar', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `chat_id=${encodeURIComponent(chatId)}`
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
-                        // Actualizar encabezado del chat
-                        chatHeaderImg.src = data.ImagenPerfil || 'Resources/images/perfilPre.jpg';
-                        chatHeaderName.textContent = data.NombreUsuario || 'Usuario desconocido';
+            // Marcar el chat como seleccionado
+            document.querySelectorAll('.mensaje').forEach(m => m.classList.remove('seleccionado'));
+            chatElement.classList.add('seleccionado');
 
-                        // Cargar los mensajes en el contenedor
-                        chatMessages.innerHTML = data.Mensajes.map(mensaje => `
-                            <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
-                                <p>${mensaje.ContenidoMensaje}</p>
-                                <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
-                            </div>
-                        `).join('');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
+            // Actualizar el ID del chat en el input oculto
+            chatIdInput.value = chatId;
+
+            // Aquí puedes cargar los mensajes del chat si es necesario
+            fetch('/chat/cargar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `chat_id=${encodeURIComponent(chatId)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    // Cargar los mensajes en el contenedor
+                    chatMessages.innerHTML = data.Mensajes.map(mensaje => `
+                        <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
+                            <p>${mensaje.ContenidoMensaje}</p>
+                            <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
+                        </div>
+                    `).join('');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
-    }
+    });
 });
 
 
@@ -178,33 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('send-button');
     const chatIdInput = document.getElementById('chat-id');
 
-    // Cargar mensajes de un chat
-    function cargarMensajes(chatId) {
-        fetch('/mensaje/cargar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `chat_id=${encodeURIComponent(chatId)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                chatMessages.innerHTML = data.map(mensaje => `
-                    <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
-                        <p>${mensaje.ContenidoMensaje}</p>
-                        <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
-                    </div>
-                `).join('');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    // Enviar un mensaje
-    sendButton.addEventListener('click', () => {
+    // Función para enviar un mensaje
+    function enviarMensaje() {
         const chatId = chatIdInput.value;
         const contenido = chatInput.value.trim();
 
@@ -225,11 +201,50 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.error) {
                 alert(data.error);
             } else {
-                chatInput.value = '';
+                chatInput.value = ''; // Limpiar el campo de entrada
                 cargarMensajes(chatId); // Recargar los mensajes
             }
         })
         .catch(error => console.error('Error:', error));
+    }
+
+    // Función para cargar mensajes de un chat
+    function cargarMensajes(chatId) {
+        fetch('/mensaje/cargar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `chat_id=${encodeURIComponent(chatId)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                const usuarioId = data.UsuarioID; // ID del usuario actual
+                chatMessages.innerHTML = data.Mensajes.map(mensaje => `
+                    <div class="message ${mensaje.RemitenteID === usuarioId ? 'my-message' : 'other-message'}">
+                        <p>${mensaje.ContenidoMensaje}</p>
+                    </div>
+                `).join('');
+
+                // Hacer scroll hacia el final del contenedor
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Manejar el evento de clic en el botón de enviar
+    sendButton.addEventListener('click', enviarMensaje);
+
+    // Manejar el evento de presionar "Enter" en el campo de entrada
+    chatInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Evitar el comportamiento predeterminado (como un salto de línea)
+            enviarMensaje();
+        }
     });
 
     // Manejar la selección de un chat

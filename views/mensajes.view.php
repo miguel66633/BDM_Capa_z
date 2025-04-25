@@ -21,8 +21,8 @@
               <div id="search-results" class="search-results"></div>
 
               <?php if (!empty($chats)): ?>
-                  <?php foreach ($chats as $chat): ?>
-                    <div class="mensaje" data-chat-id="<?php echo $chat['ChatID']; ?>">
+                <?php foreach ($chats as $chat): ?>
+                    <div class="mensaje" data-chat-id="<?php echo $chat['ChatID']; ?>" data-imagen-perfil="<?php echo $chat['ImagenPerfil']; ?>" data-nombre-usuario="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
                         <img src="<?php echo $chat['ImagenPerfil']; ?>" class="mensaje-img" alt="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
                         <div class="mensaje-info">
                             <div class="mensaje-header">
@@ -33,10 +33,10 @@
                             <div class="mensaje-texto">Nuevo chat iniciado</div>
                         </div>
                     </div>
-                  <?php endforeach; ?>
-              <?php else: ?>
-                  <p>No tienes chats activos.</p>
-              <?php endif; ?>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>No tienes chats activos.</p>
+            <?php endif; ?>
           </div>
         </main>
 

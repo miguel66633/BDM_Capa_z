@@ -23,22 +23,36 @@ $usuarioId = $_SESSION['user_id'];
 $query = "
     SELECT 
         c.ChatID,
-        u.UsuarioID AS DestinatarioID,
-        u.NombreUsuario,
-        u.ImagenPerfil,
+        CASE 
+            WHEN c.UsuarioID = :usuarioId THEN u2.UsuarioID
+            ELSE u1.UsuarioID
+        END AS PersonaID,
+        CASE 
+            WHEN c.UsuarioID = :usuarioId THEN u2.NombreUsuario
+            ELSE u1.NombreUsuario
+        END AS NombreUsuario,
+        CASE 
+            WHEN c.UsuarioID = :usuarioId THEN u2.ImagenPerfil
+            ELSE u1.ImagenPerfil
+        END AS ImagenPerfil,
         c.FechaCreacion
     FROM 
         Chat c
     INNER JOIN 
-        Usuario u ON (u.UsuarioID = c.DestinatarioID AND c.UsuarioID = :usuarioId)
-        OR (u.UsuarioID = c.UsuarioID AND c.DestinatarioID = :usuarioId)
-    ORDER BY c.FechaCreacion DESC;
+        Usuario u1 ON c.UsuarioID = u1.UsuarioID
+    INNER JOIN 
+        Usuario u2 ON c.DestinatarioID = u2.UsuarioID
+    WHERE 
+        c.UsuarioID = :usuarioId OR c.DestinatarioID = :usuarioId
+    ORDER BY 
+        c.FechaCreacion DESC;
 ";
 
 $chats = $db->query($query, ['usuarioId' => $usuarioId])->get();
 
 // Convertir las imágenes a base64
 foreach ($chats as &$chat) {
+    
     if (!empty($chat['ImagenPerfil'])) {
         $chat['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($chat['ImagenPerfil']);
     } else {

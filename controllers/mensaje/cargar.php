@@ -30,20 +30,17 @@ $queryMessages = "
         m.MensajeID,
         m.RemitenteID,
         m.ContenidoMensaje,
-        m.FechaMensaje,
-        u.NombreUsuario AS RemitenteNombre
+        m.FechaMensaje
     FROM 
         Mensaje m
-    INNER JOIN 
-        Usuario u ON m.RemitenteID = u.UsuarioID
     WHERE 
         m.ChatID = :chatId
     ORDER BY 
-        m.FechaMensaje DESC;
+        m.FechaMensaje ASC;
 ";
 
 $messages = $db->query($queryMessages, ['chatId' => $chatId])->get();
 
 // Devolver los mensajes como JSON
-echo json_encode($messages);
+echo json_encode(['Mensajes' => $messages, 'UsuarioID' => $_SESSION['user_id']]);
 exit;
