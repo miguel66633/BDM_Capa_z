@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin / Z</title>
+    <title>Z</title>
     <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" href="Resources/images/logo-Z.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container">
@@ -43,8 +44,6 @@
             </section>
         </main>
     </div>
-
-
     <!--Ventana de reportes-->
     <div id="ReportesPopup" class="popup-container">
         <div class="popup">
@@ -75,9 +74,6 @@
             
         </div>
     </div>
-
-
-
     <script src="../js/home.js"></script>
 </body>
 </html>

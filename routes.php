@@ -27,7 +27,7 @@ $router->get('/inicio', 'controllers/home.php')->only('auth');
 $router->get('/guardados', 'controllers/guardados.php')->only('auth');
 $router->get('/mensajes', 'controllers/mensajes.php')->only('auth');
 $router->get('/perfil', 'controllers/perfil.php')->only('auth');
-$router->get('/admin', 'controllers/admin.php')->only('admin');
+$router->get('/admin', 'controllers/admin.php')->only('auth')->only('admin');
 $router->get('/logout', 'controllers/logout.php')->only('auth');
 
 
@@ -41,5 +41,5 @@ $router->post('/buscar-usuario', 'controllers/buscarUsuario.php')->only('auth');
 $router->post('/crear-chat', 'controllers/chat/crear.php')->only('auth');
 $router->post('/cargar-chat', 'controllers/chat/cargar.php')->only('auth');
 
-$router->post('/mensaje/cargar', 'controllers/mensaje/cargar.php');
-$router->post('/mensaje/enviar', 'controllers/mensaje/enviar.php');
+$router->post('/mensaje/cargar', 'controllers/mensaje/cargar.php')->only('auth');
+$router->post('/mensaje/enviar', 'controllers/mensaje/enviar.php')->only('auth');

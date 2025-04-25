@@ -1,6 +1,13 @@
 <?php require base_path('views/partials/head.z.php'); ?>
 <div class="container">
     <?php require base_path('views/partials/nav.z.php'); ?>
+        
+    <?php
+    $userId = $_SESSION['user_id'];
+    ?>
+    <!-- Aquí insertamos el userId desde PHP en un campo oculto -->
+    <input type="hidden" id="userId" value="<?php echo $userId; ?>">
+
 
     <main id="contenido">
         <div class="scrollable-content">
@@ -23,7 +30,7 @@
                                 <?php 
                                     // Formatear la fecha y hora
                                     $fechaHora = new DateTime($publicacion['FechaPublicacion']);
-                                    echo $fechaHora->format('d/m/Y H:i'); // Ejemplo: 22/04/2025 14:30
+                                    echo $fechaHora->format('d/m/Y H:i');
                                 ?>
                             </span>
                         </div>

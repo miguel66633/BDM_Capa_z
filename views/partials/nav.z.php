@@ -23,7 +23,9 @@
         <!-- Menú flotante dentro del mismo contenedor -->
         <div id="profile-menu" class="profile-menu">
             <button class="submit-btn" onclick="window.location.href='/logout'">Cerrar sesion</button>
-            <button onclick="window.location.href='/admin'">Admin</button>
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 2): ?>
+                <button onclick="window.location.href='/admin'">Admin</button>
+            <?php endif; ?>
         </div>
     </div>
  </nav>
