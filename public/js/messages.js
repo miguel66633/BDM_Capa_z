@@ -1,5 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
+    const profileMenu = document.querySelector(".profile-menu");
+
+    profileContainer.addEventListener("click", function (event) {
+        event.stopPropagation(); // Evita que se cierre inmediatamente al hacer clic
+        profileMenu.classList.toggle("active");
+    });
+
+    // Cierra el menú si se hace clic fuera de él
+    document.addEventListener("click", function (event) {
+        if (!profileContainer.contains(event.target) && !profileMenu.contains(event.target)) {
+            profileMenu.classList.remove("active");
+        }
+    });
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const profileContainer = document.querySelector(".profile-container");
     const profileMenu = document.querySelector("#profile-menu");
 
     if (profileContainer && profileMenu) {
@@ -223,11 +241,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(data.error);
             } else {
                 const usuarioId = data.UsuarioID; // ID del usuario actual
-                chatMessages.innerHTML = data.Mensajes.map(mensaje => `
-                    <div class="message ${mensaje.RemitenteID === usuarioId ? 'my-message' : 'other-message'}">
-                        <p>${mensaje.ContenidoMensaje}</p>
-                    </div>
-                `).join('');
+                chatMessages.innerHTML = data.Mensajes.map(mensaje => {
+                    const hora = new Date(mensaje.FechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    return `
+                        <div class="message ${mensaje.RemitenteID === usuarioId ? 'my-message' : 'other-message'}">
+                            <p>${mensaje.ContenidoMensaje}</p>
+                            <span class="message-time">${hora}</span>
+                        </div>
+                    `;
+                }).join('');
 
                 // Hacer scroll hacia el final del contenedor
                 chatMessages.scrollTop = chatMessages.scrollHeight;

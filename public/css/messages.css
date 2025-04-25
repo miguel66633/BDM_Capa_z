@@ -615,12 +615,14 @@ aside {
 /* Mensajes enviados por el usuario */
 .my-message {
   max-width: 60%;
-  margin-bottom: 10px;
+  margin-bottom: 7px;
   margin: 15px;
-  padding: 8px 12px;
+  /* padding: 8px 12px; */
+  padding-left: 20px;
+  padding-right: 20px;
   border-radius: 25px 25px 5px 25px;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.0;
 }
 
 /* Mensajes recibidos de la otra persona */
@@ -628,6 +630,9 @@ aside {
   align-self: flex-start;
   background-color: #333;
   border-radius: 25px 25px 25px 5px;
+  padding-left: 20px;
+  padding-right: 20px;
+  line-height: 1.0;
 }
 
 
@@ -654,3 +659,11 @@ Mensaje de la otra persona (izq)
   background-color: #444;
 } 
 */
+
+.message-time {
+  display: block;
+  font-size: 12px;
+  color: #aaa;
+  margin-top: 3px;
+  text-align: right; /* Alinea la hora a la derecha */
+}
