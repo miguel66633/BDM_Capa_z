@@ -7,7 +7,7 @@ class Middleware
     public const MAP = [
         'guest' => Guest::class,
         'auth' => Authenticated::class,
-        'otroMiddleware' => OtroMas::class
+        'admin' => Admin::class, // Agregar el middleware de administrador
     ];
 
     public static function resolve($key)

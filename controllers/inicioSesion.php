@@ -4,6 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+
 $error_correo = '';
 $error_contrasena = '';
 $correo_valor = '';

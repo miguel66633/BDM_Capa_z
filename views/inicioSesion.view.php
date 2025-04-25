@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión en Z</title>
     <link rel="stylesheet" href="css/inicioSesion.css">
+    <link rel="icon" href="Resources/images/logo-Z.ico" type="image/x-icon">
 
 </head>
 <body>

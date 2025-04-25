@@ -2,13 +2,20 @@
 
 use Core\App;
 use Core\Database;
+// Resolver la conexión a la base de datos
+$db = App::resolve(Database::class);
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Resolver la conexión a la base de datos
-$db = App::resolve(Database::class);
+// $_SESSION['user'] = [
+//     'UsuarioID' => $usuario['UsuarioID'],
+//     'NombreUsuario' => $usuario['NombreUsuario'],
+//     'TipoUsuario' => $usuario['TipoUsuario']
+// ];
+
+
 
 // Obtener el ID del usuario actual
 $usuarioId = $_SESSION['user_id'] ?? null;

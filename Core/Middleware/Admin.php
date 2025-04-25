@@ -2,7 +2,7 @@
 
 namespace Core\Middleware;
 
-class Authenticated
+class Admin
 {
     public function handle()
     {
@@ -11,10 +11,10 @@ class Authenticated
             session_start();
         }
 
-        // Verificar si el usuario ha iniciado sesión
-        if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
+        // Verificar si el usuario ha iniciado sesión y es administrador
+        if (!isset($_SESSION['user']) || $_SESSION['user']['TipoUsuario'] !== 2) {
             // Redirigir a la pantalla de inicio de sesión
-            header('Location: /Z');
+            header('Location: /inicio');
             exit();
         }
     }
