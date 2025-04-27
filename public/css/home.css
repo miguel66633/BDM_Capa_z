@@ -892,7 +892,7 @@ aside {
 
 /* Sección de Posts */
 .posts-section {
-  margin-top: 20px;
+  /* margin-top: 20px; */
   padding: 20px 20px;
   border-bottom: 1px solid #333;
   /* border-top: 1px solid #333; */

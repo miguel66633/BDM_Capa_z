@@ -1,24 +1,11 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const profileContainer = document.querySelector(".profile-container");
-    const profileMenu = document.querySelector(".profile-menu");
-
-    profileContainer.addEventListener("click", function (event) {
-        event.stopPropagation(); // Evita que se cierre inmediatamente al hacer clic
-        profileMenu.classList.toggle("active");
-    });
-
-    // Cierra el menú si se hace clic fuera de él
-    document.addEventListener("click", function (event) {
-        if (!profileContainer.contains(event.target) && !profileMenu.contains(event.target)) {
-            profileMenu.classList.remove("active");
-        }
-    });
-});
-
+function toggleMenu() {
+    let menu = document.getElementById("profile-menu");
+    // menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
 
 document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
-    const profileMenu = document.querySelector("#profile-menu");
+    const profileMenu = document.querySelector("#profile-menu"); // Asegúrate que el ID es correcto
 
     if (profileContainer && profileMenu) {
         profileContainer.addEventListener("click", function (event) {
@@ -34,176 +21,38 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-    // seleccion de un chat en la lista
-document.querySelectorAll('.mensaje').forEach(mensaje => {
-    mensaje.addEventListener('click', function() {
-        document.querySelectorAll('.mensaje').forEach(m => m.classList.remove('seleccionado'));
-        this.classList.add('seleccionado');
-        document.querySelector('.chat-header-name').textContent = this.querySelector('.mensaje-nombre').textContent;
-    });
-});
-
-
-//Manejo de la Búsqueda de Usuarios
+//Manejo de la Búsqueda de Usuarios y Creación/Selección de Chats
 document.addEventListener('DOMContentLoaded', () => {
+    const chatListContainer = document.getElementById('chat-list-container'); 
     const searchInput = document.getElementById('search-input');
     const searchResults = document.getElementById('search-results');
-    const messageList = document.getElementById('message-list'); // Contenedor de los mensajes
-
-    // Manejar la búsqueda al presionar Enter
-    searchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') {
-            const termino = searchInput.value.trim();
-
-            if (termino === '') {
-                alert('Por favor, ingresa un término de búsqueda.');
-                return;
-            }
-
-            // Enviar la solicitud al servidor
-            fetch('/buscar-usuario', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `termino=${encodeURIComponent(termino)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else if (data.length > 0) {
-                    // Mostrar los resultados de búsqueda
-                    searchResults.innerHTML = data.map(usuario => `
-                        <div class="search-result" data-usuario-id="${usuario.UsuarioID}">
-                            <img src="${usuario.ImagenPerfil ? `data:image/jpeg;base64,${usuario.ImagenPerfil}` : 'Resources/images/perfilPre.jpg'}" class="mensaje-img" alt="${usuario.NombreUsuario}">
-                            <span class="mensaje-nombre">${usuario.NombreUsuario}</span>
-                        </div>
-                    `).join('');
-
-                    // Agregar el evento de clic solo si hay resultados
-                    searchResults.querySelectorAll('.search-result').forEach(result => {
-                        result.addEventListener('click', () => {
-                            const usuarioId = result.getAttribute('data-usuario-id');
-                            const nombreUsuario = result.querySelector('.mensaje-nombre').textContent;
-
-                            // Enviar la solicitud al servidor para crear el chat
-                            fetch('/crear-chat', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                },
-                                body: `destinatario_id=${encodeURIComponent(usuarioId)}`
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.error) {
-                                    alert(data.error);
-                                } else {
-                                    // Agregar el usuario como un nuevo mensaje en la lista de chats
-                                    const nuevoMensaje = document.createElement('div');
-                                    nuevoMensaje.classList.add('mensaje');
-                                    nuevoMensaje.innerHTML = `
-                                        <img src="../images/perfil.jpg" class="mensaje-img" alt="${nombreUsuario}">
-                                        <div class="mensaje-info">
-                                            <div class="mensaje-header">
-                                                <span class="mensaje-nombre">${nombreUsuario}</span>
-                                                <span class="mensaje-handle">@${nombreUsuario.toLowerCase()}</span>
-                                                <span class="mensaje-fecha">• Ahora</span>
-                                            </div>
-                                            <div class="mensaje-texto">Nuevo chat iniciado</div>
-                                        </div>
-                                    `;
-                                    messageList.appendChild(nuevoMensaje); // Agregar al final de la lista de mensajes
-                                    searchResults.innerHTML = ''; // Limpiar los resultados de búsqueda
-                                    searchInput.value = ''; // Limpiar el campo de búsqueda
-                                }
-                            })
-                            .catch(error => console.error('Error:', error));
-                        });
-                    });
-                } else {
-                    searchResults.innerHTML = '<p>No se encontraron usuarios.</p>';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                searchResults.innerHTML = '<p>Ocurrió un error al buscar usuarios.</p>';
-            });
-        }
-    });
-});
-
-//Cargar Información del Chat Seleccionado
-document.addEventListener('DOMContentLoaded', () => {
+    const messageListContainer = document.querySelector('main#contenido .scrollable-content'); 
     const chatHeaderImg = document.querySelector('.chat-header-img');
     const chatHeaderName = document.querySelector('.chat-header-name');
     const chatMessages = document.getElementById('chat-messages');
     const chatIdInput = document.getElementById('chat-id');
-    const messageList = document.querySelectorAll('.mensaje');
-
-    // Manejar la selección de un chat
-    messageList.forEach(chatElement => {
-        chatElement.addEventListener('click', () => {
-            const chatId = chatElement.getAttribute('data-chat-id');
-            const chatName = chatElement.getAttribute('data-nombre-usuario');
-            const chatImg = chatElement.getAttribute('data-imagen-perfil');
-
-            // Actualizar el encabezado del chat
-            chatHeaderImg.src = chatImg;
-            chatHeaderName.textContent = chatName;
-
-            // Marcar el chat como seleccionado
-            document.querySelectorAll('.mensaje').forEach(m => m.classList.remove('seleccionado'));
-            chatElement.classList.add('seleccionado');
-
-            // Actualizar el ID del chat en el input oculto
-            chatIdInput.value = chatId;
-
-            // Aquí puedes cargar los mensajes del chat si es necesario
-            fetch('/chat/cargar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `chat_id=${encodeURIComponent(chatId)}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    // Cargar los mensajes en el contenedor
-                    chatMessages.innerHTML = data.Mensajes.map(mensaje => `
-                        <div class="message ${mensaje.RemitenteID === parseInt(chatIdInput.value) ? 'my-message' : 'other-message'}">
-                            <p>${mensaje.ContenidoMensaje}</p>
-                            <span>${mensaje.RemitenteNombre} • ${new Date(mensaje.FechaMensaje).toLocaleString()}</span>
-                        </div>
-                    `).join('');
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    });
-});
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
-    const chatIdInput = document.getElementById('chat-id');
+    const locationButton = document.getElementById('ubicacion-button'); 
 
-    // Función para enviar un mensaje
-    function enviarMensaje() {
+    const usuarioIdActual = parseInt(document.body.dataset.userId || 0, 10);
+
+    function enviarMensaje(contenidoMensaje) {
         const chatId = chatIdInput.value;
-        const contenido = chatInput.value.trim();
 
-        if (!contenido) {
-            alert('El mensaje no puede estar vacío.');
+        if (!chatId) {
+            alert('Por favor, selecciona un chat primero.');
+            return;
+        }
+
+        if (!contenidoMensaje || contenidoMensaje.trim() === '') {
+            // No mostrar alerta si el input de texto está vacío,
+            // pero sí si se intenta enviar ubicación vacía (aunque no debería pasar)
+            if (chatInput.value.trim() === '' && contenidoMensaje === chatInput.value) {
+                 alert('El mensaje no puede estar vacío.');
+            } else if (!contenidoMensaje || contenidoMensaje.trim() === '') {
+                 alert('El contenido del mensaje es inválido.');
+            }
             return;
         }
 
@@ -212,23 +61,29 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: `chat_id=${encodeURIComponent(chatId)}&contenido=${encodeURIComponent(contenido)}`
+            body: `chat_id=${encodeURIComponent(chatId)}&contenido=${encodeURIComponent(contenidoMensaje)}`
         })
         .then(response => response.json())
         .then(data => {
             if (data.error) {
                 alert(data.error);
             } else {
-                chatInput.value = ''; // Limpiar el campo de entrada
-                cargarMensajes(chatId); // Recargar los mensajes
+                // Limpiar el input de texto SOLO si el mensaje enviado era del input
+                // (Esto evita borrar el input si se envió ubicación mientras se escribía)
+                // Comprobación simple: si el contenido enviado es igual al del input actual
+                if (contenidoMensaje === chatInput.value) {
+                    chatInput.value = ''; 
+                }
+                cargarMensajes(chatId); 
+                actualizarListaChats(chatId, contenidoMensaje);
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error al enviar mensaje:', error));
     }
 
-    // Función para cargar mensajes de un chat
+    // --- Función para cargar mensajes ---
     function cargarMensajes(chatId) {
-        fetch('/mensaje/cargar', {
+        fetch('/mensaje/cargar', { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -239,42 +94,246 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.error) {
                 alert(data.error);
+                chatMessages.innerHTML = '<p class="error-message">Error al cargar mensajes.</p>';
             } else {
-                const usuarioId = data.UsuarioID; // ID del usuario actual
+                 if (data.NombreUsuario && chatHeaderName) chatHeaderName.textContent = data.NombreUsuario;
+                 if (data.ImagenPerfil && chatHeaderImg) chatHeaderImg.src = data.ImagenPerfil;
+
                 chatMessages.innerHTML = data.Mensajes.map(mensaje => {
                     const hora = new Date(mensaje.FechaMensaje).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const esMiMensaje = mensaje.RemitenteID === usuarioIdActual;
+                    
+                    const rawContent = mensaje.ContenidoMensaje;
+                    
+                    const escapedContentDiv = document.createElement('div');
+                    escapedContentDiv.innerText = rawContent;
+                    const escapedContent = escapedContentDiv.innerHTML;
+
+                    const urlRegex = /(https?:\/\/[^\s]+)/g; // Regex para encontrar URLs
+                    const contentWithLinks = escapedContent.replace(urlRegex, (url) => {
+
+                        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+                    });
+
+
                     return `
-                        <div class="message ${mensaje.RemitenteID === usuarioId ? 'my-message' : 'other-message'}">
-                            <p>${mensaje.ContenidoMensaje}</p>
+                        <div class="message ${esMiMensaje ? 'my-message' : 'other-message'}">
+
+                            <p>${contentWithLinks}</p> 
                             <span class="message-time">${hora}</span>
                         </div>
                     `;
                 }).join('');
-
-                // Hacer scroll hacia el final del contenedor
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatMessages.scrollTop = chatMessages.scrollHeight; 
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error al cargar mensajes:', error);
+            chatMessages.innerHTML = '<p class="error-message">Error al cargar mensajes.</p>';
+        });
     }
 
-    // Manejar el evento de clic en el botón de enviar
-    sendButton.addEventListener('click', enviarMensaje);
+    function actualizarListaChats(chatId, ultimoMensaje) {
+        const chatElement = chatListContainer.querySelector(`.mensaje[data-chat-id="${chatId}"]`); 
+        if (chatElement) {
+            const textoMensaje = chatElement.querySelector('.mensaje-texto');
+            const fechaMensaje = chatElement.querySelector('.mensaje-fecha');
+            if (textoMensaje) {
+                const divTemp = document.createElement('div');
+                divTemp.innerText = ultimoMensaje;
+                const preview = divTemp.innerHTML.length > 30 ? divTemp.innerHTML.substring(0, 27) + '...' : divTemp.innerHTML;
+                textoMensaje.innerHTML = preview; 
+            }
+            if (fechaMensaje) {
+                fechaMensaje.textContent = '• Ahora'; // O formato de hora actual
+            }
+            if (chatListContainer.firstChild !== chatElement) { 
+                chatListContainer.prepend(chatElement);
+           }
+        }
+    }
 
-    // Manejar el evento de presionar "Enter" en el campo de entrada
-    chatInput.addEventListener('keydown', (event) => {
+    searchInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter') {
-            event.preventDefault(); // Evitar el comportamiento predeterminado (como un salto de línea)
-            enviarMensaje();
+            const termino = searchInput.value.trim();
+            searchResults.style.display = 'block'; 
+
+            if (termino === '') {
+                searchResults.innerHTML = ''; 
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            fetch('/buscar-usuario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `termino=${encodeURIComponent(termino)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    searchResults.innerHTML = `<p class="error-message">${data.error}</p>`;
+                } else if (data.length > 0) {
+                    searchResults.innerHTML = data.map(usuario => `
+                        <div class="search-result" data-usuario-id="${usuario.UsuarioID}">
+                            <img src="${usuario.ImagenPerfil ? `data:image/jpeg;base64,${usuario.ImagenPerfil}` : '/Resources/images/perfilPre.jpg'}" class="mensaje-img" alt="${usuario.NombreUsuario}">
+                            <span class="mensaje-nombre">${usuario.NombreUsuario}</span>
+                        </div>
+                    `).join('');
+
+                    searchResults.querySelectorAll('.search-result').forEach(result => {
+                        result.addEventListener('click', () => {
+                            const destinatarioId = result.getAttribute('data-usuario-id');
+                            const nombreUsuario = result.querySelector('.mensaje-nombre').textContent;
+                            const imagenPerfilSrc = result.querySelector('.mensaje-img').src; // Obtener src de la imagen
+
+                            searchResults.innerHTML = '';
+                            searchResults.style.display = 'none';
+                            searchInput.value = '';
+
+                            let chatExistenteElement = messageListContainer.querySelector(`.mensaje[data-destinatario-id="${destinatarioId}"]`);
+
+                            if (chatExistenteElement) {
+                                chatExistenteElement.click();
+                            } else {
+                                fetch('/crear-chat', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: `destinatario_id=${encodeURIComponent(destinatarioId)}`
+                                })
+                                .then(response => response.json())
+                                .then(chatData => {
+                                    if (chatData.error) {
+                                        alert(chatData.error);
+                                    } else {
+                                        const nuevoChatDiv = document.createElement('div');
+                                        nuevoChatDiv.classList.add('mensaje');
+                                        nuevoChatDiv.setAttribute('data-chat-id', chatData.chatId);
+                                        nuevoChatDiv.setAttribute('data-destinatario-id', destinatarioId);
+                                        nuevoChatDiv.setAttribute('data-imagen-perfil', imagenPerfilSrc);
+                                        nuevoChatDiv.setAttribute('data-nombre-usuario', nombreUsuario);
+
+                                        nuevoChatDiv.innerHTML = `
+                                            <img src="${imagenPerfilSrc}" class="mensaje-img" alt="${nombreUsuario}">
+                                            <div class="mensaje-info">
+                                                <div class="mensaje-header">
+                                                    <span class="mensaje-nombre">${nombreUsuario}</span>
+                                                    <span class="mensaje-fecha">• Ahora</span>
+                                                </div>
+                                                <div class="mensaje-texto">Comienza a conversar</div>
+                                            </div>
+                                        `;
+                                        messageListContainer.insertBefore(nuevoChatDiv, messageListContainer.children[3]);
+                                        addChatSelectionListener(nuevoChatDiv);
+
+
+                                        nuevoChatDiv.click();
+                                    }
+                                })
+                                .catch(error => console.error('Error al crear chat:', error));
+                            }
+                        });
+                    });
+                } else {
+                    searchResults.innerHTML = '<p>No se encontraron usuarios.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error al buscar:', error);
+                searchResults.innerHTML = '<p>Error al buscar usuarios.</p>';
+            });
+        } else {
+              searchResults.style.display = 'none';
         }
     });
 
-    // Manejar la selección de un chat
-    document.querySelectorAll('.mensaje').forEach(chat => {
-        chat.addEventListener('click', () => {
-            const chatId = chat.getAttribute('data-chat-id');
+     document.addEventListener('click', (event) => {
+        if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+            searchResults.style.display = 'none';
+        }
+     });
+
+    function addChatSelectionListener(chatElement) {
+        chatElement.addEventListener('click', () => {
+            const chatId = chatElement.getAttribute('data-chat-id');
+            const chatName = chatElement.getAttribute('data-nombre-usuario');
+            const chatImg = chatElement.getAttribute('data-imagen-perfil');
+
+            if (chatHeaderImg) chatHeaderImg.src = chatImg || '/Resources/images/perfilPre.jpg';
+            if (chatHeaderName) chatHeaderName.textContent = chatName || 'Chat';
+
+            document.querySelectorAll('.mensaje').forEach(m => m.classList.remove('seleccionado'));
+            chatElement.classList.add('seleccionado');
+
             chatIdInput.value = chatId;
+
             cargarMensajes(chatId);
         });
-    });
+    }
+
+    document.querySelectorAll('.mensaje[data-chat-id]').forEach(addChatSelectionListener);
+
+    if (sendButton) {
+        sendButton.addEventListener('click', () => {
+            enviarMensaje(chatInput.value);
+        });
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                enviarMensaje(chatInput.value);
+            }
+        });
+    }
+
+    if (locationButton) {
+        locationButton.addEventListener('click', () => {
+            const chatId = chatIdInput.value;
+            if (!chatId) {
+                alert('Por favor, selecciona un chat primero.');
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert('La geolocalización no es soportada por tu navegador.');
+                return;
+            }
+
+            locationButton.disabled = true;
+            locationButton.style.opacity = '0.5';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    const mensajeUbicacion = `Mi ubicación: ${googleMapsUrl}`;
+
+                    enviarMensaje(mensajeUbicacion);
+
+                    locationButton.disabled = false;
+                    locationButton.style.opacity = '1';
+                },
+                (error) => {
+                    console.error("Error al obtener la ubicación: ", error);
+                    alert(`No se pudo obtener la ubicación: ${error.message}`);
+                    locationButton.disabled = false;
+                    locationButton.style.opacity = '1';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
+
+     const primerChat = document.querySelector('.mensaje[data-chat-id]');
+     if (primerChat) {
+         primerChat.click();
+     }
+
 });

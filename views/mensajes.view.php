@@ -7,42 +7,47 @@
         <!-- Sección central donde se carga el contenido -->
         <main id="contenido">
           <div class="scrollable-content">
+              <!-- Encabezado y Búsqueda (se quedan fuera del nuevo div) -->
               <div class="main-header">
                   <div class="header-content">
                       <h2>Mensajes</h2>
                   </div>
               </div>
-
               <div class="search-bar">
-                  <img src="resources/images/buscar.svg" class="search-icon">
+                  <img src="/Resources/images/buscar.svg" class="search-icon"> <!-- Corregir ruta -->
                   <input type="text" placeholder="Busca a alguien" class="search-input" id="search-input">
               </div>
-
               <div id="search-results" class="search-results"></div>
+              <!-- FIN Encabezado y Búsqueda -->
 
+              <!-- ***** NUEVO: Contenedor específico para la lista de chats ***** -->
+              <div id="chat-list-container"> 
                 <?php if (!empty($chats)): ?>
-                <?php foreach ($chats as $chat): ?>
-                    <div class="mensaje" data-chat-id="<?php echo $chat['ChatID']; ?>" data-imagen-perfil="<?php echo $chat['ImagenPerfil']; ?>" data-nombre-usuario="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
-                        <img src="<?php echo $chat['ImagenPerfil']; ?>" class="mensaje-img" alt="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
-                        <div class="mensaje-info">
-                            <div class="mensaje-header">
-                                <span class="mensaje-nombre"><?php echo htmlspecialchars($chat['NombreUsuario']); ?></span>
-                                <!-- <span class="mensaje-handle">@<?php echo htmlspecialchars(strtolower($chat['NombreUsuario'])); ?></span> -->
-                                <span class="mensaje-fecha">• <?php echo !empty($chat['HoraUltimoMensaje']) ? date('d M. Y H:i', strtotime($chat['HoraUltimoMensaje'])) : ''; ?></span>
-                            </div>
-                            <div class="mensaje-texto">
-                                <?php echo !empty($chat['UltimoMensaje']) ? htmlspecialchars($chat['UltimoMensaje']) : 'Comienza a conversar'; ?>
+                    <?php foreach ($chats as $chat): ?>
+                        <div class="mensaje" 
+                             data-chat-id="<?php echo $chat['ChatID']; ?>" 
+                             data-imagen-perfil="<?php echo $chat['ImagenPerfil']; ?>" 
+                             data-nombre-usuario="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>"
+                             data-destinatario-id="<?php echo $chat['PersonaID']; // Añadir ID del otro usuario ?>"> 
+                            <img src="<?php echo $chat['ImagenPerfil']; ?>" class="mensaje-img" alt="<?php echo htmlspecialchars($chat['NombreUsuario']); ?>">
+                            <div class="mensaje-info">
+                                <div class="mensaje-header">
+                                    <span class="mensaje-nombre"><?php echo htmlspecialchars($chat['NombreUsuario']); ?></span>
+                                    <span class="mensaje-fecha">• <?php echo !empty($chat['HoraUltimoMensaje']) ? date('d M. H:i', strtotime($chat['HoraUltimoMensaje'])) : date('d M. H:i', strtotime($chat['FechaCreacion'])); ?></span>
+                                </div>
+                                <div class="mensaje-texto">
+                                    <?php echo !empty($chat['UltimoMensaje']) ? htmlspecialchars($chat['UltimoMensaje']) : 'Comienza a conversar'; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p>No tienes chats activos.</p>
-            <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p id="no-chats-message" style="text-align: center; color: #888; padding: 20px;">No tienes chats activos.</p>
+                <?php endif; ?>
+              </div> 
+              <!-- ***** FIN Contenedor específico ***** -->
           </div>
         </main>
-
-
 
         <!-- Sección derecha (puede cambiar con cada sección) -->
         <aside id="lateral">
@@ -60,7 +65,12 @@
             <!-- Barra de escritura (parte inferior) -->
             <div class="chat-input-bar">
               <input type="hidden" id="chat-id" value="">
-              <!-- Botón para subir imagen -->
+
+              <button class="ubicacion-button" id="ubicacion-button">
+                  <img src="resources/images/localizacion.svg" alt="localizacion">
+              </button>
+              
+              <!--Botón para subir imagen -->
               <!-- <label for="imageUpload" class="upload-button">
                 <img src="resources/images/img.svg" alt="Cargar imagen">
               </label>
@@ -70,7 +80,7 @@
               <input type="text" class="chat-input" id="chat-input" placeholder="Escribe tu mensaje...">
               <!-- Botón de enviar -->
               <button class="send-button" id="send-button">
-                  <img src="resources/images/enviar.svg" alt="Enviar">
+                  <img src="/resources/images/enviar.svg" alt="Enviar">
               </button>
             </div>
         </aside>

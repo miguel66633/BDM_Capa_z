@@ -65,17 +65,15 @@
                           <?php echo $publicacion['LikesCount'] ?? 0; ?>
                       </span> 
                     </div>
-                    <div class="accion">
-                        <!-- Botón Repost (funcionalidad pendiente) -->
+                    <!-- <div class="accion">
                         <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
                           <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
                         </button>
-                        <!-- Contador Reposts (si se implementa) -->
                         <span class="accion-count">
-                            <?php // echo $publicacion['RepostsCount'] ?? 0; ?>
+                            <?php  ?>
                             0 
                         </span> 
-                      </div>
+                      </div> -->
                     <div class="accion">
                       <!-- Botón Comentarios (solo visual, la sección está abajo) -->
                       <button class="accion-btn">
@@ -193,16 +191,15 @@
                                             <?php echo $respuesta['LikesCount'] ?? 0; ?>
                                         </span> 
                                     </div>
-                                    <div class="accion">
+                                    <!-- <div class="accion">
                                         <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $respuesta['PublicacionID']; ?>">
                                             <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
                                         </button>
-                                        <!-- ***** CAMBIO: Mostrar RepostsCount (si lo añadiste a la consulta) ***** -->
                                         <span class="accion-count">
-                                            <?php // echo $respuesta['RepostsCount'] ?? 0; ?> 
-                                            0 <!-- Mantener 0 si no implementaste RepostsCount -->
+                                            <?php ?> 
+                                            0
                                         </span> 
-                                    </div>
+                                    </div> -->
                                     <div class="accion">
                                         <button class="accion-btn"> 
                                             <img src="/Resources/images/comments.svg" class="accion-icon">
