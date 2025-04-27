@@ -2,7 +2,7 @@
 
 <aside id="lateral">
     <div class="search-bar">
-        <img src="Resources/images/buscar.svg" alt="Buscar" class="search-icon">
+        <img src="/Resources/images/buscar.svg" alt="Buscar" class="search-icon">
 
         <!-- Formulario de búsqueda -->
         <form method="GET" action="">

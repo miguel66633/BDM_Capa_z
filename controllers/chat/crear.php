@@ -28,10 +28,16 @@ if (!$destinatarioId) {
     exit;
 }
 
+// ***** NUEVO: Verificar si el usuario intenta chatear consigo mismo *****
+if ($usuarioId == $destinatarioId) {
+    echo json_encode(['error' => 'No puedes iniciar un chat contigo mismo.']);
+    exit;
+}
+
 try {
-    // Verificar si el chat ya existe
+    // Verificar si el chat ya existe (usando LEAST y GREATEST para evitar duplicados)
     $queryCheck = "
-        SELECT * FROM Chat 
+        SELECT ChatID FROM Chat 
         WHERE UsuarioID = LEAST(:usuarioId, :destinatarioId) 
         AND DestinatarioID = GREATEST(:usuarioId, :destinatarioId)
     ";
@@ -41,11 +47,12 @@ try {
     ])->find();
 
     if ($chatExistente) {
-        echo json_encode(['error' => 'El chat ya existe.']);
+        // Si ya existe, simplemente devolver éxito (o el ID del chat existente si lo necesitas)
+        echo json_encode(['success' => 'El chat ya existe.', 'chatId' => $chatExistente['ChatID']]); 
         exit;
     }
 
-    // Crear el nuevo chat
+    // Crear el nuevo chat (usando LEAST y GREATEST)
     $queryInsert = "
         INSERT INTO Chat (UsuarioID, DestinatarioID) 
         VALUES (LEAST(:usuarioId, :destinatarioId), GREATEST(:usuarioId, :destinatarioId))
@@ -55,7 +62,13 @@ try {
         'destinatarioId' => $destinatarioId
     ]);
 
-    echo json_encode(['success' => 'Chat creado exitosamente.']);
+    // Obtener el ID del chat recién creado
+    $nuevoChatId = $db->getConnection()->lastInsertId();
+
+    echo json_encode(['success' => 'Chat creado exitosamente.', 'chatId' => $nuevoChatId]);
+
 } catch (Exception $e) {
-    echo json_encode(['error' => 'Error al crear el chat: ' . $e->getMessage()]);
+    // Loggear el error real para depuración
+    error_log("Error al crear chat: " . $e->getMessage()); 
+    echo json_encode(['error' => 'Error al procesar la solicitud del chat.']);
 }

@@ -21,16 +21,19 @@ $usuarioId = $_SESSION['user_id'];
 
 // Consultar los chats del usuario con el último mensaje
 $query = "
-    SELECT 
+        SELECT 
         c.ChatID,
+        -- Selecciona el ID de la OTRA persona en el chat
         CASE 
             WHEN c.UsuarioID = :usuarioId THEN u2.UsuarioID
             ELSE u1.UsuarioID
         END AS PersonaID,
+        -- Selecciona el Nombre de la OTRA persona en el chat
         CASE 
             WHEN c.UsuarioID = :usuarioId THEN u2.NombreUsuario
             ELSE u1.NombreUsuario
         END AS NombreUsuario,
+        -- Selecciona la Imagen de la OTRA persona en el chat
         CASE 
             WHEN c.UsuarioID = :usuarioId THEN u2.ImagenPerfil
             ELSE u1.ImagenPerfil
@@ -45,7 +48,7 @@ $query = "
          FROM Mensaje m 
          WHERE m.ChatID = c.ChatID 
          ORDER BY m.FechaMensaje DESC 
-         LIMIT 1) AS HoraUltimoMensaje
+         LIMIT 1) AS HoraUltimoMensaje -- Este es el campo clave para ordenar
     FROM 
         Chat c
     INNER JOIN 
@@ -53,9 +56,9 @@ $query = "
     INNER JOIN 
         Usuario u2 ON c.DestinatarioID = u2.UsuarioID
     WHERE 
-        c.UsuarioID = :usuarioId OR c.DestinatarioID = :usuarioId
+        c.UsuarioID = :usuarioId OR c.DestinatarioID = :usuarioId -- Encuentra chats donde el usuario actual participa
     ORDER BY 
-        c.FechaCreacion DESC;
+        HoraUltimoMensaje DESC, c.FechaCreacion DESC;
 ";
 
 $chats = $db->query($query, ['usuarioId' => $usuarioId])->get();
@@ -65,7 +68,7 @@ foreach ($chats as &$chat) {
     if (!empty($chat['ImagenPerfil'])) {
         $chat['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($chat['ImagenPerfil']);
     } else {
-        $chat['ImagenPerfil'] = 'Resources/images/perfilPre.jpg'; // Imagen por defecto
+        $chat['ImagenPerfil'] = '/Resources/images/perfilPre.jpg'; // Imagen por defecto
     }
 }
 

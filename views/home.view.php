@@ -56,17 +56,20 @@
                                 <?php echo $publicacion['Likes'] ?? 0; ?>
                             </span>
                         </div>
-                        <div class="accion">
+                        <!-- <div class="accion">
                             <button class="accion-btn repost-btn">
                                 <img src="Resources/images/repost.svg" class="accion-icon" alt="Repost">
                             </button>
                             <span class="accion-count">45</span>
-                        </div>
+                        </div> -->
                         <div class="accion">
                             <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">
                                 <img src="Resources/images/comments.svg" class="accion-icon" alt="Comentarios">
                             </a>
-                            <span class="accion-count">67</span>
+                            <!-- ***** CAMBIO: Mostrar CommentsCount ***** -->
+                            <span class="accion-count">
+                                <?php echo $publicacion['CommentsCount'] ?? 0; ?>
+                            </span>
                         </div>
                         <div class="accion">
                             <button class="accion-btn saved-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">

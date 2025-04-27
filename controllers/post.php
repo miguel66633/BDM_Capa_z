@@ -36,7 +36,28 @@ $queryPublicacion = "
         p.FechaPublicacion,
         u.NombreUsuario,
         u.ImagenPerfil,
-        m.TipoMultimedia
+        m.TipoMultimedia,
+        -- Contar Likes para la publicación principal
+        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS LikesCount,
+        -- Contar Guardados para la publicación principal
+        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS SavesCount,
+        -- Contar Respuestas (comentarios) para la publicación principal
+        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount, 
+        -- Verificar si el usuario actual dio Like a la publicación principal
+        EXISTS (
+            SELECT 1 
+            FROM PublicacionLike pl
+            INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = :currentUserId AND pl.PublicacionID = p.PublicacionID
+        ) AS YaDioLike,
+        -- Verificar si el usuario actual guardó la publicación principal
+        EXISTS (
+            SELECT 1 
+            FROM Guardado g
+            WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p.PublicacionID
+        ) AS YaGuardo
+        -- Puedes añadir conteo de Reposts si tienes la tabla/lógica implementada
+        -- , (SELECT COUNT(*) FROM PublicacionRepost WHERE PublicacionID = p.PublicacionID) AS RepostsCount 
     FROM 
         Publicacion p
     LEFT JOIN 
@@ -46,7 +67,11 @@ $queryPublicacion = "
     WHERE 
         p.PublicacionID = :postId
 ";
-$publicacion = $db->query($queryPublicacion, ['postId' => $postId])->find(); 
+// Añadir currentUserId al array de parámetros para la publicación principal
+$publicacion = $db->query($queryPublicacion, [
+    'postId' => $postId,
+    'currentUserId' => $usuarioId // Usar el ID del usuario logueado
+])->find(); 
 
 if (!$publicacion) {
     header('Location: /inicio'); 
@@ -63,25 +88,19 @@ $queryRespuestas = "
         u.NombreUsuario,
         u.ImagenPerfil,
         m.TipoMultimedia AS ImagenRespuesta,
-        -- Contar Likes para la respuesta
         (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p_hija.PublicacionID) AS LikesCount,
-        -- Contar Guardados para la respuesta
         (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p_hija.PublicacionID) AS SavesCount,
-        -- Verificar si el usuario actual dio Like a la respuesta
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
             INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
             WHERE ul.UsuarioID = :currentUserId AND pl.PublicacionID = p_hija.PublicacionID
         ) AS YaDioLikeRespuesta,
-        -- Verificar si el usuario actual guardó la respuesta
         EXISTS (
             SELECT 1 
             FROM Guardado g
             WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p_hija.PublicacionID
         ) AS YaGuardoRespuesta
-        -- Puedes añadir conteo de Reposts si tienes la tabla/lógica implementada
-        -- , (SELECT COUNT(*) FROM PublicacionRepost WHERE PublicacionID = p_hija.PublicacionID) AS RepostsCount 
     FROM 
         Publicacion p_hija         
     INNER JOIN 
@@ -93,10 +112,9 @@ $queryRespuestas = "
     ORDER BY 
         p_hija.FechaPublicacion ASC 
 ";
-// Añadir currentUserId al array de parámetros
 $respuestas = $db->query($queryRespuestas, [
     'postId' => $postId,
-    'currentUserId' => $usuarioId // Usar el ID del usuario logueado
+    'currentUserId' => $usuarioId 
 ])->get(); 
 
 $errors = $_SESSION['errors'] ?? [];

@@ -56,115 +56,96 @@
       <!-- Sección de Posts -->
       <div class="posts-section">
         <h3>Posts</h3>
-
-        <div class="publicacion">
-          <div class="publicacion-header">
-            <img src="../images/perfil.jpg" alt="Foto de perfil" class="publicacion-profile-pic">
-            <div class="publicacion-info">
-              <span class="publicacion-username">Miguel Reyes</span>
-              <span class="publicacion-user-handle">@migueriro • 12 feb.</span>
-            </div>
-          </div>
-
-          <!-- Contenido de la publicación (texto e imagen opcional) -->
-          <div class="publicacion-contenido">
-            <p>Yippie yippieee</p>
-
-            <div class="img">
-              <img src="../images/ejemplo1.png" />
-            </div>
-
-            <!-- <img src="../images/ejemplo1.png" alt="Imagen de la publicación" class="publicacion-imagen"> -->
-          </div>
-
-          <div class="publicacion-acciones">
-            <div class="accion">
-              <button class="accion-btn like-btn">
-                <img src="../images/like.svg" class="accion-icon">
-              </button>
-              <span class="accion-count">123</span>
-            </div>
-            <div class="accion">
-              <button class="accion-btn repost-btn">
-                <img src="../images/repost.svg" class="accion-icon" alt="Repost">
-              </button>
-              <span class="accion-count">45</span>
-            </div>
-            <div class="accion">
-              <button class="accion-btn" onclick="window.location.href='../html/post.html'">
-                <img src="../images/comments.svg" class="accion-icon">
-              </button>
-              <span class="accion-count">67</span>
-            </div>
-            <div class="accion">
-              <button class="accion-btn saved-btn">
-                <img src="../images/saved.svg" class="accion-icon">
-              </button>
-              <span class="accion-count">89</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Publicación 2 -->
-        <div class="publicacion">
-          <div class="publicacion-header">
-            <img src="../images/perfil2.png" alt="Foto de perfil" class="publicacion-profile-pic">
-            <div class="publicacion-info">
-              <span class="publicacion-username">El furro</span>
-              <span class="publicacion-user-handle">@YakaraVt • 10 feb.</span></span>
-            </div>
-          </div>
-          <div class="publicacion-contenido">
-            <p>Miren a mi nuevo hijo</p>
-
-            <div class="carousel-container">
-              <div class="carousel-slide">
-                <!-- Cada slide es un contenedor individual para la imagen -->
-                <div class="slide">
-                  <img src="../images/ejemplo2.jpg" alt="Imagen 1" />
-                </div>
-                <div class="slide">
-                  <img src="../images/ejemplo1.jpg" alt="Imagen 2" />
-                </div>
-                <div class="slide">
-                  <img src="../images/ejemplolargo.jpeg" alt="Imagen 3" />
-                </div>
-              </div>
-
-              <!-- Flechas de navegación -->
-              <button class="carousel-arrow left">&lt;</button>
-              <button class="carousel-arrow right">&gt;</button>
-            </div>
-            <div class="publicacion-acciones">
-              <div class="accion">
-                <button class="accion-btn like-btn">
-                  <img src="../images/like.svg" class="accion-icon">
-                </button>
-                <span class="accion-count">52</span>
-              </div>
-              <div class="accion">
-                <button class="accion-btn repost-btn">
-                  <img src="../images/repost.svg" class="accion-icon" alt="Repost">
-                </button>
-                <span class="accion-count">1</span>
-              </div>
-              <div class="accion">
-                <button class="accion-btn">
-                  <img src="../images/comments.svg" class="accion-icon">
-                </button>
-                <span class="accion-count">6</span>
-              </div>
-              <div class="accion">
-                <button class="accion-btn saved-btn">
-                  <img src="../images/saved.svg" class="accion-icon">
-                </button>
-                <span class="accion-count">3</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
+      
+        <!-- ***** CAMBIO: Bucle para mostrar las publicaciones del usuario ***** -->
+        <?php if (!empty($publicaciones)): ?>
+            <?php foreach ($publicaciones as $publicacion): ?>
+                <div class="publicacion">
+                    <div class="publicacion-header">
+                        <!-- Imagen de perfil del post (puede ser la misma del perfil) -->
+                        <img 
+                            src="<?php echo isset($publicacion['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($publicacion['ImagenPerfil']) : '/Resources/images/perfilPre.jpg'; ?>" 
+                            alt="Foto de perfil de <?php echo htmlspecialchars($publicacion['NombreUsuario']); ?>" 
+                            class="publicacion-profile-pic"
+                        >
+                        <div class="publicacion-info">
+                            <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['NombreUsuario']); ?></span>
+                            <span class="publicacion-user-handle">
+                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> • 
+                                <?php 
+                                    try {
+                                        $fecha = new DateTime($publicacion['FechaPublicacion']);
+                                        echo $fecha->format('d M.'); 
+                                    } catch (Exception $e) {
+                                        echo 'Fecha inválida';
+                                    }
+                                ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Contenido de la publicación (texto e imagen opcional) -->
+                    <div class="publicacion-contenido">
+                        <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
+                        
+                        <?php if (!empty($publicacion['TipoMultimedia'])): ?>
+                            <div class="img">
+                                <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Acciones de la publicación (DINÁMICAS) -->
+                    <div class="publicacion-acciones">
+                        <div class="accion">
+                            <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img 
+                                    src="/Resources/images/<?php echo $publicacion['YaDioLike'] ? 'likeP.svg' : 'like.svg'; ?>" 
+                                    class="accion-icon"
+                                    alt="Botón de like"
+                                >
+                            </button>
+                            <span class="accion-count" id="like-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['LikesCount'] ?? 0; ?>
+                            </span> 
+                        </div>
+                        <div class="accion">
+                            <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
+                            </button>
+                            <span class="accion-count">
+                                <?php // echo $publicacion['RepostsCount'] ?? 0; ?> 0
+                            </span> 
+                        </div>
+                        <div class="accion">
+                            <!-- Enlace al post individual -->
+                            <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">
+                                <img src="/Resources/images/comments.svg" class="accion-icon" alt="Comentarios">
+                            </a>
+                            <span class="accion-count">
+                                <?php echo $publicacion['CommentsCount'] ?? 0; ?>
+                            </span> 
+                        </div>
+                        <div class="accion">
+                            <button class="accion-btn saved-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img 
+                                    src="/Resources/images/<?php echo $publicacion['YaGuardo'] ? 'guardados.svg' : 'saved.svg'; ?>" 
+                                    class="accion-icon"
+                                    alt="Botón de guardado"
+                                >
+                            </button>
+                            <span class="accion-count" id="save-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['SavesCount'] ?? 0; ?>
+                            </span> 
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p style="text-align: center; color: #888; padding: 20px;">Este usuario aún no ha publicado nada.</p>
+        <?php endif; ?>
+
 
       <!-- MODAL (oculto por defecto) -->
       <div class="modalB" id="editProfileModal">

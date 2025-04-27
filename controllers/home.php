@@ -13,7 +13,6 @@ if (session_status() === PHP_SESSION_NONE) {
 // Obtener el ID del usuario actual
 $usuarioId = $_SESSION['user_id'] ?? null;
 
-// Recuperar publicaciones, likes y guardados
 $query = "
     SELECT 
         p.PublicacionID,
@@ -24,6 +23,8 @@ $query = "
         m.TipoMultimedia,
         (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS Likes,
         (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados,
+        -- *** NUEVO: Contar Respuestas (comentarios) para cada publicación ***
+        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount, 
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
@@ -41,6 +42,8 @@ $query = "
         Usuario u ON p.UsuarioID = u.UsuarioID
     LEFT JOIN 
         Multimedia m ON p.PublicacionID = m.PublicacionID
+    -- *** AÑADIDO: Filtrar para mostrar solo publicaciones principales (sin padre) ***
+    WHERE p.PublicacionPadreID IS NULL 
     ORDER BY 
         p.FechaPublicacion DESC;
 ";
