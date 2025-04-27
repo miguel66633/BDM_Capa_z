@@ -23,41 +23,30 @@ document.addEventListener("DOMContentLoaded", function () {
 // Abre la ventana modal
 function openModal() {
     document.getElementById('postModal').style.display = 'block';
-  }
+}
   
-  // Cierra la ventana modal
-  function closeModal() {
-    document.getElementById('postModal').style.display = 'none';
-  }
+// Cierra la ventana modal
+function closeModal() {
+  document.getElementById('postModal').style.display = 'none';
+}
 
-  // Acción de "Postear" (por ahora, solo cierra el modal)
-  function submitPost() {
-    // Aquí podrías recoger el texto del textarea, la imagen, etc.
-    // y hacer un envío a tu servidor o manejarlo como gustes.
-    closeModal();
-    setTimeout(mostrarConfirmPopup, 100); // Muestra el popup de confirmación después de un breve retraso
+function mostrarConfirmPopup() {
+  document.getElementById("popup").style.display = "flex";
+}
 
-  }
+function cerrarConfirmPopup() {
+  document.getElementById("popup").style.display = "none";
+}
 
-  function mostrarConfirmPopup() {
-    document.getElementById("popup").style.display = "flex";
-  }
-  
-  function cerrarConfirmPopup() {
-    document.getElementById("popup").style.display = "none";
-  }
+function toggleMenu() {
+  let menu = document.getElementById("profile-menu");
+  menu.classList.toggle("active");
+}
 
+function logout() {
 
+}
 
-  function toggleMenu() {
-    let menu = document.getElementById("profile-menu");
-    menu.classList.toggle("active");
-  }
-  
-  function logout() {
-
-  }
-  
   document.addEventListener("DOMContentLoaded", function () {
     const profileContainer = document.querySelector(".profile-container");
     const profileMenu = document.querySelector(".profile-menu");
@@ -75,7 +64,6 @@ function openModal() {
     });
   });
   
-
 
   // Función para alternar la imagen del botón "like"
   document.addEventListener('DOMContentLoaded', () => {
@@ -102,10 +90,10 @@ function openModal() {
                     const currentLikes = parseInt(likeCountElement.textContent, 10);
                     if (data.liked) {
                         likeCountElement.textContent = currentLikes + 1;
-                        img.setAttribute('src', 'Resources/images/likeP.svg'); // Cambiar a imagen de "like activo"
+                        img.setAttribute('src', '/Resources/images/likeP.svg'); // Cambiar a imagen de "like activo"
                     } else {
                         likeCountElement.textContent = currentLikes - 1;
-                        img.setAttribute('src', 'Resources/images/like.svg'); // Cambiar a imagen de "like inactivo"
+                        img.setAttribute('src', '/Resources/images/like.svg'); // Cambiar a imagen de "like inactivo"
                     }
                 }
             })
@@ -113,8 +101,6 @@ function openModal() {
         });
     });
 });
-
-
 
   // Función para alternar la imagen del botón "saved"
   document.addEventListener('DOMContentLoaded', () => {
@@ -141,10 +127,10 @@ function openModal() {
                     const currentSaves = parseInt(saveCountElement.textContent, 10);
                     if (data.guardado) {
                         saveCountElement.textContent = currentSaves + 1;
-                        img.setAttribute('src', 'Resources/images/guardados.svg'); // Cambiar a imagen de "guardado activo"
+                        img.setAttribute('src', '/Resources/images/guardados.svg'); // Cambiar a imagen de "guardado activo"
                     } else {
                         saveCountElement.textContent = currentSaves - 1;
-                        img.setAttribute('src', 'Resources/images/saved.svg'); // Cambiar a imagen de "guardado inactivo"
+                        img.setAttribute('src', '/Resources/images/saved.svg'); // Cambiar a imagen de "guardado inactivo"
                     }
                 }
             })
@@ -154,20 +140,20 @@ function openModal() {
 });
   
   
-  document.querySelectorAll('.repost-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      this.classList.toggle('active');
-    });
+document.querySelectorAll('.repost-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    this.classList.toggle('active');
   });
-  
+});
+
 
 
 
 // Seleccionamos elementos
 const carouselSlide = document.querySelector('.carousel-slide');
 const slides = document.querySelectorAll('.slide'); 
-const arrowLeft = document.querySelector('.carousel-arrow.left');
-const arrowRight = document.querySelector('.carousel-arrow.right');
+// const arrowLeft = document.querySelector('.carousel-arrow.left');
+// const arrowRight = document.querySelector('.carousel-arrow.right');
 
 // Índice del slide visible
 let currentIndex = 0;
@@ -178,31 +164,31 @@ function updateSlidePosition() {
 }
 
 // Flecha izquierda
-arrowLeft.addEventListener('click', () => {
-  // Si estamos en el primer slide, pasamos al último
-  currentIndex = (currentIndex > 0) ? currentIndex - 1 : slides.length - 1;
-  updateSlidePosition();
-});
+// arrowLeft.addEventListener('click', () => {
+//   // Si estamos en el primer slide, pasamos al último
+//   currentIndex = (currentIndex > 0) ? currentIndex - 1 : slides.length - 1;
+//   updateSlidePosition();
+// });
 
-// Flecha derecha
-arrowRight.addEventListener('click', () => {
-  // Si estamos en el último slide, pasamos al primero
-  currentIndex = (currentIndex + 1) % slides.length;
-  updateSlidePosition();
-});
+// // Flecha derecha
+// arrowRight.addEventListener('click', () => {
+//   // Si estamos en el último slide, pasamos al primero
+//   currentIndex = (currentIndex + 1) % slides.length;
+//   updateSlidePosition();
+// });
 
 
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".publicacion").forEach(publicacion => {
-        publicacion.addEventListener("click", function(event) {
-            // Verifica si el clic fue en el header, la imagen o el contenido del post
-            if (event.target.closest(".publicacion-header") || 
-                event.target.closest(".slide") || event.target.closest(".img")) {
-                window.location.href = "post.html";
-            }
-        });
-    });
-});
+// document.addEventListener("DOMContentLoaded", function() {
+//     document.querySelectorAll(".publicacion").forEach(publicacion => {
+//         publicacion.addEventListener("click", function(event) {
+//             // Verifica si el clic fue en el header, la imagen o el contenido del post
+//             if (event.target.closest(".publicacion-header") || 
+//                 event.target.closest(".slide") || event.target.closest(".img")) {
+//                 window.location.href = "post.html";
+//             }
+//         });
+//     });
+// });
 
 
 
@@ -225,8 +211,6 @@ closeModalBtn.addEventListener('click', () => {
 
 // Función para cerrar el modal al hacer clic en "Guardar"
 saveModalBtn.addEventListener('click', () => {
-  // Aquí podrías manejar la lógica de guardado, como enviar datos al servidor, etc.
-  // ...
 
   // Cerrar el modal
   editProfileModal.style.display = 'none';
@@ -275,3 +259,38 @@ function mostrarReportesPopup() {
 function cerrarReportesPopup() {
   document.getElementById("ReportesPopup").style.display = "none";
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Seleccionar todas las publicaciones
+  const publicaciones = document.querySelectorAll('.publicacion');
+
+  publicaciones.forEach(publicacion => {
+      const postId = publicacion.getAttribute('data-id'); // Obtener el ID de la publicación
+
+      // Redirigir al hacer clic en cualquier parte de la publicación
+      publicacion.addEventListener('click', (event) => {
+          // Evitar que el clic en botones internos (como comentarios) active el evento del contenedor
+          if (event.target.closest('.comentarios-btn')) {
+              return;
+          }
+
+          console.log(`Redirigiendo a la publicación con ID: ${postId}`);
+          if (postId) {
+              window.location.href = `/post/${postId}`; // Redirigir a la página del post
+          }
+      });
+
+      // Redirigir al hacer clic en el botón de comentarios
+      const comentariosBtn = publicacion.querySelector('.comentarios-btn');
+      if (comentariosBtn) {
+          comentariosBtn.addEventListener('click', (event) => {
+              event.stopPropagation(); // Evitar que el clic active el evento del contenedor
+              console.log(`Botón de comentarios clicado, postId: ${postId}`);
+              if (postId) {
+                  window.location.href = `/post/${postId}`; // Redirigir a la página del post
+              }
+          });
+      }
+  });
+});

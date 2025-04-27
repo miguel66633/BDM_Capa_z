@@ -25,7 +25,7 @@
                         <?php if ($usuario['ImagenPerfil']): ?>
                             <img src="data:image/jpeg;base64,<?= base64_encode($usuario['ImagenPerfil']); ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
                         <?php else: ?>
-                            <img src="Resources/images/perfilPre.jpg" alt="Imagen por defecto" class="user-img">
+                            <img src="/Resources/images/perfilPre.jpg" alt="Imagen por defecto" class="user-img">
                         <?php endif; ?>
 
                         <?= htmlspecialchars($usuario['NombreUsuario']); ?>

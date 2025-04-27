@@ -2,6 +2,7 @@
 
 use Core\App;
 use Core\Database;
+
 // Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
 

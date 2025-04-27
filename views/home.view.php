@@ -1,13 +1,7 @@
 <?php require base_path('views/partials/head.z.php'); ?>
 <div class="container">
     <?php require base_path('views/partials/nav.z.php'); ?>
-        
-    <?php
-    $userId = $_SESSION['user_id'];
-    ?>
-    <!-- Aquí insertamos el userId desde PHP en un campo oculto -->
-    <input type="hidden" id="userId" value="<?php echo $userId; ?>">
-
+    
 
     <main id="contenido">
         <div class="scrollable-content">
@@ -19,7 +13,7 @@
 
             <!-- Mostrar publicaciones -->
             <?php foreach ($publicaciones as $publicacion): ?>
-                <div class="publicacion">
+                <div class="publicacion" data-id="<?php echo $publicacion['PublicacionID']; ?>">
                     <!-- Encabezado de la publicación -->
                     <div class="publicacion-header">
                         <img src="<?php echo isset($publicacion['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($publicacion['ImagenPerfil']) : 'Resources/images/perfilpre.jpg'; ?>" alt="Foto de perfil" class="publicacion-profile-pic">
@@ -28,7 +22,6 @@
                             <span class="publicacion-user-handle">
                                 @<?php echo htmlspecialchars($publicacion['NombreUsuario']); ?> • 
                                 <?php 
-                                    // Formatear la fecha y hora
                                     $fechaHora = new DateTime($publicacion['FechaPublicacion']);
                                     echo $fechaHora->format('d/m/Y H:i');
                                 ?>
@@ -39,6 +32,7 @@
                     <!-- Contenido de la publicación -->
                     <div class="publicacion-contenido">
                         <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
+
 
                         <!-- Mostrar imagen si existe -->
                         <?php if (!empty($publicacion['TipoMultimedia'])): ?>
@@ -69,9 +63,9 @@
                             <span class="accion-count">45</span>
                         </div>
                         <div class="accion">
-                            <button class="accion-btn" onclick="window.location.href='/post'">
-                                <img src="Resources/images/comments.svg" class="accion-icon">
-                            </button>
+                            <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">
+                                <img src="Resources/images/comments.svg" class="accion-icon" alt="Comentarios">
+                            </a>
                             <span class="accion-count">67</span>
                         </div>
                         <div class="accion">
@@ -95,6 +89,6 @@
     <?php require base_path('views/partials/lateral.php'); ?>
 </div>
 <?php require base_path('views/partials/modalPostear.php'); ?>
-
+<!-- <script src="js/home.js" defer></script> -->
 </body>
 </html>

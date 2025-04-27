@@ -1033,3 +1033,43 @@ aside {
   }
 */
 }
+
+.publicacion-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+
+.publicacion-header,
+.publicacion-contenido,
+.comentarios-btn {
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  min-height: 20px;
+  min-width: 20px;
+}
+
+.comentarios-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.publicacion {
+  position: relative;
+  overflow: visible;
+}
+
+.scrollable-content {
+  pointer-events: auto;
+  z-index: 0;
+}
+.publicacion-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  cursor: pointer;
+}
