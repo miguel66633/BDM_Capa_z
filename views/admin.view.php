@@ -1,3 +1,4 @@
+<?php include base_path('controllers/busqueda.php'); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,10 +22,10 @@
                 <br><br><br><br><br><br><br><br>
                 <div id="stats-content">
                     <h1>Usuarios registrados:</h1>
-                    <h2 id="user-count">100</h2>
+                    <h2 id="user-count"><?= $estadisticas['UsuariosRegistrados']; ?></h2>
                     <br><br><br><br><br><br><br>
                     <h1>Publicaciones totales:</h1>
-                    <h2 id="post-count">50</h2>
+                    <h2 id="post-count"><?= $estadisticas['PublicacionesGenerales']; ?></h2>
                 </div>
             </section>
             
@@ -34,10 +35,24 @@
                 <br><br>
                 <div id="reports-content">
                     <ul>
-                        <li><button onclick="mostrarReportesPopup()">Reporte de (Inserte Usuario)</button></li><br>
-                        <li><button onclick="mostrarReportesPopup()">Reporte de (Inserte Usuario)</button></li><br>
-                        <li><button onclick="mostrarReportesPopup()">Reporte de (Inserte Usuario)</button></li><br>
-                        <li><button onclick="mostrarReportesPopup()">Reporte de (Inserte Usuario)</button></li>
+                        <?php if (!empty($usuarios)): ?>
+                            <?php foreach ($usuarios as $usuario): ?>
+                                <li>
+                                    <!-- Mostrar imagen de usuario -->
+                                    <?php if ($usuario['ImagenPerfil']): ?>
+                                        <img src="data:image/jpeg;base64,<?= base64_encode($usuario['ImagenPerfil']); ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
+                                    <?php else: ?>
+                                        <img src="/Resources/images/perfilPre.jpg" alt="Imagen por defecto" class="user-img">
+                                    <?php endif; ?>
+
+                                    <button onclick="mostrarReportesPopup(<?= $usuario['UsuarioID']; ?>)">
+                                        <?= htmlspecialchars($usuario['NombreUsuario']); ?>
+                                    </button>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li>No se encontraron usuarios.</li>
+                        <?php endif; ?>
                         <!-- Más reportes -->
                     </ul>
                 </div>
@@ -48,23 +63,23 @@
     <div id="ReportesPopup" class="popup-container">
         <div class="popup">
             <span class="close" onclick="cerrarReportesPopup()">&times;</span>
-            <h2>Reporte de (Inserte Usuario)</h2>
+            <h2></h2>
             <div class="stats-container-reporte">
                 <div class="stat-item">
                     <h3>Publicaciones subidas</h3>
-                    <p id="publicaciones-subidas">0</p>
+                    <p id="publicaciones-subidas"></p>
                 </div>
                 <div class="stat-item">
                     <h3>Likes dados</h3>
-                    <p id="likes-dados">0</p>
+                    <p id="likes-dados"></p>
                 </div>
                 <div class="stat-item">
                     <h3>Comentarios hechos</h3>
-                    <p id="comentarios-hechos">0</p>
+                    <p id="comentarios-hechos"></p>
                 </div>
                 <div class="stat-item">
-                    <h3>Seguidores</h3>
-                    <p id="seguidores-obtenidos">0</p>
+                    <h3>Guardados</h3>
+                    <p id="guardados-hechos"></p>
                 </div>
             </div>
 

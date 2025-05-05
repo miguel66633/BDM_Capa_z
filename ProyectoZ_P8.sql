@@ -6,6 +6,7 @@ SELECT * FROM Publicacion;
 SELECT * FROM Multimedia;
 SELECT * FROM Chat;
 SELECT * FROM Mensaje;
+SELECT * FROM Guardado;
 
 ALTER TABLE Publicacion MODIFY FechaPublicacion DATETIME DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE Guardado MODIFY FechaGuardado DATETIME DEFAULT CURRENT_TIMESTAMP;
@@ -550,3 +551,60 @@ DECLARE EXIT HANDLER FOR SQLEXCEPTION
 
 END //
 DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE sp_EventosAdmin (
+IN PARAM_Accion VARCHAR(50),
+IN PARAM_UsuarioID INT
+)
+BEGIN
+DECLARE EXIT HANDLER FOR SQLEXCEPTION
+	-- Si ocurre un error, se realiza el rollback --
+    BEGIN
+        ROLLBACK;
+        SELECT 'Error: La transacción fue revertida.';
+    END;
+    
+    -- Iniciar la transacción
+    START TRANSACTION;
+    
+    IF PARAM_Accion = 'REPORTE' THEN
+    SELECT * FROM Reporte
+    WHERE UsuarioID = PARAM_UsuarioID;
+    
+    END IF;
+    
+    -- Confirmar la transacción
+    COMMIT;
+    
+END //
+    
+DELIMITER ;
+
+CALL sp_EventosAdmin ('REPORTE', 2);
+
+-- VIEWS --
+CREATE OR REPLACE VIEW Reporte AS
+SELECT 
+    u.UsuarioID,
+    u.NombreUsuario,
+    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NULL THEN p.PublicacionID END) AS TotalPublicaciones,
+    COUNT(DISTINCT ul.LikeID) AS TotalLikes,
+    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NOT NULL THEN p.PublicacionID END) AS TotalComentarios,
+    COUNT(DISTINCT g.GuardadoID) AS TotalGuardados
+FROM Usuario u
+LEFT JOIN Publicacion p ON p.UsuarioID = u.UsuarioID
+LEFT JOIN UsuarioLike ul ON ul.UsuarioID = u.UsuarioID
+LEFT JOIN Guardado g ON g.UsuarioID = u.UsuarioID
+GROUP BY u.UsuarioID, u.NombreUsuario;
+
+SELECT * FROM Reporte;
+
+
+CREATE OR REPLACE VIEW Estadisticas AS
+SELECT
+    (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID IS NULL) AS PublicacionesGenerales,
+    (SELECT COUNT(*) FROM Usuario) AS UsuariosRegistrados;
+
+SELECT * FROM Estadisticas;
+

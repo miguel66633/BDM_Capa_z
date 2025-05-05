@@ -252,9 +252,40 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-function mostrarReportesPopup() {
+
+
+function mostrarReportesPopup(usuarioId) {
+  // Mostrar el popup de reportes
   document.getElementById("ReportesPopup").style.display = "flex";
+
+  // Hacer una solicitud AJAX para obtener el reporte del usuario seleccionado
+  fetch(`/admin?UsuarioID=${usuarioId}&ajax=1`)
+    .then(response => response.json())
+    .then(data => {
+        console.log("JSON recibido:", data); // Ver la estructura
+
+        // Acceder a los valores dentro del array
+        document.querySelector("#ReportesPopup h2").textContent = `Reporte de ${data[0].NombreUsuario}`;
+        document.getElementById("publicaciones-subidas").textContent = data[0].TotalPublicaciones;
+        document.getElementById("likes-dados").textContent = data[0].TotalLikes;
+        document.getElementById("comentarios-hechos").textContent = data[0].TotalComentarios;
+        document.getElementById("guardados-hechos").textContent = data[0].TotalGuardados;
+    })
+    .catch(error => console.error("Error al obtener reportes:", error));
+
 }
+
+
+
+// function mostrarReportesPopup(usuarioId) {
+//   // Redirigir al usuario con el ID seleccionado
+//   window.location.href = `/admin?UsuarioID=${usuarioId}`;
+
+
+//   // document.getElementById("ReportesPopup").style.display = "flex";
+// }
+
+
 
 function cerrarReportesPopup() {
   document.getElementById("ReportesPopup").style.display = "none";

@@ -52,4 +52,22 @@ class Database
 
         return $result;
     }
+
+
+
+
+
+
+    public function callProcedure($procedureName, $params = [])
+    {
+        // Construir la consulta SQL dinámica con placeholders `?`
+        $query = "CALL {$procedureName}(" . implode(', ', array_fill(0, count($params), '?')) . ")";
+
+        // Preparar y ejecutar la consulta con parámetros
+        $this->statement = $this->connection->prepare($query);
+        $this->statement->execute(array_values($params));
+
+        return $this->statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }

@@ -223,9 +223,8 @@ body::-webkit-scrollbar {
     /*padding: 10px;*/
     padding-bottom: 10px;
     border-bottom: 1px solid #fff; /* Línea divisoria */
-    word-wrap: break-word; /* Permite que las palabras largas se rompan y pasen a la siguiente línea */
-    word-break: break-all; /* Asegura que cualquier contenido largo se ajuste y continúe en la siguiente línea */
-    white-space: pre-wrap; /* Preserva los espacios en blanco y permite el salto de línea */
+    display: flex;
+    align-items: center;
     transition: background-color 0.3s ease; /* Añade una transición suave */
     
 }
@@ -243,6 +242,32 @@ body::-webkit-scrollbar {
     border-radius: 30px; /* Esquinas redondeadas */
     margin-bottom: 10px; /* Añade espacio debajo del texto */
 }
+  
+#reports-content .clear-all {
+    background-color: transparent; 
+    color: white;
+    border: 0px solid #000000; /* Borde color */
+    padding: 10px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+  
+#reports-content .clear-all:hover {
+    background-color: #1c1c1cf9; /* Fondo blanco al hacer hover */
+    color: #a1a1a1; /* Color del texto al hacer hover */
+}
+  
+#reports-content ul li .user-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 20px; 
+    margin-left: 15px; 
+}
+
+
+
 
 #reports-content ul li:hover button {
     background-color: #222; /* Color de fondo cuando se pasa el cursor */
@@ -355,3 +380,10 @@ body::-webkit-scrollbar {
     color: #fff;
 }
 
+.user-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 20px; 
+    margin-left: 15px; 
+  }
