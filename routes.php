@@ -21,12 +21,11 @@ $router->post('/register', 'controllers/registration/store.php');
 $router->post('/api', 'api.php');
 $router->get('/api', 'api.php');
 
-
 $router->get('/Z', 'controllers/inicioSesion.php');
 $router->get('/inicio', 'controllers/home.php')->only('auth');
 $router->get('/guardados', 'controllers/guardados.php')->only('auth');
 $router->get('/mensajes', 'controllers/mensajes.php')->only('auth');
-$router->get('/perfil', 'controllers/perfil.php')->only('auth');
+$router->get('/perfil/{id}', 'controllers/perfil.php')->only('auth');
 $router->get('/admin', 'controllers/admin.php')->only('auth')->only('admin');
 $router->get('/logout', 'controllers/logout.php')->only('auth');
 $router->get('/post/{id}', 'controllers/post.php')->only('auth');

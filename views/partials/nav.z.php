@@ -6,9 +6,16 @@
         <img src="/Resources/images/mensajes.svg" alt="Icono de Inicio" class="icono-btn">Mensajes</button>
     <button class="submit-btn" onclick="window.location.href='/guardados'">
         <img src="/Resources/images/guardados.svg" alt="Icono de Inicio" class="icono-btn">Guardados</button>
-    <button class="submit-btn" onclick="window.location.href='/perfil'">
-        <img src="/Resources/images/perfil.svg" alt="Icono de Inicio" class="icono-btn">Perfil</button>
-
+        <?php
+        // Asegúrate de que la sesión está iniciada y el user_id existe
+        $profileLink = '/inicioSesion'; // Link por defecto si no está logueado
+        if (isset($_SESSION['user_id'])) {
+            $profileLink = '/perfil/' . $_SESSION['user_id'];
+        }
+    ?>
+    <button class="submit-btn" onclick="window.location.href='<?php echo $profileLink; ?>'">
+        <img src="/Resources/images/perfil.svg" alt="Icono de Perfil" class="icono-btn">Perfil</button>
+        
     <!-- Botón "Postear" arriba del perfil -->
     <button class="submit-btn postear-btn" onclick="openModal()">Postear</button>
 

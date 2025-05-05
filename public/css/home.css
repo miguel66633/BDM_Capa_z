@@ -224,10 +224,12 @@ aside {
 }
 
 .user-list {
+  list-style: none;
   background-color: #111111;
   padding: 15px;
   border-radius: 15px;
   box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.05); /* Sombra blanca debajo */
+  margin: 5px;
 }
 
 .user-list .list-header {
@@ -235,7 +237,7 @@ aside {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  
+  margin-left: 15px;
   font-size: 16px;
   color: white;
 }
@@ -261,13 +263,12 @@ aside {
   margin: 0;
 }
 
+
 .user-list ul li {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin: 10px 0; /* Aumentamos el espacio entre los usuarios */
-  font-size: 18px;
-  padding: 5px 0;
+  margin: 5px 0; /* Espacio vertical entre items */
+  border-radius: 15px; /* Bordes redondeados para el li */
+  transition: background-color 0.2s ease; /* Transición suave para el hover */
+  /* Quitar padding de aquí si lo tenía */
 }
 
 .user-list ul li .user-img {
@@ -298,6 +299,51 @@ aside {
 .user-list ul li .remove-user:hover {
   background-color: #1c1c1cf9; /* Fondo blanco al hacer hover */
   color: #a1a1a1; /* Color del texto al hacer hover */
+  margin: 5px 0; /* Espacio entre items */
+}
+
+.user-list ul li:has(a.user-list-link):hover {
+  background-color: #2a2a2a; /* Fondo ligeramente más oscuro al pasar el mouse sobre el LI */
+  border-radius: 30px;
+}
+
+a.user-list-link {
+  display: flex;         /* Alinear imagen y texto */
+  align-items: center;
+  padding: 8px 15px;     /* Espaciado interno DENTRO del enlace (ajusta el 15px para el padding lateral) */
+  text-decoration: none !important; /* Quitar subrayado */
+  color: #FFFFFF !important;       /* ¡¡Texto blanco!! */
+  /* Quitar border-radius de aquí */
+  /* Quitar transition de aquí */
+  cursor: pointer;
+  width: 100%; /* Asegura que el enlace ocupe todo el ancho del li */
+  box-sizing: border-box; /* Incluye padding en el ancho total */
+}
+
+/* Estilo para la IMAGEN dentro del enlace */
+.user-list-link .user-img { /* Selector más específico */
+  width: 40px;  /* Ajusta si es diferente al CSS existente */
+  height: 40px; /* Ajusta si es diferente al CSS existente */
+  border-radius: 50%;
+  margin-right: 15px; /* Espacio entre imagen y texto */
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Estilo para el NOMBRE dentro del enlace */
+.user-list-link .user-list-name {
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Estilo para el mensaje "No se encontraron usuarios" o "Realiza una búsqueda" */
+.user-list ul li:not(:has(a)) {
+  color: #888;
+  padding: 10px 15px;
+  font-style: italic;
+  border-radius: 15px;
 }
 
 .modal {
@@ -1075,3 +1121,5 @@ aside {
   display: block;
   cursor: pointer;
 }
+
+

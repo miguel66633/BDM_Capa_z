@@ -1,40 +1,52 @@
-<?php include base_path('controllers/busqueda.php'); ?>
+<?php
+include base_path('controllers/busqueda.php');
+?>
 
 <aside id="lateral">
-    <div class="search-bar">
-        <img src="/Resources/images/buscar.svg" alt="Buscar" class="search-icon">
-
-        <!-- Formulario de búsqueda -->
-        <form method="GET" action="">
-            <input type="text" name="term" placeholder="Buscar" class="search-input" value="<?= isset($_GET['term']) ? htmlspecialchars($_GET['term']) : ''; ?>">
-            <button type="submit" style="display: none;">Buscar</button>
-        </form>
-    </div>
-
-    <!-- Lista de usuarios -->
-    <div id="user-list" class="user-list">
-        <div class="list-header">
-            <h3>Usuarios</h3>
-            <button class="clear-all">Borrar todo</button>
+    <div class="search-container">
+        <div class="search-bar">
+            <img src="/Resources/images/buscar.svg" alt="Buscar" class="search-icon">
+            <form method="GET" action="" id="full-search-form">
+                <input type="text" name="term" placeholder="Buscar" class="search-input" id="search-input-lateral" autocomplete="off" value="<?= isset($_GET['term']) ? htmlspecialchars($_GET['term']) : ''; ?>">
+                <button type="submit" style="display: none;">Buscar</button>
+            </form>
         </div>
-        <ul>
-            <?php if (!empty($usuarios)): ?>
-                <?php foreach ($usuarios as $usuario): ?>
-                    <li>
-                        <!-- Mostrar imagen de usuario -->
-                        <?php if ($usuario['ImagenPerfil']): ?>
-                            <img src="data:image/jpeg;base64,<?= base64_encode($usuario['ImagenPerfil']); ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
-                        <?php else: ?>
-                            <img src="/Resources/images/perfilPre.jpg" alt="Imagen por defecto" class="user-img">
-                        <?php endif; ?>
-
-                        <?= htmlspecialchars($usuario['NombreUsuario']); ?>
-                        <button class="remove-user">X</button>
-                    </li>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <li>No se encontraron usuarios.</li>
-            <?php endif; ?>
-        </ul>
     </div>
+
+    <?php
+    // *** NUEVO: Condición para mostrar la lista solo si hay un término de búsqueda ***
+    $searchTermDisplay = $_GET['term'] ?? null;
+    if ($searchTermDisplay !== null && trim($searchTermDisplay) !== ''):
+    ?>
+        <!-- Lista de usuarios (Solo se muestra si hay búsqueda activa) -->
+        <div id="user-list" class="user-list">
+            <div class="list-header">
+                <h3>Resultados para "<?= htmlspecialchars($searchTermDisplay) ?>"</h3>
+            </div>
+            <ul>
+                <?php if (isset($usuarios) && !empty($usuarios)): ?>
+                    <?php foreach ($usuarios as $usuario): ?>
+                        <li>
+                            <a href="/perfil/<?= $usuario['UsuarioID']; ?>" class="user-list-link">
+                                <?php
+                                    $imgSrc = '/Resources/images/perfilPre.jpg'; // Default
+                                    if (!empty($usuario['ImagenPerfil'])) {
+                                        $base64 = base64_encode($usuario['ImagenPerfil']);
+                                        if ($base64 !== false) {
+                                            $imgSrc = 'data:image/jpeg;base64,' . $base64;
+                                        }
+                                    }
+                                ?>
+                                <img src="<?= $imgSrc; ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
+                                <span class="user-list-name"><?= htmlspecialchars($usuario['NombreUsuario']); ?></span>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                <?php else: // Si hay término de búsqueda pero no se encontraron usuarios ?>
+                     <li>No se encontraron usuarios.</li>
+                <?php endif; ?>
+            </ul>
+        </div>
+    <?php endif; // Fin de la condición if ($searchTermDisplay) ?>
+
 </aside>
