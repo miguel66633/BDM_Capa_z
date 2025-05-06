@@ -6,8 +6,8 @@
         <div class="scrollable-content">
             <div class="post-header">
                 <!-- Botón para volver al inicio -->
-                <button class="back-btn" onclick="window.location.href='/inicio'">
-                    <img src="/Resources/images/atras.svg" alt="Atrás">
+                <button class="back-btn" onclick="window.history.back()"> <!-- Usar history.back() es más flexible -->
+                    <img src="/resources/images/atras.svg" alt="Atrás"> <!-- Ruta desde la raíz -->
                 </button>
                 <h2>Post</h2>
             </div>
@@ -117,8 +117,6 @@
                     <div class="comentar-content">
                         <!-- ***** CAMBIO: action apunta a la nueva ruta ***** -->
                         <form action="/post/<?php echo $publicacion['PublicacionID']; ?>/reply" method="POST" enctype="multipart/form-data">
-                            <!-- Campo oculto para el ID padre ya no es estrictamente necesario aquí, 
-                                ya que el ID está en la URL de acción, pero no hace daño dejarlo si quieres -->
                             <input type="hidden" name="publicacion_padre_id" value="<?php echo $publicacion['PublicacionID']; ?>">
 
                             <!-- ***** CAMBIO: name del textarea coincide con el controlador reply.php ***** -->
@@ -140,7 +138,6 @@
 
                   <!-- Lista de comentarios (Ejemplos estáticos) -->
                   <div id="lista-respuestas"> 
-                    <!-- ***** CAMBIO: Usar la variable $respuestas ***** -->
                     <?php if (!empty($respuestas)): ?> 
                         <?php foreach ($respuestas as $respuesta): ?>
                             <div class="comentario"> <!-- Puedes mantener la clase CSS si quieres -->
@@ -201,10 +198,17 @@
                                         </span> 
                                     </div> -->
                                     <div class="accion">
-                                        <button class="accion-btn"> 
+                                        <!-- ***** CAMBIO: Convertir botón a enlace ***** -->
+                                        <a href="/post/<?php echo $respuesta['PublicacionID']; ?>" class="accion-btn"> 
                                             <img src="/Resources/images/comments.svg" class="accion-icon">
-                                        </button>
-                                        <span class="accion-count">0</span> 
+                                        </a>
+                                        <!-- ***** CAMBIO: Contar comentarios de la respuesta (si aplica) ***** -->
+                                        <span class="accion-count">
+                                            <?php 
+                                                // Mostrar el conteo de respuestas para ESTA respuesta
+                                                echo $respuesta['RepliesToReplyCount'] ?? 0; 
+                                            ?>
+                                        </span> 
                                     </div>
                                     <div class="accion">
                                         <button class="accion-btn saved-btn" data-publicacion-id="<?php echo $respuesta['PublicacionID']; ?>">

@@ -219,8 +219,10 @@ aside {
 }
 
 .accion-icon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+  border-radius: 4px; /* NUEVO: Añade esto para suavizar las esquinas del icono */
 }
 
 .user-list {
@@ -313,8 +315,6 @@ a.user-list-link {
   padding: 8px 15px;     /* Espaciado interno DENTRO del enlace (ajusta el 15px para el padding lateral) */
   text-decoration: none !important; /* Quitar subrayado */
   color: #FFFFFF !important;       /* ¡¡Texto blanco!! */
-  /* Quitar border-radius de aquí */
-  /* Quitar transition de aquí */
   cursor: pointer;
   width: 100%; /* Asegura que el enlace ocupe todo el ancho del li */
   box-sizing: border-box; /* Incluye padding en el ancho total */
@@ -578,7 +578,7 @@ a.user-list-link {
 .publicacion-imagen {
   max-width: 100%; /* Se ajusta al ancho máximo del contenedor */
   height: auto; /* Mantiene la proporción original de la imagen */
-  border-radius: 10px;
+  border-radius: 10px; /*este no es*/
   margin-top: 10px;
   width: 100%; /* Se adapta al ancho del contenedor */
   object-fit: cover;
@@ -724,6 +724,10 @@ a.user-list-link {
   object-fit: contain;
   border-radius: 15px;
 }
+#lista-respuestas .comentario .publicacion-profile-pic {
+  border-radius: 50%; /* Hace la imagen de perfil redonda */
+}
+
 .comentario-header {
   /* padding-left: 10px; */
   display: flex;
@@ -833,7 +837,7 @@ a.user-list-link {
 .accion {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 0px;
 }
 .accion-btn {
   background: none;
@@ -844,6 +848,7 @@ a.user-list-link {
   width: 20px;
   height: 20px;
   filter: brightness(0) invert(1);
+  border-radius: 4px; /* NUEVO: Añade esto para suavizar las esquinas del icono */
 }
 .accion-count {
   font-size: 0.9em;

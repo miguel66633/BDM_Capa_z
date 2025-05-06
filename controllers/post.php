@@ -90,6 +90,8 @@ $queryRespuestas = "
         m.TipoMultimedia AS ImagenRespuesta,
         (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p_hija.PublicacionID) AS LikesCount,
         (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p_hija.PublicacionID) AS SavesCount,
+        -- *** NUEVO: Contar respuestas de esta respuesta (comentario) ***
+        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p_hija.PublicacionID) AS RepliesToReplyCount,
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
