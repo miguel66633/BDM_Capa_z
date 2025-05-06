@@ -53,14 +53,14 @@
                                 </span>
                             </div>
                             <!-- ***** NUEVO: Sección Repost ***** -->
-                            <!-- <div class="accion">
+                            <div class="accion">
                                 <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
-                                    <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
+                                    <img src="/Resources/images/<?php echo $publicacion['YaReposteo'] ? 'repostP.svg' : 'repost.svg'; ?>" class="accion-icon" alt="Repost">
                                 </button>
-                                <span class="accion-count">
+                                <span class="accion-count" id="repost-count-<?php echo $publicacion['PublicacionID']; ?>">
                                     <?php echo $publicacion['RepostsCount'] ?? 0; ?> 
                                 </span> 
-                            </div> -->
+                            </div>
                             <!-- ***** NUEVO: Sección Comentarios ***** -->
                             <div class="accion">
                                 <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">

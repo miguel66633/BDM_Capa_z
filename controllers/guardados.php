@@ -29,27 +29,30 @@ $query = "
         u.ImagenPerfil,
         m.TipoMultimedia,
         g.FechaGuardado, -- Fecha en que se guardó
-        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS Likes,
-        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados,
-        -- *** NUEVO: Contar Respuestas (comentarios) ***
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p.PublicacionID) AS Likes, -- Corregido para contar likes de la publicación
+        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados, -- Conteo total de guardados de esta publicación
         (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount, 
-        -- *** NUEVO: Contar Reposts (asumiendo tabla PublicacionRepost) ***
-        (SELECT COUNT(*) FROM PublicacionRepost WHERE PublicacionID = p.PublicacionID) AS RepostsCount,
+        -- *** NUEVO: Contar Reposts para la publicación guardada ***
+        (SELECT COUNT(DISTINCT pr.RepostID) 
+         FROM PublicacionRepost pr 
+         WHERE pr.PublicacionID = p.PublicacionID) AS RepostsCount,
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
             INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
             WHERE ul.UsuarioID = :usuarioId AND pl.PublicacionID = p.PublicacionID
-        ) AS YaDioLike
-        -- Ya sabemos que está guardado porque estamos en la tabla Guardado, 
-        -- pero si necesitaras el estado de repost:
-        -- , EXISTS (
-        --     SELECT 1 
-        --     FROM UsuarioRepost ur 
-        --     JOIN Repost r ON ur.RepostID = r.RepostID 
-        --     JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID 
-        --     WHERE ur.UsuarioID = :usuarioId AND pr.PublicacionID = p.PublicacionID
-        -- ) AS YaHizoRepost
+        ) AS YaDioLike,
+        -- Ya sabemos que está guardado porque estamos en la tabla Guardado,
+        -- pero mantenemos la columna YaGuardo para consistencia con otras vistas si es necesario.
+        1 AS YaGuardo, -- Siempre será true en esta vista
+        -- *** NUEVO: Verificar si el usuario actual ya reposteó la publicación guardada ***
+        EXISTS (
+            SELECT 1 
+            FROM Repost r
+            JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+            WHERE ur.UsuarioID = :usuarioId AND pr.PublicacionID = p.PublicacionID
+        ) AS YaReposteo
     FROM 
         Guardado g
     INNER JOIN 
@@ -60,10 +63,8 @@ $query = "
         Multimedia m ON p.PublicacionID = m.PublicacionID
     WHERE 
         g.UsuarioID = :usuarioId
-        -- Asegurarse de que solo traemos publicaciones principales guardadas (opcional, depende de si guardas respuestas)
-        -- AND p.PublicacionPadreID IS NULL 
     ORDER BY 
-        g.FechaGuardado DESC; -- Ordenar por cuándo se guardó
+        g.FechaGuardado DESC; 
 ";
 
 $publicacionesGuardadas = $db->query($query, ['usuarioId' => $usuarioId])->get();
