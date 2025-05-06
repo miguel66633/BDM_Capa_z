@@ -24,7 +24,6 @@ if (!$chatId) {
     exit;
 }
 
-// Consultar la información del usuario asociado al chat
 $queryUser = "
     SELECT 
         u.UsuarioID,

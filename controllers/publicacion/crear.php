@@ -6,8 +6,6 @@ use Core\Database;
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-// Verificar si el usuario está autenticado
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['error'] = 'Debes iniciar sesión para publicar.';
     header('Location: /inicio');
@@ -22,9 +20,8 @@ $usuarioId = $_SESSION['user_id'];
 $contenido = $_POST['contenido'] ?? '';
 $imagen = $_FILES['imagen']['tmp_name'] ?? null;
 $nombreImagen = $_FILES['imagen']['name'] ?? null;
-$tipoImagen = $_FILES['imagen']['type'] ?? null; // Obtener el tipo MIME reportado por el navegador
+$tipoImagen = $_FILES['imagen']['type'] ?? null;
 
-// Validar los datos
 $errors = [];
 
 if (empty($contenido) && !$imagen) { // Permitir post solo con imagen/video o solo texto
@@ -58,23 +55,18 @@ $resultado = $db->query($query, [
     'usuarioId' => $usuarioId
 ]);
 
-// Si se subió una imagen, guardarla en el servidor y en la base de datos como BLOB
 if ($resultado && $imagen) {
     $publicacionId = $db->getConnection()->lastInsertId();
 
-    // Leer el contenido binario del archivo
-    $contenidoArchivo = file_get_contents($imagen); // Esto funcionará para imágenes y videos
+    $contenidoArchivo = file_get_contents($imagen);
 
     // Guardar el archivo en la base de datos como BLOB
-    // La columna TipoMultimedia almacenará el contenido binario
     $queryMultimedia = "INSERT INTO Multimedia (TipoMultimedia, PublicacionID) VALUES (:tipoMultimedia, :publicacionId)";
     $db->query($queryMultimedia, [
         'tipoMultimedia' => $contenidoArchivo,
         'publicacionId' => $publicacionId
     ]);
 }
-
-// Redirigir con mensaje de éxito
 $_SESSION['success'] = 'Tu publicación se ha creado con éxito.';
 header('Location: /inicio');
 exit;

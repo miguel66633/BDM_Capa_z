@@ -48,10 +48,8 @@ try {
     ])->find();
 
     if ($existingRepost) {
-        // Ya existe, entonces quitar repost (eliminar)
         $repostId = $existingRepost['RepostID'];
 
-        // Eliminar de las tablas de unión primero
         $db->query("DELETE FROM UsuarioRepost WHERE UsuarioID = :usuarioId AND RepostID = :repostId", [
             'usuarioId' => $usuarioId,
             'repostId' => $repostId
@@ -60,20 +58,14 @@ try {
             'publicacionId' => $publicacionId,
             'repostId' => $repostId
         ]);
-        // Finalmente, eliminar de la tabla Repost.
-        // Esto es seguro si el RepostID es único para esta acción de repost.
-        // Si un RepostID pudiera ser compartido (no parece ser el caso con tu SP), se necesitaría más lógica.
+
         $db->query("DELETE FROM Repost WHERE RepostID = :repostId", ['repostId' => $repostId]);
         
         $yaReposteo = false;
 } else {
-        // No existe, entonces agregar repost (insertar)
-        // 1. Insertar en Repost
-        // *** CAMBIO: Usar NOW() para guardar fecha y hora ***
         $db->query("INSERT INTO Repost (FechaRepost) VALUES (NOW())");
         $repostId = $pdo->lastInsertId(); // Obtener el RepostID recién creado
 
-        // 2. Insertar en UsuarioRepost
         $db->query("INSERT INTO UsuarioRepost (UsuarioID, RepostID) VALUES (:usuarioId, :repostId)", [
             'usuarioId' => $usuarioId,
             'repostId' => $repostId
