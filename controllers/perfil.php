@@ -35,18 +35,21 @@ if (!$usuario) {
 }
 
 // --- Obtener Publicaciones del Usuario Visualizado (con conteos y estados del *VISITANTE*) ---
-$queryPublicacionesUsuario = "
+$queryFeed = "
+SELECT * FROM (
+    -- Publicaciones originales del dueño del perfil
     SELECT
         p.PublicacionID,
         p.ContenidoPublicacion,
-        p.FechaPublicacion,
-        u.NombreUsuario,
-        u.ImagenPerfil,
-        u.UsuarioID, -- *** AÑADIR ESTA LÍNEA ***
+        p.FechaPublicacion AS EffectiveDate, -- Fecha efectiva para ordenar
+        u_autor.NombreUsuario AS AutorNombreUsuario,
+        u_autor.ImagenPerfil AS AutorImagenPerfil,
+        u_autor.UsuarioID AS AutorID,
         m.TipoMultimedia,
-        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS LikesCount,
-        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS SavesCount,
-        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pr_count.RepostID) FROM PublicacionRepost pr_count WHERE pr_count.PublicacionID = p.PublicacionID) AS RepostsCount,
         EXISTS (
             SELECT 1
             FROM PublicacionLike pl
@@ -57,30 +60,82 @@ $queryPublicacionesUsuario = "
             SELECT 1
             FROM Guardado g
             WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p.PublicacionID
-        ) AS YaGuardo
-    FROM
-        Publicacion p
-    INNER JOIN
-        Usuario u ON p.UsuarioID = u.UsuarioID
-    LEFT JOIN
-        Multimedia m ON p.PublicacionID = m.PublicacionID
-    WHERE
-        p.UsuarioID = :profileUserId
-        AND p.PublicacionPadreID IS NULL
-    ORDER BY
-        p.FechaPublicacion DESC;
+        ) AS YaGuardo,
+        EXISTS (
+            SELECT 1
+            FROM Repost r_check
+            JOIN UsuarioRepost ur_check ON r_check.RepostID = ur_check.RepostID
+            JOIN PublicacionRepost pr_check ON r_check.RepostID = pr_check.RepostID
+            WHERE ur_check.UsuarioID = :currentUserId AND pr_check.PublicacionID = p.PublicacionID
+        ) AS YaReposteo,
+        'original' AS TipoEntrada,
+        NULL AS RepostadorNombreUsuario,
+        NULL AS RepostadorID,
+        NULL AS FechaRepostOriginal
+    FROM Publicacion p
+    JOIN Usuario u_autor ON p.UsuarioID = u_autor.UsuarioID
+    LEFT JOIN Multimedia m ON p.PublicacionID = m.PublicacionID
+    WHERE p.UsuarioID = :profileOwnerId AND p.PublicacionPadreID IS NULL
+
+    UNION ALL
+
+    -- Publicaciones reposteadas por el dueño del perfil
+    SELECT
+        p_original.PublicacionID,
+        p_original.ContenidoPublicacion,
+        r.FechaRepost AS EffectiveDate, -- Fecha efectiva para ordenar (fecha del repost)
+        u_autor_original.NombreUsuario AS AutorNombreUsuario, -- Autor de la publicación original
+        u_autor_original.ImagenPerfil AS AutorImagenPerfil,   -- Imagen del autor original
+        u_autor_original.UsuarioID AS AutorID,                -- ID del autor original
+        m_original.TipoMultimedia,
+        (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p_original.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_original.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p_original.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pr_count.RepostID) FROM PublicacionRepost pr_count WHERE pr_count.PublicacionID = p_original.PublicacionID) AS RepostsCount,
+        EXISTS (
+            SELECT 1
+            FROM PublicacionLike pl
+            INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = :currentUserId AND pl.PublicacionID = p_original.PublicacionID
+        ) AS YaDioLike,
+        EXISTS (
+            SELECT 1
+            FROM Guardado g
+            WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p_original.PublicacionID
+        ) AS YaGuardo,
+        EXISTS (
+            SELECT 1
+            FROM Repost r_check
+            JOIN UsuarioRepost ur_check ON r_check.RepostID = ur_check.RepostID
+            JOIN PublicacionRepost pr_check ON r_check.RepostID = pr_check.RepostID
+            WHERE ur_check.UsuarioID = :currentUserId AND pr_check.PublicacionID = p_original.PublicacionID
+        ) AS YaReposteo,
+        'repost' AS TipoEntrada,
+        u_repostador.NombreUsuario AS RepostadorNombreUsuario, -- Quien hizo el repost (el dueño del perfil)
+        u_repostador.UsuarioID AS RepostadorID,
+        r.FechaRepost AS FechaRepostOriginal
+    FROM Repost r
+    JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID AND ur.UsuarioID = :profileOwnerId -- El dueño del perfil es quien hizo el repost
+    JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+    JOIN Publicacion p_original ON pr.PublicacionID = p_original.PublicacionID -- La publicación original
+    JOIN Usuario u_autor_original ON p_original.UsuarioID = u_autor_original.UsuarioID -- El autor de la publicación original
+    JOIN Usuario u_repostador ON ur.UsuarioID = u_repostador.UsuarioID -- Para obtener el nombre del repostador
+    LEFT JOIN Multimedia m_original ON p_original.PublicacionID = m_original.PublicacionID
+) AS ProfileFeed
+ORDER BY EffectiveDate DESC
 ";
 
-$publicacionesUsuario = $db->query($queryPublicacionesUsuario, [
-    'profileUserId' => $profileUserId,
+$publicacionesPerfil = $db->query($queryFeed, [
+    'profileOwnerId' => $profileUserId,
     'currentUserId' => $currentUserId
 ])->get();
 
 
 // Pasar los datos a la vista (SOLO si no se abortó antes)
 view("perfil.view.php", [
-    'heading' => 'Perfil de ' . htmlspecialchars($usuario['NombreUsuario']),
-    'usuario' => $usuario, // Asegurado que existe
-    'publicaciones' => $publicacionesUsuario,
+    'usuario' => $usuario,
+    'publicaciones' => $publicacionesPerfil, // Usamos $publicacionesPerfil que contiene el feed combinado
+    'isOwner' => $isOwner,
+    'currentUserId' => $currentUserId, // Para la lógica de "Reposteaste"
     'isOwner' => $isOwner // Asegurado que está definido
 ]);

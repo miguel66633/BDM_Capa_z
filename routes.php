@@ -34,6 +34,7 @@ $router->get('/post/{id}', 'controllers/post.php')->only('auth');
 $router->post('/crear-publicacion', 'controllers/publicacion/crear.php')->only('auth');
 $router->post('/like', 'controllers/like.php')->only('auth');
 $router->post('/guardar', 'controllers/guardar.php')->only('auth');
+$router->post('/repost/toggle', 'controllers/repost/toggle.php')->only('auth');
 
 $router->post('/buscar-usuario', 'controllers/buscarUsuario.php')->only('auth');
 

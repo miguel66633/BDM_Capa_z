@@ -140,12 +140,47 @@ function logout() {
 });
   
   
-document.querySelectorAll('.repost-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    this.classList.toggle('active');
+// document.querySelectorAll('.repost-btn').forEach(function(btn) {
+//   btn.addEventListener('click', function() {
+//     this.classList.toggle('active');
+//   });
+// });
+
+document.addEventListener('DOMContentLoaded', function () {
+  // ... (código existente para likes, guardados, etc.)
+
+  document.querySelectorAll('.repost-btn').forEach(button => {
+      button.addEventListener('click', function () {
+        // this.classList.toggle('active');
+          const publicacionId = this.dataset.publicacionId;
+          const icon = this.querySelector('.accion-icon');
+          const countSpan = document.getElementById(`repost-count-${publicacionId}`);
+
+          fetch('/repost/toggle', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-Requested-With': 'XMLHttpRequest' 
+              },
+              body: `publicacion_id=${publicacionId}`
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  countSpan.textContent = data.repostsCount;
+                  if (data.yaReposteo) {
+                      icon.src = '/Resources/images/repostP.svg'; // Cambia al ícono activo
+                  } else {
+                      icon.src = '/Resources/images/repost.svg'; // Cambia al ícono inactivo
+                  }
+              } else {
+                  console.error('Error al repostear:', data.message);
+              }
+          })
+          .catch(error => console.error('Error en la petición de repost:', error));
+      });
   });
 });
-
 
 
 
@@ -325,3 +360,4 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   });
 });
+

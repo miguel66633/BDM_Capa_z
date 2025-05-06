@@ -23,8 +23,11 @@ $query = "
         m.TipoMultimedia,
         (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS Likes,
         (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS Guardados,
-        -- *** NUEVO: Contar Respuestas (comentarios) para cada publicación ***
         (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount, 
+        -- *** ACTUALIZADO: Contar Reposts para cada publicación usando la estructura de 3 tablas ***
+        (SELECT COUNT(DISTINCT pr.RepostID) 
+         FROM PublicacionRepost pr 
+         WHERE pr.PublicacionID = p.PublicacionID) AS RepostsCount,
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
@@ -33,19 +36,26 @@ $query = "
         ) AS YaDioLike,
         EXISTS (
             SELECT 1 
-            FROM Guardado g
-            WHERE g.UsuarioID = :usuarioId AND g.PublicacionID = p.PublicacionID
-        ) AS YaGuardado
+            FROM Guardado g 
+            WHERE g.UsuarioID = :usuarioId AND g.PublicacionID = p.PublicacionID 
+        ) AS YaGuardado,
+        -- *** ACTUALIZADO: Verificar si el usuario actual ya reposteó esta publicación usando la estructura de 3 tablas ***
+        EXISTS (
+            SELECT 1 
+            FROM Repost r
+            JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+            WHERE ur.UsuarioID = :usuarioId AND pr.PublicacionID = p.PublicacionID
+        ) AS YaReposteo
     FROM 
         Publicacion p
     LEFT JOIN 
         Usuario u ON p.UsuarioID = u.UsuarioID
     LEFT JOIN 
         Multimedia m ON p.PublicacionID = m.PublicacionID
-    -- *** AÑADIDO: Filtrar para mostrar solo publicaciones principales (sin padre) ***
     WHERE p.PublicacionPadreID IS NULL 
     ORDER BY 
-        p.FechaPublicacion DESC;
+        p.FechaPublicacion DESC
 ";
 
 $publicaciones = $db->query($query, ['usuarioId' => $usuarioId])->get();

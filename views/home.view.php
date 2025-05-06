@@ -56,17 +56,18 @@
                                 <?php echo $publicacion['Likes'] ?? 0; ?>
                             </span>
                         </div>
-                        <!-- <div class="accion">
-                            <button class="accion-btn repost-btn">
-                                <img src="Resources/images/repost.svg" class="accion-icon" alt="Repost">
+                        <div class="accion">
+                            <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img src="Resources/images/<?php echo $publicacion['YaReposteo'] ? 'repostP.svg' : 'repost.svg'; ?>" class="accion-icon" alt="Repost">
                             </button>
-                            <span class="accion-count">45</span>
-                        </div> -->
+                            <span class="accion-count" id="repost-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['RepostsCount'] ?? 0; ?>
+                            </span>
+                        </div>
                         <div class="accion">
                             <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">
                                 <img src="Resources/images/comments.svg" class="accion-icon" alt="Comentarios">
                             </a>
-                            <!-- ***** CAMBIO: Mostrar CommentsCount ***** -->
                             <span class="accion-count">
                                 <?php echo $publicacion['CommentsCount'] ?? 0; ?>
                             </span>

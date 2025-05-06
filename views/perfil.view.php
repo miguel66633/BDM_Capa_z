@@ -18,10 +18,9 @@
     <div class="scrollable-content">
       <!-- Encabezado con botón de regreso y nombre de usuario -->
       <div class="post-header">
-        <button class="back-btn" onclick="window.history.back()"> <!-- Usar history.back() es más flexible -->
-          <img src="/resources/images/atras.svg" alt="Atrás"> <!-- Ruta desde la raíz -->
+        <button class="back-btn" onclick="window.history.back()">
+          <img src="/resources/images/atras.svg" alt="Atrás"> 
         </button>
-        <!-- *** CAMBIO: Mostrar nombre del usuario del perfil *** -->
         <h2><?php echo htmlspecialchars($usuario['NombreUsuario']); ?></h2>
       </div>
 
@@ -72,24 +71,40 @@
         <!-- Bucle para mostrar las publicaciones del usuario -->
         <?php if (!empty($publicaciones)): ?>
             <?php foreach ($publicaciones as $publicacion): ?>
-                <div class="publicacion" data-id="<?php echo $publicacion['PublicacionID']; ?>"> <!-- Añadir data-id -->
+                <div class="publicacion" data-id="<?php echo $publicacion['PublicacionID']; ?>">
+                    
+                    <?php if ($publicacion['TipoEntrada'] === 'repost'): ?>
+                        <div class="repost-indicator" style="font-size: 0.85em; color: #888; margin-bottom: 8px; padding-left: 50px;">
+                            <img src="/Resources/images/repost.svg" style="width:14px; height:14px; vertical-align:middle; margin-right: 4px; filter: brightness(0.6);" alt="Repost icon">
+                            <?php if ($publicacion['RepostadorID'] == $currentUserId && $isOwner): ?>
+                                Reposteaste
+                            <?php else: ?>
+                                Reposteado por <a href="/perfil/<?php echo $publicacion['RepostadorID']; ?>" style="color: #888; text-decoration: none; font-weight: bold;"><?php echo htmlspecialchars($publicacion['RepostadorNombreUsuario']); ?></a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="publicacion-header">
-                        <img
-                            src="<?php echo isset($publicacion['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($publicacion['ImagenPerfil']) : '/Resources/images/perfilPre.jpg'; ?>"
-                            alt="Foto de perfil de <?php echo htmlspecialchars($publicacion['NombreUsuario']); ?>"
-                            class="publicacion-profile-pic"
-                        >
+                        <a href="/perfil/<?php echo $publicacion['AutorID']; ?>">
+                            <img 
+                                src="<?php echo isset($publicacion['AutorImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($publicacion['AutorImagenPerfil']) : '/Resources/images/perfilpre.jpg'; ?>" 
+                                alt="Foto de perfil de <?php echo htmlspecialchars($publicacion['AutorNombreUsuario']); ?>"
+                                class="publicacion-profile-pic"
+                            >
+                        </a>
                         <div class="publicacion-info">
-                            <!-- *** CAMBIO: Enlazar nombre de usuario al perfil *** -->
-                            <a href="/perfil/<?php echo $publicacion['UsuarioID']; ?>" class="publicacion-username-link" style="text-decoration: none; color: inherit;">
-                                <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['NombreUsuario']); ?></span>
+                            <a href="/perfil/<?php echo $publicacion['AutorID']; ?>" class="publicacion-username-link" style="text-decoration: none; color: inherit;">
+                                <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['AutorNombreUsuario']); ?></span>
                             </a>
                             <span class="publicacion-user-handle">
-                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> •
-                                <?php
+                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['AutorNombreUsuario']))); ?> •
+                                <?php 
                                     try {
-                                        $fecha = new DateTime($publicacion['FechaPublicacion']);
-                                        echo $fecha->format('d M.');
+                                        // EffectiveDate ya contiene la fecha correcta (FechaPublicacion o FechaRepostOriginal)
+                                        $fecha = new DateTime($publicacion['EffectiveDate']);
+                                        // Si es un repost, podrías querer mostrar la fecha del repost, no la de la publicación original
+                                        // La consulta ya devuelve EffectiveDate que es FechaRepost para los reposts.
+                                        echo $fecha->format('d M. Y H:i'); 
                                     } catch (Exception $e) {
                                         echo 'Fecha inválida';
                                     }
@@ -98,18 +113,19 @@
                         </div>
                     </div>
 
-                    <!-- Contenido de la publicación -->
                     <div class="publicacion-contenido">
-                        <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
-
+                        <p><?php echo nl2br(htmlspecialchars($publicacion['ContenidoPublicacion'])); ?></p>
                         <?php if (!empty($publicacion['TipoMultimedia'])): ?>
                             <div class="img">
+                                <?php
+                                // Asumiendo que TipoMultimedia es el contenido binario de la imagen
+                                // Si fuera un video, necesitarías una lógica diferente aquí
+                                ?>
                                 <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
                             </div>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Acciones de la publicación (Like, Comentario, Guardado) -->
                     <div class="publicacion-acciones">
                         <div class="accion">
                             <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
@@ -123,10 +139,15 @@
                                 <?php echo $publicacion['LikesCount'] ?? 0; ?>
                             </span>
                         </div>
-                        <!-- Repost (si lo implementas) -->
-                        <!-- <div class="accion"> ... </div> -->
                         <div class="accion">
-                            <!-- Enlace al post individual -->
+                             <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
+                                <img src="/Resources/images/<?php echo $publicacion['YaReposteo'] ? 'repostP.svg' : 'repost.svg'; ?>" class="accion-icon" alt="Repost">
+                            </button>
+                            <span class="accion-count" id="repost-count-<?php echo $publicacion['PublicacionID']; ?>">
+                                <?php echo $publicacion['RepostsCount'] ?? 0; ?>
+                            </span>
+                        </div>
+                        <div class="accion">
                             <a href="/post/<?php echo $publicacion['PublicacionID']; ?>" class="accion-btn comentarios-btn">
                                 <img src="/Resources/images/comments.svg" class="accion-icon" alt="Comentarios">
                             </a>
@@ -143,15 +164,17 @@
                                 >
                             </button>
                             <span class="accion-count" id="save-count-<?php echo $publicacion['PublicacionID']; ?>">
-                                <?php echo $publicacion['SavesCount'] ?? 0; ?>
+                                <?php echo $publicacion['SavesCount'] ?? 0; // Asegúrate que tu consulta trae SavesCount
+                                ?>
                             </span>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="text-align: center; color: #888; padding: 20px;">Este usuario aún no ha publicado nada.</p>
+            <p style="text-align: center; color: #888; padding: 20px;">Este usuario aún no ha publicado nada ni ha hecho reposts.</p>
         <?php endif; ?>
+
 
 
       <!-- *** CAMBIO: Renderizar MODAL solo si es el dueño *** -->
