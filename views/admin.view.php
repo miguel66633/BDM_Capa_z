@@ -1,4 +1,4 @@
-<?php include base_path('controllers/busqueda.php'); ?>
+<?php include base_path('controllers/busquedaAdmin.php'); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
