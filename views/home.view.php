@@ -36,11 +36,27 @@
 
                         <!-- Mostrar imagen si existe -->
                         <?php if (!empty($publicacion['TipoMultimedia'])): ?>
-                            <div class="img">
-                                <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                        <?php
+                            // Decodificar una pequeña porción para determinar el tipo MIME
+                            // Esto no es lo más eficiente. Idealmente, el tipo MIME se guardaría en la BD.
+                            $multimediaContent = $publicacion['TipoMultimedia'];
+                            $base64Encoded = base64_encode($multimediaContent);
+                            $mimeType = mime_content_type('data://application/octet-stream;base64,' . $base64Encoded);
+                        ?>
+                        <div class="img"> <!-- Puedes renombrar esta clase si es más genérica como "media-container" -->
+                            <?php if (strpos($mimeType, 'video/') === 0): ?>
+                                <video controls style="max-width: 100%; border-radius: 10px; margin-top:10px;">
+                                    <source src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" type="<?php echo htmlspecialchars($mimeType); ?>">
+                                    Tu navegador no soporta videos HTML5.
+                                </video>
+                            <?php elseif (strpos($mimeType, 'image/') === 0): ?>
+                                <img src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" alt="Imagen de la publicación" class="publicacion-imagen">
+                            <?php else: ?>
+                                <p>Formato multimedia no soportado.</p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
 
                     <!-- Acciones de la publicación -->
                     <div class="publicacion-acciones">

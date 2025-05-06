@@ -334,25 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
   publicaciones.forEach(publicacion => {
       const postId = publicacion.getAttribute('data-id'); // Obtener el ID de la publicación
 
-      // Redirigir al hacer clic en cualquier parte de la publicación
-      publicacion.addEventListener('click', (event) => {
-          // Evitar que el clic en botones internos (como comentarios) active el evento del contenedor
-          if (event.target.closest('.comentarios-btn')) {
-              return;
-          }
-
-          console.log(`Redirigiendo a la publicación con ID: ${postId}`);
-          if (postId) {
-              window.location.href = `/post/${postId}`; // Redirigir a la página del post
-          }
-      });
-
       // Redirigir al hacer clic en el botón de comentarios
       const comentariosBtn = publicacion.querySelector('.comentarios-btn');
       if (comentariosBtn) {
           comentariosBtn.addEventListener('click', (event) => {
               event.stopPropagation(); // Evitar que el clic active el evento del contenedor
-              console.log(`Botón de comentarios clicado, postId: ${postId}`);
               if (postId) {
                   window.location.href = `/post/${postId}`; // Redirigir a la página del post
               }

@@ -118,10 +118,22 @@
                         <?php if (!empty($publicacion['TipoMultimedia'])): ?>
                             <div class="img">
                                 <?php
-                                // Asumiendo que TipoMultimedia es el contenido binario de la imagen
-                                // Si fuera un video, necesitarías una lógica diferente aquí
+                                    $multimediaContent = $publicacion['TipoMultimedia'];
+                                    $base64Encoded = base64_encode($multimediaContent);
+                                    $finfo = finfo_open();
+                                    $mimeType = finfo_buffer($finfo, $multimediaContent, FILEINFO_MIME_TYPE);
+                                    finfo_close($finfo);
                                 ?>
-                                <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
+                                <?php if (strpos($mimeType, 'video/') === 0): ?>
+                                    <video controls class="publicacion-video" style="max-width: 100%; border-radius: 10px; margin-top:10px;">
+                                        <source src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" type="<?php echo htmlspecialchars($mimeType); ?>">
+                                        Tu navegador no soporta videos HTML5.
+                                    </video>
+                                <?php elseif (strpos($mimeType, 'image/') === 0): ?>
+                                    <img src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" alt="Multimedia de la publicación" class="publicacion-imagen">
+                                <?php else: ?>
+                                    <p>Formato multimedia no soportado (Detectado: <?php echo htmlspecialchars($mimeType); ?>).</p>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
                     </div>

@@ -39,12 +39,28 @@
                 </div>
                 <!-- Contenido de la publicación -->
                 <div class="publicacion-contenido">
-                    <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
+                <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
                     
                     <!-- Mostrar imagen/multimedia si existe -->
                     <?php if (!empty($publicacion['TipoMultimedia'])): ?>
-                        <div class="img">
-                             <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
+                        <?php
+                            $multimediaContent = $publicacion['TipoMultimedia'];
+                            $base64Encoded = base64_encode($multimediaContent);
+                            $finfo = finfo_open();
+                            $mimeType = finfo_buffer($finfo, $multimediaContent, FILEINFO_MIME_TYPE);
+                            finfo_close($finfo);
+                        ?>
+                        <div class="img"> 
+                            <?php if (strpos($mimeType, 'video/') === 0): ?>
+                                <video controls style="max-width: 100%; border-radius: 10px; margin-top:10px;">
+                                    <source src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" type="<?php echo htmlspecialchars($mimeType); ?>">
+                                    Tu navegador no soporta videos HTML5.
+                                </video>
+                            <?php elseif (strpos($mimeType, 'image/') === 0): ?>
+                                <img src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" alt="Multimedia de la publicación" class="publicacion-imagen">
+                            <?php else: ?>
+                                <p>Formato multimedia no soportado (Detectado: <?php echo htmlspecialchars($mimeType); ?>).</p>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -126,8 +142,8 @@
                                     <label for="commentImage" class="image-upload-label">
                                         <img src="/Resources/images/img.svg" alt="Subir imagen" />
                                     </label>
-                                    <!-- ***** CAMBIO: name del input file coincide con el controlador reply.php ***** -->
-                                    <input type="file" id="commentImage" name="imagen_comentario" accept="image/*" style="display: none;" />
+                                    <!-- ***** CAMBIO: name del input file coincide con el controlador reply.php Y ACEPTA VIDEOS ***** -->
+                                    <input type="file" id="commentImage" name="imagen_comentario" accept="image/*,video/*" style="display: none;" />
                                 </div>
                                 <button type="submit" class="responder-btn">Responder</button>
                             </div>
@@ -163,10 +179,26 @@
                                 </div>
                                 <!-- ***** CAMBIO: Usar ContenidoPublicacion de la respuesta ***** -->
                                 <p><?php echo htmlspecialchars($respuesta['ContenidoPublicacion']); ?></p> 
-                                <!-- ***** CAMBIO: Usar ImagenRespuesta ***** -->
+                                <!-- Mostrar imagen/multimedia de la respuesta si existe -->
                                 <?php if (!empty($respuesta['ImagenRespuesta'])): ?> 
+                                    <?php
+                                        $multimediaContentRespuesta = $respuesta['ImagenRespuesta'];
+                                        $base64EncodedRespuesta = base64_encode($multimediaContentRespuesta);
+                                        $finfoRespuesta = finfo_open();
+                                        $mimeTypeRespuesta = finfo_buffer($finfoRespuesta, $multimediaContentRespuesta, FILEINFO_MIME_TYPE);
+                                        finfo_close($finfoRespuesta);
+                                    ?>
                                     <div class="img">
-                                        <img src="data:image/jpeg;base64,<?php echo base64_encode($respuesta['ImagenRespuesta']); ?>" alt="Imagen de la respuesta" class="publicacion-imagen">
+                                        <?php if (strpos($mimeTypeRespuesta, 'video/') === 0): ?>
+                                            <video controls style="max-width: 100%; border-radius: 10px; margin-top:10px;">
+                                                <source src="data:<?php echo htmlspecialchars($mimeTypeRespuesta); ?>;base64,<?php echo $base64EncodedRespuesta; ?>" type="<?php echo htmlspecialchars($mimeTypeRespuesta); ?>">
+                                                Tu navegador no soporta videos HTML5.
+                                            </video>
+                                        <?php elseif (strpos($mimeTypeRespuesta, 'image/') === 0): ?>
+                                            <img src="data:<?php echo htmlspecialchars($mimeTypeRespuesta); ?>;base64,<?php echo $base64EncodedRespuesta; ?>" alt="Multimedia de la respuesta" class="publicacion-imagen">
+                                        <?php else: ?>
+                                            <p>Formato multimedia no soportado (Detectado: <?php echo htmlspecialchars($mimeTypeRespuesta); ?>).</p>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endif; ?>
                                 

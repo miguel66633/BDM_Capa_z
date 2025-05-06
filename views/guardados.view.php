@@ -34,11 +34,30 @@
                         <div class="publicacion-contenido">
                             <p><?php echo htmlspecialchars($publicacion['ContenidoPublicacion']); ?></p>
                             <?php if (!empty($publicacion['TipoMultimedia'])): ?>
-                                <div class="img">
-                                    <img src="data:image/jpeg;base64,<?php echo base64_encode($publicacion['TipoMultimedia']); ?>" alt="Imagen de la publicación" class="publicacion-imagen">
+                                <?php
+                                    $multimediaContent = $publicacion['TipoMultimedia'];
+                                    $base64Encoded = base64_encode($multimediaContent);
+                                    // Es importante tener la extensión fileinfo habilitada en php.ini para mime_content_type
+                                    // y que el string 'data://...' sea válido.
+                                    $finfo = finfo_open();
+                                    $mimeType = finfo_buffer($finfo, $multimediaContent, FILEINFO_MIME_TYPE);
+                                    finfo_close($finfo);
+                                ?>
+                                <div class="img"> <!-- Puedes renombrar esta clase si es más genérica como "media-container" -->
+                                    <?php if (strpos($mimeType, 'video/') === 0): ?>
+                                        <video controls style="max-width: 100%; border-radius: 10px; margin-top:10px;">
+                                            <source src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" type="<?php echo htmlspecialchars($mimeType); ?>">
+                                            Tu navegador no soporta videos HTML5.
+                                        </video>
+                                    <?php elseif (strpos($mimeType, 'image/') === 0): ?>
+                                        <img src="data:<?php echo htmlspecialchars($mimeType); ?>;base64,<?php echo $base64Encoded; ?>" alt="Multimedia de la publicación" class="publicacion-imagen">
+                                    <?php else: ?>
+                                        <p>Formato multimedia no soportado (Detectado: <?php echo htmlspecialchars($mimeType); ?>).</p>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
+
                         <div class="publicacion-acciones">
                             <div class="accion">
                                 <button class="accion-btn like-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">

@@ -21,7 +21,7 @@
             <div class="modal-footer">
                 <!-- Etiqueta para cargar imagen -->
                 <label for="postImage" class="image-upload-label">
-                    <img src="Resources/images/img.svg" alt="Cargar imagen" />
+                    <img src="/Resources/images/img.svg" alt="Cargar imagen" />
                 </label>
                 <!-- Input file oculto -->
                 <input type="file" id="postImage" name="imagen" accept="image/*,video/*" style="display: none;" />

@@ -22,16 +22,26 @@ $usuarioId = $_SESSION['user_id'];
 $contenido = $_POST['contenido'] ?? '';
 $imagen = $_FILES['imagen']['tmp_name'] ?? null;
 $nombreImagen = $_FILES['imagen']['name'] ?? null;
+$tipoImagen = $_FILES['imagen']['type'] ?? null; // Obtener el tipo MIME reportado por el navegador
 
 // Validar los datos
 $errors = [];
 
-if (empty($contenido)) {
-    $errors['contenido'] = 'El contenido no puede estar vacío.';
+if (empty($contenido) && !$imagen) { // Permitir post solo con imagen/video o solo texto
+    $errors['contenido'] = 'El contenido no puede estar vacío si no se sube un archivo.';
 }
 
-if ($imagen && !getimagesize($imagen)) {
-    $errors['imagen'] = 'El archivo subido no es una imagen válida.';
+if ($imagen) {
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/ogg'];
+    $file_info = finfo_open(FILEINFO_MIME_TYPE);
+    $mime_type = finfo_file($file_info, $imagen);
+    finfo_close($file_info);
+
+    if (!in_array($mime_type, $allowed_types)) {
+        $errors['imagen'] = 'El tipo de archivo no es permitido. Sube imágenes (jpg, png, gif) o videos (mp4, webm, ogg). Detectado: ' . $mime_type;
+    }
+
+    if ($_FILES['imagen']['size'] > 50000000) { $errors['imagen'] = 'El archivo es demasiado grande (máx 50MB).'; }
 }
 
 // Si hay errores, redirigir con mensajes de error
@@ -52,13 +62,14 @@ $resultado = $db->query($query, [
 if ($resultado && $imagen) {
     $publicacionId = $db->getConnection()->lastInsertId();
 
-    // Leer el contenido binario de la imagen
-    $contenidoImagen = file_get_contents($imagen);
+    // Leer el contenido binario del archivo
+    $contenidoArchivo = file_get_contents($imagen); // Esto funcionará para imágenes y videos
 
-    // Guardar la imagen en la base de datos como BLOB
+    // Guardar el archivo en la base de datos como BLOB
+    // La columna TipoMultimedia almacenará el contenido binario
     $queryMultimedia = "INSERT INTO Multimedia (TipoMultimedia, PublicacionID) VALUES (:tipoMultimedia, :publicacionId)";
     $db->query($queryMultimedia, [
-        'tipoMultimedia' => $contenidoImagen,
+        'tipoMultimedia' => $contenidoArchivo,
         'publicacionId' => $publicacionId
     ]);
 }
