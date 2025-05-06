@@ -41,11 +41,12 @@ SELECT * FROM (
     SELECT
         p.PublicacionID,
         p.ContenidoPublicacion,
-        p.FechaPublicacion AS EffectiveDate, -- Fecha efectiva para ordenar
+        p.FechaPublicacion AS EffectiveDate, -- Fecha de la publicación original
         u_autor.NombreUsuario AS AutorNombreUsuario,
         u_autor.ImagenPerfil AS AutorImagenPerfil,
         u_autor.UsuarioID AS AutorID,
         m.TipoMultimedia,
+        -- (conteos y EXISTS para likes, guardados, comentarios, reposts)
         (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p.PublicacionID) AS LikesCount,
         (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p.PublicacionID) AS SavesCount,
         (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p.PublicacionID) AS CommentsCount,
@@ -71,7 +72,7 @@ SELECT * FROM (
         'original' AS TipoEntrada,
         NULL AS RepostadorNombreUsuario,
         NULL AS RepostadorID,
-        NULL AS FechaRepostOriginal
+        NULL AS FechaRepostOriginal 
     FROM Publicacion p
     JOIN Usuario u_autor ON p.UsuarioID = u_autor.UsuarioID
     LEFT JOIN Multimedia m ON p.PublicacionID = m.PublicacionID
@@ -83,11 +84,12 @@ SELECT * FROM (
     SELECT
         p_original.PublicacionID,
         p_original.ContenidoPublicacion,
-        r.FechaRepost AS EffectiveDate, -- Fecha efectiva para ordenar (fecha del repost)
-        u_autor_original.NombreUsuario AS AutorNombreUsuario, -- Autor de la publicación original
-        u_autor_original.ImagenPerfil AS AutorImagenPerfil,   -- Imagen del autor original
-        u_autor_original.UsuarioID AS AutorID,                -- ID del autor original
+        r.FechaRepost AS EffectiveDate, -- *** ESTA LÍNEA ES CLAVE: Debe ser r.FechaRepost ***
+        u_autor_original.NombreUsuario AS AutorNombreUsuario, 
+        u_autor_original.ImagenPerfil AS AutorImagenPerfil,   
+        u_autor_original.UsuarioID AS AutorID,                
         m_original.TipoMultimedia,
+        -- (conteos y EXISTS para likes, guardados, comentarios, reposts para p_original)
         (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p_original.PublicacionID) AS LikesCount,
         (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_original.PublicacionID) AS SavesCount,
         (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p_original.PublicacionID) AS CommentsCount,
@@ -111,15 +113,15 @@ SELECT * FROM (
             WHERE ur_check.UsuarioID = :currentUserId AND pr_check.PublicacionID = p_original.PublicacionID
         ) AS YaReposteo,
         'repost' AS TipoEntrada,
-        u_repostador.NombreUsuario AS RepostadorNombreUsuario, -- Quien hizo el repost (el dueño del perfil)
+        u_repostador.NombreUsuario AS RepostadorNombreUsuario, 
         u_repostador.UsuarioID AS RepostadorID,
-        r.FechaRepost AS FechaRepostOriginal
+        r.FechaRepost AS FechaRepostOriginal 
     FROM Repost r
-    JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID AND ur.UsuarioID = :profileOwnerId -- El dueño del perfil es quien hizo el repost
+    JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID AND ur.UsuarioID = :profileOwnerId 
     JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
-    JOIN Publicacion p_original ON pr.PublicacionID = p_original.PublicacionID -- La publicación original
-    JOIN Usuario u_autor_original ON p_original.UsuarioID = u_autor_original.UsuarioID -- El autor de la publicación original
-    JOIN Usuario u_repostador ON ur.UsuarioID = u_repostador.UsuarioID -- Para obtener el nombre del repostador
+    JOIN Publicacion p_original ON pr.PublicacionID = p_original.PublicacionID 
+    JOIN Usuario u_autor_original ON p_original.UsuarioID = u_autor_original.UsuarioID 
+    JOIN Usuario u_repostador ON ur.UsuarioID = u_repostador.UsuarioID 
     LEFT JOIN Multimedia m_original ON p_original.PublicacionID = m_original.PublicacionID
 ) AS ProfileFeed
 ORDER BY EffectiveDate DESC

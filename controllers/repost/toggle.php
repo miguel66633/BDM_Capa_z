@@ -66,11 +66,11 @@ try {
         $db->query("DELETE FROM Repost WHERE RepostID = :repostId", ['repostId' => $repostId]);
         
         $yaReposteo = false;
-    } else {
+} else {
         // No existe, entonces agregar repost (insertar)
-        // 1. Insertar en Repost (tu tabla Repost tiene FechaRepost DATE DEFAULT (CURRENT_DATE))
-        // Si quisieras DATETIME, modifica la tabla y usa NOW()
-        $db->query("INSERT INTO Repost (FechaRepost) VALUES (CURRENT_DATE)");
+        // 1. Insertar en Repost
+        // *** CAMBIO: Usar NOW() para guardar fecha y hora ***
+        $db->query("INSERT INTO Repost (FechaRepost) VALUES (NOW())");
         $repostId = $pdo->lastInsertId(); // Obtener el RepostID recién creado
 
         // 2. Insertar en UsuarioRepost
