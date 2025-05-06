@@ -65,15 +65,14 @@
                           <?php echo $publicacion['LikesCount'] ?? 0; ?>
                       </span> 
                     </div>
-                    <!-- <div class="accion">
+                    <div class="accion">
                         <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $publicacion['PublicacionID']; ?>">
-                          <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
+                            <img src="/Resources/images/<?php echo $publicacion['YaReposteo'] ? 'repostP.svg' : 'repost.svg'; ?>" class="accion-icon" alt="Repost">
                         </button>
-                        <span class="accion-count">
-                            <?php  ?>
-                            0 
-                        </span> 
-                      </div> -->
+                        <span class="accion-count" id="repost-count-<?php echo $publicacion['PublicacionID']; ?>">
+                            <?php echo $publicacion['RepostsCount'] ?? 0; ?>
+                        </span>
+                    </div>
                     <div class="accion">
                       <!-- Botón Comentarios (solo visual, la sección está abajo) -->
                       <button class="accion-btn">
@@ -135,8 +134,7 @@
                         </form>
                     </div>
                 </div>
-
-                  <!-- Lista de comentarios (Ejemplos estáticos) -->
+                  <!-- Lista de comentarios-->
                   <div id="lista-respuestas"> 
                     <?php if (!empty($respuestas)): ?> 
                         <?php foreach ($respuestas as $respuesta): ?>
@@ -188,15 +186,14 @@
                                             <?php echo $respuesta['LikesCount'] ?? 0; ?>
                                         </span> 
                                     </div>
-                                    <!-- <div class="accion">
+                                    <div class="accion">
                                         <button class="accion-btn repost-btn" data-publicacion-id="<?php echo $respuesta['PublicacionID']; ?>">
-                                            <img src="/Resources/images/repost.svg" class="accion-icon" alt="Repost">
+                                            <img src="/Resources/images/<?php echo $respuesta['YaReposteoRespuesta'] ? 'repostP.svg' : 'repost.svg'; ?>" class="accion-icon" alt="Repost">
                                         </button>
-                                        <span class="accion-count">
-                                            <?php ?> 
-                                            0
-                                        </span> 
-                                    </div> -->
+                                        <span class="accion-count" id="repost-count-<?php echo $respuesta['PublicacionID']; ?>">
+                                            <?php echo $respuesta['RepostsCount'] ?? 0; ?>
+                                        </span>
+                                    </div>
                                     <div class="accion">
                                         <!-- ***** CAMBIO: Convertir botón a enlace ***** -->
                                         <a href="/post/<?php echo $respuesta['PublicacionID']; ?>" class="accion-btn"> 

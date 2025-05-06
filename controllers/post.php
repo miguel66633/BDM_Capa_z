@@ -36,28 +36,34 @@ $queryPublicacion = "
         p.FechaPublicacion,
         u.NombreUsuario,
         u.ImagenPerfil,
+        u.UsuarioID AS AutorID, -- Añadido para consistencia si se necesita
         m.TipoMultimedia,
-        -- Contar Likes para la publicación principal
-        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p.PublicacionID) AS LikesCount,
-        -- Contar Guardados para la publicación principal
-        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p.PublicacionID) AS SavesCount,
-        -- Contar Respuestas (comentarios) para la publicación principal
-        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p.PublicacionID) AS CommentsCount, 
-        -- Verificar si el usuario actual dio Like a la publicación principal
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g WHERE g.PublicacionID = p.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion comm WHERE comm.PublicacionPadreID = p.PublicacionID) AS CommentsCount,
+        -- *** NUEVO: Contar Reposts para la publicación principal ***
+        (SELECT COUNT(DISTINCT pr.RepostID) 
+         FROM PublicacionRepost pr 
+         WHERE pr.PublicacionID = p.PublicacionID) AS RepostsCount,
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
             INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
             WHERE ul.UsuarioID = :currentUserId AND pl.PublicacionID = p.PublicacionID
         ) AS YaDioLike,
-        -- Verificar si el usuario actual guardó la publicación principal
         EXISTS (
             SELECT 1 
-            FROM Guardado g
+            FROM Guardado g 
             WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p.PublicacionID
-        ) AS YaGuardo
-        -- Puedes añadir conteo de Reposts si tienes la tabla/lógica implementada
-        -- , (SELECT COUNT(*) FROM PublicacionRepost WHERE PublicacionID = p.PublicacionID) AS RepostsCount 
+        ) AS YaGuardo,
+        -- *** NUEVO: Verificar si el usuario actual ya reposteó la publicación principal ***
+        EXISTS (
+            SELECT 1 
+            FROM Repost r
+            JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+            WHERE ur.UsuarioID = :currentUserId AND pr.PublicacionID = p.PublicacionID
+        ) AS YaReposteo
     FROM 
         Publicacion p
     LEFT JOIN 
@@ -70,7 +76,7 @@ $queryPublicacion = "
 // Añadir currentUserId al array de parámetros para la publicación principal
 $publicacion = $db->query($queryPublicacion, [
     'postId' => $postId,
-    'currentUserId' => $usuarioId // Usar el ID del usuario logueado
+    'currentUserId' => $usuarioId
 ])->find(); 
 
 if (!$publicacion) {
@@ -88,10 +94,13 @@ $queryRespuestas = "
         u.NombreUsuario,
         u.ImagenPerfil,
         m.TipoMultimedia AS ImagenRespuesta,
-        (SELECT COUNT(*) FROM PublicacionLike WHERE PublicacionID = p_hija.PublicacionID) AS LikesCount,
-        (SELECT COUNT(*) FROM Guardado WHERE PublicacionID = p_hija.PublicacionID) AS SavesCount,
-        -- *** NUEVO: Contar respuestas de esta respuesta (comentario) ***
-        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p_hija.PublicacionID) AS RepliesToReplyCount,
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p_hija.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g WHERE g.PublicacionID = p_hija.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID = p_hija.PublicacionID) AS RepliesToReplyCount, -- Comentarios de esta respuesta
+        -- *** NUEVO: Contar Reposts para cada respuesta ***
+        (SELECT COUNT(DISTINCT pr.RepostID) 
+         FROM PublicacionRepost pr 
+         WHERE pr.PublicacionID = p_hija.PublicacionID) AS RepostsCount,
         EXISTS (
             SELECT 1 
             FROM PublicacionLike pl
@@ -102,7 +111,15 @@ $queryRespuestas = "
             SELECT 1 
             FROM Guardado g
             WHERE g.UsuarioID = :currentUserId AND g.PublicacionID = p_hija.PublicacionID
-        ) AS YaGuardoRespuesta
+        ) AS YaGuardoRespuesta,
+        -- *** NUEVO: Verificar si el usuario actual ya reposteó esta respuesta ***
+        EXISTS (
+            SELECT 1 
+            FROM Repost r
+            JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+            WHERE ur.UsuarioID = :currentUserId AND pr.PublicacionID = p_hija.PublicacionID
+        ) AS YaReposteoRespuesta -- Nombre diferente para evitar colisión si se usara en el mismo nivel
     FROM 
         Publicacion p_hija         
     INNER JOIN 
