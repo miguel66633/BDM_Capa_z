@@ -16,7 +16,7 @@
         <!-- Formulario para cargar texto e imagen -->
         <form action="/crear-publicacion" method="POST" enctype="multipart/form-data">
 
-            <textarea name="contenido" class="post-textarea" placeholder="¿Qué quieres compartir?"></textarea>
+            <textarea name="contenido" class="post-textarea" placeholder="¿Qué quieres compartir?" maxlength="100"></textarea>
             
             <div class="modal-footer">
                 <!-- Etiqueta para cargar imagen -->
