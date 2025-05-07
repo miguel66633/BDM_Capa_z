@@ -15,60 +15,39 @@ if (!isset($_SESSION['user_id'])) {
     echo json_encode(['error' => 'Debes iniciar sesión para dar like.']);
     exit;
 }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
+    exit;
+}
 
-// Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
-
-// Obtener los datos enviados
 $publicacionId = $_POST['publicacion_id'] ?? null;
 $usuarioId = $_SESSION['user_id'];
 
 if (!$publicacionId) {
-    echo json_encode(['error' => 'ID de publicación no válido.']);
+    echo json_encode(['success' => false, 'message' => 'ID de publicación no proporcionado.']);
     exit;
 }
 
 try {
-    // Verificar si el usuario ya dio "like" a la publicación
-    $queryCheck = "SELECT * FROM PublicacionLike WHERE PublicacionID = :publicacionId AND LikeID IN (
-        SELECT LikeID FROM UsuarioLike WHERE UsuarioID = :usuarioId
-    )";
-    $likes = $db->query($queryCheck, [
-        'publicacionId' => $publicacionId,
-        'usuarioId' => $usuarioId
-    ])->get();
-
-    $likeExistente = $likes[0] ?? null; // Obtener el primer resultado si existe
-
-    if ($likeExistente) {
-        // Eliminar el "like"
-        $queryDelete = "DELETE FROM TablaLike WHERE LikeID = :likeId";
-        $db->query($queryDelete, [
-            'likeId' => $likeExistente['LikeID']
+    // Llamar al procedimiento almacenado
+    $result = $db->callProcedure('sp_ToggleLikeAndGetCounts', [$usuarioId, $publicacionId]);
+    
+    // El SP devuelve una fila con YaDioLike y LikesCount
+    if ($result && isset($result[0])) {
+        $data = $result[0];
+        echo json_encode([
+            'success' => true,
+            'liked' => (bool)$data['YaDioLike'], // El SP devuelve 0 o 1 para BOOLEAN
+            'likesCount' => (int)$data['LikesCount']
         ]);
-        echo json_encode(['success' => 'Like eliminado.', 'liked' => false]);
     } else {
-        // Agregar un nuevo "like"
-        $queryInsertLike = "INSERT INTO TablaLike (FechaLike) VALUES (NOW())";
-        $db->query($queryInsertLike);
-
-        $likeId = $db->getConnection()->lastInsertId();
-
-        $queryInsertUsuarioLike = "INSERT INTO UsuarioLike (UsuarioID, LikeID) VALUES (:usuarioId, :likeId)";
-        $db->query($queryInsertUsuarioLike, [
-            'usuarioId' => $usuarioId,
-            'likeId' => $likeId
-        ]);
-
-        $queryInsertPublicacionLike = "INSERT INTO PublicacionLike (PublicacionID, LikeID) VALUES (:publicacionId, :likeId)";
-        $db->query($queryInsertPublicacionLike, [
-            'publicacionId' => $publicacionId,
-            'likeId' => $likeId
-        ]);
-
-        echo json_encode(['success' => 'Like agregado.', 'liked' => true]);
+        // Esto podría ocurrir si el SP no devuelve filas o hay un error no capturado antes
+        echo json_encode(['success' => false, 'message' => 'Error al procesar la acción de like.']);
     }
+
 } catch (Exception $e) {
-    echo json_encode(['error' => 'Ocurrió un error al procesar el like.']);
+    error_log("Error en toggle like: " . $e->getMessage() . " para UsuarioID: " . $usuarioId . " y PublicacionID: " . $publicacionId);
+    echo json_encode(['success' => false, 'message' => 'Error del servidor al procesar el like.']);
 }
 exit;

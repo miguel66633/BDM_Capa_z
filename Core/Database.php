@@ -56,18 +56,39 @@ class Database
 
 
 
+    /**
+     * Ejecuta un procedimiento almacenado y devuelve sus resultados.
+     *
+     * @param string $procedureName El nombre del procedimiento almacenado.
+     * @param array $params Un array de parámetros para el procedimiento almacenado.
+     * @return array|bool El resultado del procedimiento (array de filas) o true/false para operaciones sin result set.
+     */
 
-
-    public function callProcedure($procedureName, $params = [])
+    public function callProcedure(string $procedureName, array $params = [])
     {
-        // Construir la consulta SQL dinámica con placeholders `?`
-        $query = "CALL {$procedureName}(" . implode(', ', array_fill(0, count($params), '?')) . ")";
+        try {
+            $paramPlaceholders = implode(',', array_fill(0, count($params), '?'));
+            $sql = "CALL {$procedureName}({$paramPlaceholders})";
+            
+            $this->statement = $this->connection->prepare($sql);
+            $this->statement->execute(array_values($params));
 
-        // Preparar y ejecutar la consulta con parámetros
-        $this->statement = $this->connection->prepare($query);
-        $this->statement->execute(array_values($params));
+            // Si el SP devuelve un conjunto de resultados (con SELECT)
+            if ($this->statement->columnCount() > 0) {
+                $results = $this->statement->fetchAll(PDO::FETCH_ASSOC);
+                $this->statement->closeCursor();
+                return $results;
+            }
+            
+            $this->statement->closeCursor(); // Importante cerrar el cursor
+            return true; // Para SPs que no devuelven conjuntos de resultados explícitos
 
-        return $this->statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) { // Añadir la barra invertida \
+            // Considera un manejo de errores más robusto o logging
+            error_log("Error en callProcedure {$procedureName}: " . $e->getMessage());
+            // Podrías relanzar la excepción o devolver false/null
+            throw $e; // O return false; dependiendo de cómo quieras manejarlo
+        }
     }
 
 }

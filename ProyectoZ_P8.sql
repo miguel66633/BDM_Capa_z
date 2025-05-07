@@ -612,3 +612,57 @@ SELECT
 
 SELECT * FROM Estadisticas;
 
+
+DELIMITER //
+
+CREATE PROCEDURE sp_ToggleLikeAndGetCounts (
+    IN p_UsuarioID INT,
+    IN p_PublicacionID INT
+)
+BEGIN
+    DECLARE v_LikeID INT;
+    DECLARE v_ExistingLikeID INT;
+    DECLARE v_Liked BOOLEAN;
+    DECLARE v_LikesCount INT;
+
+    -- Iniciar transacción
+    START TRANSACTION;
+
+    -- Verificar si ya existe un like del usuario para esta publicación
+    SELECT tl.LikeID INTO v_ExistingLikeID
+    FROM TablaLike tl
+    JOIN UsuarioLike ul ON tl.LikeID = ul.LikeID
+    JOIN PublicacionLike pl ON tl.LikeID = pl.LikeID
+    WHERE ul.UsuarioID = p_UsuarioID AND pl.PublicacionID = p_PublicacionID
+    LIMIT 1;
+
+    IF v_ExistingLikeID IS NOT NULL THEN
+        -- El like existe, eliminarlo
+        -- Asegúrate que las tablas permitan ON DELETE CASCADE o elimina en el orden correcto
+        DELETE FROM UsuarioLike WHERE UsuarioID = p_UsuarioID AND LikeID = v_ExistingLikeID;
+        DELETE FROM PublicacionLike WHERE PublicacionID = p_PublicacionID AND LikeID = v_ExistingLikeID;
+        DELETE FROM TablaLike WHERE LikeID = v_ExistingLikeID;
+        SET v_Liked = FALSE;
+    ELSE
+        -- El like no existe, crearlo
+        INSERT INTO TablaLike (FechaLike) VALUES (NOW()); -- Asumiendo FechaLike es DATETIME/TIMESTAMP
+        SET v_LikeID = LAST_INSERT_ID();
+
+        INSERT INTO UsuarioLike (UsuarioID, LikeID) VALUES (p_UsuarioID, v_LikeID);
+        INSERT INTO PublicacionLike (PublicacionID, LikeID) VALUES (p_PublicacionID, v_LikeID);
+        SET v_Liked = TRUE;
+    END IF;
+
+    -- Obtener el nuevo conteo de likes para la publicación
+    SELECT COUNT(DISTINCT pl_count.LikeID) INTO v_LikesCount
+    FROM PublicacionLike pl_count
+    WHERE pl_count.PublicacionID = p_PublicacionID;
+
+    COMMIT;
+
+    -- Devolver el resultado como un conjunto de resultados
+    SELECT v_Liked AS YaDioLike, v_LikesCount AS LikesCount;
+END //
+
+DELIMITER ;
+

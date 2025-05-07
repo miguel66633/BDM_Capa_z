@@ -42,6 +42,7 @@ SELECT * FROM (
         p.PublicacionID,
         p.ContenidoPublicacion,
         p.FechaPublicacion AS EffectiveDate, -- Fecha de la publicación original
+        p.FechaPublicacion AS FechaPublicacionOriginal, -- Para consistencia, es la misma que EffectiveDate aquí
         u_autor.NombreUsuario AS AutorNombreUsuario,
         u_autor.ImagenPerfil AS AutorImagenPerfil,
         u_autor.UsuarioID AS AutorID,
@@ -72,7 +73,7 @@ SELECT * FROM (
         'original' AS TipoEntrada,
         NULL AS RepostadorNombreUsuario,
         NULL AS RepostadorID,
-        NULL AS FechaRepostOriginal 
+        NULL AS FechaRepostEvento -- Renombrado para claridad, antes FechaRepostOriginal
     FROM Publicacion p
     JOIN Usuario u_autor ON p.UsuarioID = u_autor.UsuarioID
     LEFT JOIN Multimedia m ON p.PublicacionID = m.PublicacionID
@@ -84,7 +85,8 @@ SELECT * FROM (
     SELECT
         p_original.PublicacionID,
         p_original.ContenidoPublicacion,
-        r.FechaRepost AS EffectiveDate, -- *** ESTA LÍNEA ES CLAVE: Debe ser r.FechaRepost ***
+        r.FechaRepost AS EffectiveDate, 
+        p_original.FechaPublicacion AS FechaPublicacionOriginal, 
         u_autor_original.NombreUsuario AS AutorNombreUsuario, 
         u_autor_original.ImagenPerfil AS AutorImagenPerfil,   
         u_autor_original.UsuarioID AS AutorID,                
@@ -115,7 +117,7 @@ SELECT * FROM (
         'repost' AS TipoEntrada,
         u_repostador.NombreUsuario AS RepostadorNombreUsuario, 
         u_repostador.UsuarioID AS RepostadorID,
-        r.FechaRepost AS FechaRepostOriginal 
+        r.FechaRepost AS FechaRepostEvento -- Fecha del evento de repost
     FROM Repost r
     JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID AND ur.UsuarioID = :profileOwnerId 
     JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
@@ -127,7 +129,7 @@ SELECT * FROM (
 ORDER BY EffectiveDate DESC
 ";
 
-$publicacionesPerfil = $db->query($queryFeed, [
+$publicaciones = $db->query($queryFeed, [
     'profileOwnerId' => $profileUserId,
     'currentUserId' => $currentUserId
 ])->get();
@@ -136,7 +138,7 @@ $publicacionesPerfil = $db->query($queryFeed, [
 // Pasar los datos a la vista (SOLO si no se abortó antes)
 view("perfil.view.php", [
     'usuario' => $usuario,
-    'publicaciones' => $publicacionesPerfil, // Usamos $publicacionesPerfil que contiene el feed combinado
+    'publicaciones' => $publicaciones, // Usamos $publicacionesPerfil que contiene el feed combinado
     'isOwner' => $isOwner,
     'currentUserId' => $currentUserId, // Para la lógica de "Reposteaste"
     'isOwner' => $isOwner // Asegurado que está definido

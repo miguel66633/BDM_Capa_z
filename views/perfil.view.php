@@ -76,11 +76,12 @@
                                 <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['AutorNombreUsuario']); ?></span>
                             </a>
                             <span class="publicacion-user-handle">
-                            @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['AutorNombreUsuario']))); ?> •
-                            <?php 
-                                echo formatTiempoTranscurrido($publicacion['EffectiveDate']);
-                            ?>
-                        </span>
+                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['AutorNombreUsuario']))); ?> • 
+                                <?php 
+                                    // Usa FechaPublicacionOriginal para la fecha de la publicación original
+                                    echo formatTiempoTranscurrido($publicacion['FechaPublicacionOriginal']); 
+                                ?>
+                            </span>
                         </div>
                     </div>
 
