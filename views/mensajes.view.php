@@ -4,10 +4,8 @@
 <div class="container">
     <?php require base_path('views/partials/nav.z.php'); ?>
 
-        <!-- Sección central donde se carga el contenido -->
         <main id="contenido">
           <div class="scrollable-content">
-              <!-- Encabezado y Búsqueda (se quedan fuera del nuevo div) -->
               <div class="main-header">
                   <div class="header-content">
                       <h2>Mensajes</h2>
@@ -18,9 +16,7 @@
                   <input type="text" placeholder="Busca a alguien" class="search-input" id="search-input">
               </div>
               <div id="search-results" class="search-results"></div>
-              <!-- FIN Encabezado y Búsqueda -->
 
-              <!-- ***** NUEVO: Contenedor específico para la lista de chats ***** -->
               <div id="chat-list-container"> 
                 <?php if (!empty($chats)): ?>
                     <?php foreach ($chats as $chat): ?>
@@ -45,11 +41,9 @@
                     <p id="no-chats-message" style="text-align: center; color: #888; padding: 20px;">No tienes chats activos.</p>
                 <?php endif; ?>
               </div> 
-              <!-- ***** FIN Contenedor específico ***** -->
           </div>
         </main>
 
-        <!-- Sección derecha (puede cambiar con cada sección) -->
         <aside id="lateral">
           <div class="scrollable-contenta">
           <div class="chat-header">
@@ -58,22 +52,17 @@
           </div>
 
             <div class="chat-messages" id="chat-messages">
-              <!-- Los mensajes se cargarán dinámicamente aquí -->
           </div>
               
           </div>
-            <!-- Barra de escritura (parte inferior) -->
             <div class="chat-input-bar">
               <input type="hidden" id="chat-id" value="">
 
-              <button class="ubicacion-button" id="ubicacion-button">
-                  <img src="resources/images/localizacion.svg" alt="localizacion">
+              <button class="send-button" id="ubicacion-button">
+                  <img src="/resources/images/localizacion.svg" alt="localizacion">
               </button>
-        
 
-              <!-- Input de texto -->
               <input type="text" class="chat-input" id="chat-input" placeholder="Escribe tu mensaje...">
-              <!-- Botón de enviar -->
               <button class="send-button" id="send-button">
                   <img src="/resources/images/enviar.svg" alt="Enviar">
               </button>

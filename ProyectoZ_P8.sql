@@ -615,6 +615,10 @@ SELECT * FROM Estadisticas;
 
 DELIMITER //
 
+
+-- todo esto es lo que yo empece a hacer yo -- 
+-- stored procedures
+
 CREATE PROCEDURE sp_ToggleLikeAndGetCounts (
     IN p_UsuarioID INT,
     IN p_PublicacionID INT
@@ -708,4 +712,71 @@ END //
 DELIMITER ;
 DROP PROCEDURE IF EXISTS sp_GetChatParticipantInfo;
 
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetOrCreateChat; -- Añadir por si ya existe y necesitas reemplazarlo
+//
+
+CREATE PROCEDURE sp_GetOrCreateChat (
+    IN p_UsuarioID_Solicitante INT, -- ID del usuario que inicia la acción
+    IN p_DestinatarioID INT      -- ID del usuario con el que se quiere chatear
+)
+-- Etiquetar el bloque principal del procedimiento
+proc_block: BEGIN
+    DECLARE v_ExistingChatID INT;
+    DECLARE v_LesserUserID INT;
+    DECLARE v_GreaterUserID INT;
+    DECLARE v_StatusMessage VARCHAR(255);
+    DECLARE v_FinalChatID INT;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+
+    SET v_FinalChatID = NULL; -- Inicializar
+
+    -- 1. Verificar si el usuario intenta chatear consigo mismo
+    IF p_UsuarioID_Solicitante = p_DestinatarioID THEN
+        SET v_StatusMessage = 'No puedes iniciar un chat contigo mismo.';
+        SET v_Success = FALSE;
+        SELECT v_FinalChatID AS ChatID, v_StatusMessage AS StatusMessage, v_Success AS Success;
+        LEAVE proc_block; -- Usar la etiqueta para salir del procedimiento
+    END IF;
+
+    -- Determinar el menor y mayor ID para consistencia en la tabla Chat
+    SET v_LesserUserID = LEAST(p_UsuarioID_Solicitante, p_DestinatarioID);
+    SET v_GreaterUserID = GREATEST(p_UsuarioID_Solicitante, p_DestinatarioID);
+
+    -- 2. Verificar si el chat ya existe
+    SELECT ChatID INTO v_ExistingChatID
+    FROM Chat
+    WHERE UsuarioID = v_LesserUserID AND DestinatarioID = v_GreaterUserID
+    LIMIT 1;
+
+    IF v_ExistingChatID IS NOT NULL THEN
+        -- El chat ya existe
+        SET v_FinalChatID = v_ExistingChatID;
+        SET v_StatusMessage = 'El chat ya existe.';
+        SET v_Success = TRUE; -- Consideramos éxito si ya existe y lo devolvemos
+    ELSE
+        -- 3. El chat no existe, crearlo
+        START TRANSACTION;
+        INSERT INTO Chat (UsuarioID, DestinatarioID)
+        VALUES (v_LesserUserID, v_GreaterUserID);
+
+        IF ROW_COUNT() > 0 THEN
+            SET v_FinalChatID = LAST_INSERT_ID();
+            SET v_StatusMessage = 'Chat creado exitosamente.';
+            SET v_Success = TRUE;
+            COMMIT;
+        ELSE
+            SET v_StatusMessage = 'Error: No se pudo crear el chat en la base de datos.';
+            SET v_Success = FALSE;
+            ROLLBACK;
+        END IF;
+    END IF;
+
+    -- Devolver el resultado como un conjunto de resultados
+    SELECT v_FinalChatID AS ChatID, v_StatusMessage AS StatusMessage, v_Success AS Success;
+END //
+
+DELIMITER ;
 

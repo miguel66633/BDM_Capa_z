@@ -13,6 +13,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+header('Content-Type: application/json');
 // Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
 
@@ -24,23 +25,12 @@ if (!$chatId) {
     exit;
 }
 
-// Consultar los mensajes del chat
-$queryMessages = "
-    SELECT 
-        m.MensajeID,
-        m.RemitenteID,
-        m.ContenidoMensaje,
-        m.FechaMensaje
-    FROM 
-        Mensaje m
-    WHERE 
-        m.ChatID = :chatId
-    ORDER BY 
-        m.FechaMensaje ASC;
-";
+try {
+    $messages = $db->callProcedure('sp_GetChatMessages', [$chatId]);
+    echo json_encode(['Mensajes' => $messages ?? []]); // Asegurar que siempre sea un array
 
-$messages = $db->query($queryMessages, ['chatId' => $chatId])->get();
-
-// Devolver los mensajes como JSON
-echo json_encode(['Mensajes' => $messages]); // Simplificado, ya que el JS obtiene el UsuarioID del body.
+} catch (\PDOException $e) {
+    error_log("Error en controllers/mensaje/cargar.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Error del servidor al cargar los mensajes.']);
+}
 exit;

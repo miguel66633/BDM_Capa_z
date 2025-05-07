@@ -24,7 +24,7 @@ $usuarioId = $_SESSION['user_id'];
 $destinatarioId = $_POST['destinatario_id'] ?? null;
 
 if (!$destinatarioId) {
-    echo json_encode(['error' => 'ID del destinatario no válido.']);
+    echo json_encode(['error' => 'ID del destinatario no proporcionado.']);
     exit;
 }
 
@@ -35,40 +35,30 @@ if ($usuarioId == $destinatarioId) {
 }
 
 try {
-    // Verificar si el chat ya existe (usando LEAST y GREATEST para evitar duplicados)
-    $queryCheck = "
-        SELECT ChatID FROM Chat 
-        WHERE UsuarioID = LEAST(:usuarioId, :destinatarioId) 
-        AND DestinatarioID = GREATEST(:usuarioId, :destinatarioId)
-    ";
-    $chatExistente = $db->query($queryCheck, [
-        'usuarioId' => $usuarioId,
-        'destinatarioId' => $destinatarioId
-    ])->find();
+    // Llamar al Stored Procedure
+    $result = $db->callProcedure('sp_GetOrCreateChat', [$usuarioId, $destinatarioId]);
 
-    if ($chatExistente) {
-        // Si ya existe, simplemente devolver éxito (o el ID del chat existente si lo necesitas)
-        echo json_encode(['success' => 'El chat ya existe.', 'chatId' => $chatExistente['ChatID']]); 
-        exit;
+    if ($result && isset($result[0])) {
+        $spResponse = $result[0]; // El SP devuelve una sola fila
+
+        if ($spResponse['Success']) {
+            // Si el SP indica éxito (ya sea porque creó o porque ya existía)
+            echo json_encode([
+                'success' => $spResponse['StatusMessage'], 
+                'chatId' => $spResponse['ChatID']
+            ]);
+        } else {
+            // Si el SP indica un fallo (ej. no se pudo crear, o el caso de chatear consigo mismo si se quitara la validación PHP)
+            echo json_encode(['error' => $spResponse['StatusMessage'] ?? 'Error al procesar la solicitud del chat.']);
+        }
+    } else {
+        // Esto no debería ocurrir si el SP siempre devuelve una fila.
+        error_log("Error inesperado: sp_GetOrCreateChat no devolvió un resultado válido para UsuarioID: {$usuarioId}, DestinatarioID: {$destinatarioId}");
+        echo json_encode(['error' => 'Error inesperado del servidor al procesar la solicitud del chat.']);
     }
-
-    // Crear el nuevo chat (usando LEAST y GREATEST)
-    $queryInsert = "
-        INSERT INTO Chat (UsuarioID, DestinatarioID) 
-        VALUES (LEAST(:usuarioId, :destinatarioId), GREATEST(:usuarioId, :destinatarioId))
-    ";
-    $db->query($queryInsert, [
-        'usuarioId' => $usuarioId,
-        'destinatarioId' => $destinatarioId
-    ]);
-
-    // Obtener el ID del chat recién creado
-    $nuevoChatId = $db->getConnection()->lastInsertId();
-
-    echo json_encode(['success' => 'Chat creado exitosamente.', 'chatId' => $nuevoChatId]);
 
 } catch (Exception $e) {
     // Loggear el error real para depuración
-    error_log("Error al crear chat: " . $e->getMessage()); 
-    echo json_encode(['error' => 'Error al procesar la solicitud del chat.']);
+    error_log("Error al llamar sp_GetOrCreateChat: " . $e->getMessage()); 
+    echo json_encode(['error' => 'Error del servidor al procesar la solicitud del chat.']);
 }
