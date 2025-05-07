@@ -882,5 +882,265 @@ proc_block: BEGIN
 
 END //
 
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_CrearPublicacion;
+//
+CREATE PROCEDURE sp_CrearPublicacion (
+    IN p_UsuarioID INT,
+    IN p_ContenidoPublicacion VARCHAR(100), -- Coincide con la definición de la tabla Publicacion.ContenidoPublicacion
+    IN p_ContenidoMultimedia LONGBLOB,    -- Puede ser NULL si no hay archivo
+    IN p_PublicacionPadreID INT          -- NUEVO PARÁMETRO: Puede ser NULL para posts principales
+)
+proc_block: BEGIN
+    DECLARE v_NewPublicacionID INT DEFAULT NULL;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido al crear la publicación.';
+
+    -- Manejador de errores SQL generales
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK; 
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo crear la publicación.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+    END;
+
+    START TRANSACTION;
+
+    -- 1. Insertar la publicación
+    -- Usamos p_PublicacionPadreID que puede ser NULL (para posts) o un ID (para respuestas)
+    INSERT INTO Publicacion (UsuarioID, ContenidoPublicacion, FechaPublicacion, PublicacionPadreID)
+    VALUES (p_UsuarioID, p_ContenidoPublicacion, NOW(), p_PublicacionPadreID); -- MODIFICADO
+
+    SET v_NewPublicacionID = LAST_INSERT_ID();
+
+    IF v_NewPublicacionID IS NULL OR v_NewPublicacionID = 0 THEN
+        SET v_StatusMessage = 'Error: No se pudo obtener el ID de la nueva publicación.';
+        ROLLBACK;
+        SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, NULL AS PublicacionID;
+        LEAVE proc_block; 
+    END IF;
+
+    -- 2. Si hay multimedia, insertarla en la tabla Multimedia
+    IF p_ContenidoMultimedia IS NOT NULL THEN
+        INSERT INTO Multimedia (PublicacionID, TipoMultimedia) 
+        VALUES (v_NewPublicacionID, p_ContenidoMultimedia);
+
+        IF ROW_COUNT() = 0 THEN
+            SET v_StatusMessage = 'Error: La publicación se creó pero no se pudo guardar el archivo multimedia.';
+            ROLLBACK;
+            SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+            LEAVE proc_block; 
+        END IF;
+    END IF;
+
+    COMMIT;
+    SET v_Success = TRUE;
+    IF p_PublicacionPadreID IS NULL THEN
+        SET v_StatusMessage = 'Publicación creada exitosamente.';
+    ELSE
+        SET v_StatusMessage = 'Respuesta agregada exitosamente.';
+    END IF;
+    
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_ToggleRepost;
+//
+CREATE PROCEDURE sp_ToggleRepost (
+    IN p_UsuarioID INT,
+    IN p_PublicacionID INT
+)
+proc_block: BEGIN
+    DECLARE v_ExistingRepostID INT DEFAULT NULL;
+    DECLARE v_NewRepostID INT DEFAULT NULL;
+    DECLARE v_YaReposteo BOOLEAN DEFAULT FALSE;
+    DECLARE v_RepostsCount INT DEFAULT 0;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido al procesar el repost.';
+
+    -- Manejador de errores SQL generales
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo procesar la acción de repost.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_YaReposteo AS YaReposteo, v_RepostsCount AS RepostsCount;
+    END;
+
+    START TRANSACTION;
+
+    -- 1. Verificar si ya existe un repost del usuario para esta publicación
+    SELECT r.RepostID INTO v_ExistingRepostID
+    FROM Repost r
+    JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
+    JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
+    WHERE ur.UsuarioID = p_UsuarioID AND pr.PublicacionID = p_PublicacionID
+    LIMIT 1;
+
+    IF v_ExistingRepostID IS NOT NULL THEN
+        -- 2. Si existe, eliminar el repost
+        DELETE FROM UsuarioRepost WHERE UsuarioID = p_UsuarioID AND RepostID = v_ExistingRepostID;
+        DELETE FROM PublicacionRepost WHERE PublicacionID = p_PublicacionID AND RepostID = v_ExistingRepostID;
+        DELETE FROM Repost WHERE RepostID = v_ExistingRepostID;
+        
+        SET v_YaReposteo = FALSE;
+        SET v_StatusMessage = 'Repost eliminado.';
+    ELSE
+        -- 3. Si no existe, crear el repost
+        INSERT INTO Repost (FechaRepost) VALUES (NOW());
+        SET v_NewRepostID = LAST_INSERT_ID();
+
+        IF v_NewRepostID IS NULL OR v_NewRepostID = 0 THEN
+            SET v_StatusMessage = 'Error: No se pudo crear el registro de repost principal.';
+            ROLLBACK;
+            SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, FALSE AS YaReposteo, 0 AS RepostsCount;
+            LEAVE proc_block;
+        END IF;
+
+        INSERT INTO UsuarioRepost (UsuarioID, RepostID) VALUES (p_UsuarioID, v_NewRepostID);
+        INSERT INTO PublicacionRepost (PublicacionID, RepostID) VALUES (p_PublicacionID, v_NewRepostID);
+        
+        SET v_YaReposteo = TRUE;
+        SET v_StatusMessage = 'Repost realizado exitosamente.';
+    END IF;
+
+    -- 4. Obtener el nuevo conteo de reposts para esta publicación
+    SELECT COUNT(DISTINCT pr.RepostID) INTO v_RepostsCount
+    FROM PublicacionRepost pr
+    WHERE pr.PublicacionID = p_PublicacionID;
+
+    COMMIT;
+    SET v_Success = TRUE;
+    
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_YaReposteo AS YaReposteo, v_RepostsCount AS RepostsCount;
+
+END //
+
 DELIMITER ;
 
+CREATE OR REPLACE VIEW vw_AdminUsuarios AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    Correo, 
+    ImagenPerfil 
+FROM 
+    Usuario;
+    
+    DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_BuscarAdminUsuarios;
+//
+CREATE PROCEDURE sp_BuscarAdminUsuarios (
+    IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
+)
+BEGIN
+    IF p_SearchTerm IS NULL OR p_SearchTerm = '' THEN
+        -- Si no hay término de búsqueda, seleccionar todos los usuarios de la vista
+        SELECT 
+            UsuarioID, 
+            NombreUsuario, 
+            Correo, 
+            ImagenPerfil 
+        FROM 
+            vw_AdminUsuarios;
+    ELSE
+        -- Si hay un término de búsqueda, filtrar por NombreUsuario o Correo
+        SELECT 
+            UsuarioID, 
+            NombreUsuario, 
+            Correo, 
+            ImagenPerfil 
+        FROM 
+            vw_AdminUsuarios
+        WHERE 
+            NombreUsuario LIKE CONCAT('%', p_SearchTerm, '%') OR 
+            Correo LIKE CONCAT('%', p_SearchTerm, '%');
+    END IF;
+END //
+
+DELIMITER ;
+
+
+CREATE OR REPLACE VIEW vw_UsuariosParaChat AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    ImagenPerfil 
+FROM 
+    Usuario;
+    
+    
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_BuscarUsuariosParaChat;
+//
+CREATE PROCEDURE sp_BuscarUsuariosParaChat (
+    IN p_SearchTerm VARCHAR(255), -- Término para buscar por NombreUsuario
+    IN p_CurrentUsuarioID INT     -- ID del usuario actual, para excluirlo de los resultados
+)
+BEGIN
+    SELECT 
+        UsuarioID, 
+        NombreUsuario, 
+        ImagenPerfil 
+    FROM 
+        vw_UsuariosParaChat -- Usando la vista creada
+    WHERE 
+        NombreUsuario LIKE CONCAT('%', p_SearchTerm, '%') 
+        AND UsuarioID != p_CurrentUsuarioID
+    LIMIT 10; -- Mantenemos el límite de resultados
+END //
+
+DELIMITER ;
+    
+CREATE OR REPLACE VIEW vw_UsuariosParaBusquedaLateral AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    Correo, 
+    ImagenPerfil 
+FROM 
+    Usuario;
+    
+    DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_BuscarUsuariosLateral;
+//
+CREATE PROCEDURE sp_BuscarUsuariosLateral (
+    IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
+)
+BEGIN
+    IF p_SearchTerm IS NOT NULL AND p_SearchTerm != '' THEN
+        -- Si hay un término de búsqueda, filtrar por NombreUsuario o Correo
+        SELECT 
+            UsuarioID, 
+            NombreUsuario, 
+            Correo, 
+            ImagenPerfil 
+        FROM 
+            vw_UsuariosParaBusquedaLateral
+        WHERE 
+            NombreUsuario LIKE CONCAT('%', p_SearchTerm, '%') OR 
+            Correo LIKE CONCAT('%', p_SearchTerm, '%');
+    ELSE
+        -- Si no hay término de búsqueda o está vacío, no devolver resultados
+        -- (o podrías optar por devolver todos, pero el PHP actual no lo hace)
+        SELECT 
+            UsuarioID, 
+            NombreUsuario, 
+            Correo, 
+            ImagenPerfil 
+        FROM 
+            vw_UsuariosParaBusquedaLateral
+        WHERE 
+            1 = 0; -- Condición falsa para no devolver filas
+    END IF;
+END //
+
+DELIMITER ;

@@ -29,79 +29,36 @@ if (!$publicacionId) {
     exit;
 }
 
-$pdo = $db->getConnection(); // Obtener la conexión PDO para transacciones
-
 try {
-    $pdo->beginTransaction();
+    // Llamar al Stored Procedure
+    $result = $db->callProcedure('sp_ToggleRepost', [$usuarioId, $publicacionId]);
 
-    // Verificar si ya existe un repost del usuario para esta publicación
-    $queryCheck = "
-        SELECT r.RepostID 
-        FROM Repost r
-        JOIN UsuarioRepost ur ON r.RepostID = ur.RepostID
-        JOIN PublicacionRepost pr ON r.RepostID = pr.RepostID
-        WHERE ur.UsuarioID = :usuarioId AND pr.PublicacionID = :publicacionId
-    ";
-    $existingRepost = $db->query($queryCheck, [
-        'usuarioId' => $usuarioId,
-        'publicacionId' => $publicacionId
-    ])->find();
+    if ($result && isset($result[0])) {
+        $spResponse = $result[0];
 
-    if ($existingRepost) {
-        $repostId = $existingRepost['RepostID'];
-
-        $db->query("DELETE FROM UsuarioRepost WHERE UsuarioID = :usuarioId AND RepostID = :repostId", [
-            'usuarioId' => $usuarioId,
-            'repostId' => $repostId
-        ]);
-        $db->query("DELETE FROM PublicacionRepost WHERE PublicacionID = :publicacionId AND RepostID = :repostId", [
-            'publicacionId' => $publicacionId,
-            'repostId' => $repostId
-        ]);
-
-        $db->query("DELETE FROM Repost WHERE RepostID = :repostId", ['repostId' => $repostId]);
-        
-        $yaReposteo = false;
-} else {
-        $db->query("INSERT INTO Repost (FechaRepost) VALUES (NOW())");
-        $repostId = $pdo->lastInsertId(); // Obtener el RepostID recién creado
-
-        $db->query("INSERT INTO UsuarioRepost (UsuarioID, RepostID) VALUES (:usuarioId, :repostId)", [
-            'usuarioId' => $usuarioId,
-            'repostId' => $repostId
-        ]);
-
-        // 3. Insertar en PublicacionRepost
-        $db->query("INSERT INTO PublicacionRepost (PublicacionID, RepostID) VALUES (:publicacionId, :repostId)", [
-            'publicacionId' => $publicacionId,
-            'repostId' => $repostId
-        ]);
-        $yaReposteo = true;
+        if ($spResponse['Success']) {
+            echo json_encode([
+                'success' => true,
+                'yaReposteo' => (bool)$spResponse['YaReposteo'], // Asegurar que sea booleano
+                'repostsCount' => (int)$spResponse['RepostsCount'], // Asegurar que sea entero
+                'message' => $spResponse['StatusMessage']
+            ]);
+        } else {
+            // El SP manejó el error y devolvió Success = false
+            echo json_encode([
+                'success' => false, 
+                'message' => $spResponse['StatusMessage'] ?? 'Error al procesar el repost desde SP.'
+            ]);
+        }
+    } else {
+        // Esto no debería ocurrir si el SP siempre devuelve una fila.
+        error_log("Error inesperado: sp_ToggleRepost no devolvió un resultado válido para UsuarioID: {$usuarioId}, PublicacionID: {$publicacionId}");
+        echo json_encode(['success' => false, 'message' => 'Error inesperado del servidor al procesar el repost.']);
     }
-
-    $pdo->commit();
-
-    // Obtener el nuevo conteo de reposts para esta publicación
-    $queryCount = "
-        SELECT COUNT(DISTINCT pr.RepostID) AS RepostsCount
-        FROM PublicacionRepost pr
-        WHERE pr.PublicacionID = :publicacionId
-    ";
-    $newCounts = $db->query($queryCount, ['publicacionId' => $publicacionId])->find();
-    $repostsCount = $newCounts['RepostsCount'] ?? 0;
-
-    echo json_encode([
-        'success' => true,
-        'yaReposteo' => $yaReposteo,
-        'repostsCount' => $repostsCount
-    ]);
 
 } catch (Exception $e) {
-    if ($pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
-    error_log("Error en toggle repost: " . $e->getMessage() . " para UsuarioID: " . $usuarioId . " y PublicacionID: " . $publicacionId);
-    echo json_encode(['success' => false, 'message' => 'Error al procesar el repost. Intente de nuevo.']);
+    // Capturar excepciones de la llamada a callProcedure o errores no manejados por el SP
+    error_log("Error en toggle repost (PHP): " . $e->getMessage() . " para UsuarioID: " . $usuarioId . " y PublicacionID: " . $publicacionId);
+    echo json_encode(['success' => false, 'message' => 'Error crítico al procesar el repost. Intente de nuevo.']);
 }
 exit;
-?>

@@ -33,11 +33,9 @@ try {
     }
     $userInfo = $userInfoResult[0];
 
-    if (!empty($userInfo['ImagenPerfil'])) {
-        $userInfo['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($userInfo['ImagenPerfil']);
-    } else {
-        $userInfo['ImagenPerfil'] = '/Resources/images/perfilPre.jpg'; // Asegúrate que la ruta sea correcta desde la raíz web
-    }
+    $userInfo = $userInfoResult[0];
+
+    $userInfo['ImagenPerfil'] = formatarImagen($userInfo['ImagenPerfil'] ?? null, '/Resources/images/perfilPre.jpg');
 
     // Obtener mensajes del chat
     $messages = $db->callProcedure('sp_GetChatMessages', [$chatId]);

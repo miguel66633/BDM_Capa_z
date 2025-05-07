@@ -42,7 +42,7 @@ function base_path($path): string
 function view($path, $attributes = [])
 {
     extract($attributes);
-    require base_path('views/') . $path; // Esta es la línea 45 de tu error
+    require base_path('views/') . $path;
 }
 
 /**
@@ -82,3 +82,32 @@ function formatTiempoTranscurrido(string $fechaString): string {
         return 'Fecha inválida';
     }
 }
+
+/**
+ * Formatea el contenido BLOB de una imagen a un data URI base64 o devuelve una imagen por defecto.
+ *
+ * @param ?string $blobContent El contenido BLOB de la imagen.
+ * @param string $defaultImagePath La ruta web a la imagen por defecto.
+ * @return string El data URI de la imagen o la ruta a la imagen por defecto.
+ */
+function formatarImagen(?string $blobContent, string $defaultImagePath): string {
+    if (!empty($blobContent)) {
+        $base64 = base64_encode($blobContent);
+        if ($base64 !== false) {
+            // Intentar detectar el tipo MIME para ser más preciso
+            // Requiere la extensión fileinfo habilitada en php.ini
+            $finfo = finfo_open();
+            $mimeType = finfo_buffer($finfo, $blobContent, FILEINFO_MIME_TYPE);
+            finfo_close($finfo);
+
+            // Asegurarse de que es un tipo de imagen conocido o usar un genérico
+            if ($mimeType && strpos($mimeType, 'image/') === 0) {
+                 return 'data:' . $mimeType . ';base64,' . $base64;
+            }
+            // Fallback si no se puede determinar el mime type o no es imagen, pero hay contenido
+            return 'data:image/jpeg;base64,' . $base64; // Asumir jpeg como fallback
+        }
+    }
+    return $defaultImagePath; // Ruta web absoluta o relativa desde la raíz
+}
+

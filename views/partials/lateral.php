@@ -27,20 +27,14 @@ include base_path('controllers/busqueda.php');
                 <?php if (isset($usuarios) && !empty($usuarios)): ?>
                     <?php foreach ($usuarios as $usuario): ?>
                         <li>
-                            <a href="/perfil/<?= $usuario['UsuarioID']; ?>" class="user-list-link">
-                                <?php
-                                    $imgSrc = '/Resources/images/perfilPre.jpg'; // Default
-                                    if (!empty($usuario['ImagenPerfil'])) {
-                                        $base64 = base64_encode($usuario['ImagenPerfil']);
-                                        if ($base64 !== false) {
-                                            $imgSrc = 'data:image/jpeg;base64,' . $base64;
-                                        }
-                                    }
-                                ?>
-                                <img src="<?= $imgSrc; ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
-                                <span class="user-list-name"><?= htmlspecialchars($usuario['NombreUsuario']); ?></span>
-                            </a>
-                        </li>
+                    <a href="/perfil/<?= $usuario['UsuarioID']; ?>" class="user-list-link">
+                        <?php
+                            $imgSrc = formatarImagen($usuario['ImagenPerfil'] ?? null, '/Resources/images/perfilPre.jpg');
+                        ?>
+                        <img src="<?= $imgSrc; ?>" alt="<?= htmlspecialchars($usuario['NombreUsuario']); ?>" class="user-img">
+                        <span class="user-list-name"><?= htmlspecialchars($usuario['NombreUsuario']); ?></span>
+                    </a>
+                </li>
                     <?php endforeach; ?>
                 <?php else: // Si hay término de búsqueda pero no se encontraron usuarios ?>
                      <li>No se encontraron usuarios.</li>

@@ -30,27 +30,20 @@ if (mb_strlen($contenido) > 100) { // 100 es el límite de Publicacion.Contenido
     $errors['contenido'] = 'El contenido no puede exceder los 100 caracteres.';
 }
 $contenidoArchivo = null;
-if (!empty($imagenTempPath) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] !== UPLOAD_ERR_NO_FILE) {
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/webm', 'video/ogg'];
-    $file_info = finfo_open(FILEINFO_MIME_TYPE);
-    $mime_type = finfo_file($file_info, $imagenTempPath);
-    finfo_close($file_info);
+    $max_size = 50 * 1024 * 1024; // 50MB
 
-    if (!in_array($mime_type, $allowed_types)) {
-        $errors['imagen'] = 'El tipo de archivo no es permitido. Sube imágenes (jpg, png, gif) o videos (mp4, webm, ogg). Detectado: ' . htmlspecialchars($mime_type);
-    }
+    $validacion = Core\Validator::validarYProcesarArchivo($_FILES['imagen'], $allowed_types, $max_size, true);
 
-    if ($_FILES['imagen']['size'] > 50000000) { // 50MB
-        $errors['imagen'] = 'El archivo es demasiado grande (máx 50MB).';
-    }
-
-    if (empty($errors['imagen'])) { // Solo leer si no hay errores previos de imagen
-        $contenidoArchivo = file_get_contents($imagenTempPath);
-        if ($contenidoArchivo === false) {
-            $errors['imagen'] = 'No se pudo leer el archivo multimedia.';
-        }
+    if (!empty($validacion['errores'])) {
+        // Tomar el primer error para simplificar, o acumularlos
+        $errors['imagen'] = $validacion['errores'][0]; 
+    } else {
+        $contenidoArchivo = $validacion['contenido'];
     }
 }
+
 
 if (!empty($errors)) {
     $_SESSION['errors'] = $errors;
@@ -60,11 +53,12 @@ if (!empty($errors)) {
 
 try {
     // Llamar al Stored Procedure
-    // El tercer parámetro ($contenidoArchivo) puede ser null si no se subió imagen/video
+    // El cuarto parámetro es p_PublicacionPadreID, que es null para posts principales
     $result = $db->callProcedure('sp_CrearPublicacion', [
         $usuarioId,
         $contenido,
-        $contenidoArchivo
+        $contenidoArchivo, // Puede ser null
+        null              // p_PublicacionPadreID
     ]);
 
     if ($result && isset($result[0])) {
