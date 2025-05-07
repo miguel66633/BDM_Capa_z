@@ -30,5 +30,6 @@ $router->post('/cargar-chat', 'controllers/chat/cargar.php')->only('auth');
 
 $router->post('/mensaje/cargar', 'controllers/mensaje/cargar.php')->only('auth');
 $router->post('/mensaje/enviar', 'controllers/mensaje/enviar.php')->only('auth');
+$router->post('/seguimiento/toggle', 'controllers/seguimiento/toggle.php')->only('auth');
 
 

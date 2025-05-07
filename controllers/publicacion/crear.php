@@ -52,13 +52,12 @@ if (!empty($errors)) {
 }
 
 try {
-    // Llamar al Stored Procedure
-    // El cuarto parámetro es p_PublicacionPadreID, que es null para posts principales
+
     $result = $db->callProcedure('sp_CrearPublicacion', [
         $usuarioId,
         $contenido,
-        $contenidoArchivo, // Puede ser null
-        null              // p_PublicacionPadreID
+        $contenidoArchivo, 
+        null
     ]);
 
     if ($result && isset($result[0])) {

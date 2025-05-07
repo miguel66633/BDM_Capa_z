@@ -13,59 +13,27 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $db = App::resolve(Database::class);
-
 $usuarioId = $_SESSION['user_id'];
+$chats = [];
 
-$query = "
-        SELECT 
-        c.ChatID,
-        -- Selecciona el ID de la OTRA persona en el chat
-        CASE 
-            WHEN c.UsuarioID = :usuarioId THEN u2.UsuarioID
-            ELSE u1.UsuarioID
-        END AS PersonaID,
-        -- Selecciona el Nombre de la OTRA persona en el chat
-        CASE 
-            WHEN c.UsuarioID = :usuarioId THEN u2.NombreUsuario
-            ELSE u1.NombreUsuario
-        END AS NombreUsuario,
-        -- Selecciona la Imagen de la OTRA persona en el chat
-        CASE 
-            WHEN c.UsuarioID = :usuarioId THEN u2.ImagenPerfil
-            ELSE u1.ImagenPerfil
-        END AS ImagenPerfil,
-        c.FechaCreacion,
-        (SELECT m.ContenidoMensaje 
-         FROM Mensaje m 
-         WHERE m.ChatID = c.ChatID 
-         ORDER BY m.FechaMensaje DESC 
-         LIMIT 1) AS UltimoMensaje,
-        (SELECT m.FechaMensaje 
-         FROM Mensaje m 
-         WHERE m.ChatID = c.ChatID 
-         ORDER BY m.FechaMensaje DESC 
-         LIMIT 1) AS HoraUltimoMensaje -- Este es el campo clave para ordenar
-    FROM 
-        Chat c
-    INNER JOIN 
-        Usuario u1 ON c.UsuarioID = u1.UsuarioID
-    INNER JOIN 
-        Usuario u2 ON c.DestinatarioID = u2.UsuarioID
-    WHERE 
-        c.UsuarioID = :usuarioId OR c.DestinatarioID = :usuarioId -- Encuentra chats donde el usuario actual participa
-    ORDER BY 
-        HoraUltimoMensaje DESC, c.FechaCreacion DESC;
-";
+try {
+    // Llamar al Stored Procedure para obtener los chats del usuario
+    $chats = $db->callProcedure('sp_GetUsuarioChatsConDetalles', [$usuarioId]);
+} catch (\PDOException $e) {
+    error_log("Error en controllers/mensajes.php al llamar sp_GetUsuarioChatsConDetalles: " . $e->getMessage());
+    // $chats ya está inicializado como array vacío
+}
 
-$chats = $db->query($query, ['usuarioId' => $usuarioId])->get();
-
+// Procesar la imagen de perfil (este paso se mantiene en PHP)
 foreach ($chats as &$chat) {
     if (!empty($chat['ImagenPerfil'])) {
-        $chat['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($chat['ImagenPerfil']);
+        // Usar la función formatarImagen que creamos anteriormente
+        $chat['ImagenPerfil'] = formatarImagen($chat['ImagenPerfil'], '/Resources/images/perfilPre.jpg');
     } else {
         $chat['ImagenPerfil'] = '/Resources/images/perfilPre.jpg';
     }
 }
+unset($chat); // Romper la referencia del último elemento
 
 view("mensajes.view.php", [
     'chats' => $chats

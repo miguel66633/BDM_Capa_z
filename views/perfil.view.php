@@ -30,17 +30,41 @@
         </div>
 
         <div class="profile-details">
-          <div class="name-and-edit">
+        <div class="name-and-edit">
             <div class="name-username">
               <h2><?php echo htmlspecialchars($usuario['NombreUsuario']); ?></h2>
             </div>
             <?php if ($isOwner): ?>
               <button class="edit-profile" id="openModalBtn">Editar perfil</button>
+            <?php else: // No es el dueño del perfil, mostrar botón de seguir/dejar de seguir ?>
+              <?php if (isset($currentUserId)): // Asegurarse de que el visitante está logueado ?>
+                <button 
+                    class="follow-toggle-btn edit-profile" 
+                    data-profile-id="<?php echo $usuario['UsuarioID']; ?>"
+                    data-esta-siguiendo="<?php echo $estaSiguiendo ? 'true' : 'false'; ?>"
+                    style="min-width: 120px;"
+                >
+                    <?php echo $estaSiguiendo ? 'Dejar de seguir' : 'Seguir'; ?>
+                </button>
+              <?php endif; ?>
             <?php endif; ?>
           </div>
           <p class="bio">
             <?php echo !empty($usuario['Biografia']) ? htmlspecialchars($usuario['Biografia']) : 'Este usuario aún no tiene biografía.'; ?>
           </p>
+          <!-- Contadores de Seguidos y Seguidores -->
+          <div class="follows-info" style="margin-top: 10px; margin-bottom: 15px; display: flex; gap: 20px; font-size: 0.9em;">
+            <span style="color: #888;">
+                <strong id="seguidos-count-<?php echo $usuario['UsuarioID']; ?>" style="color: #fff; font-weight: bold;">
+                    <?php echo $usuario['SeguidosCount'] ?? 0; ?>
+                </strong> Siguiendo
+            </span>
+            <span style="color: #888;">
+                <strong id="seguidores-count-<?php echo $usuario['UsuarioID']; ?>" style="color: #fff; font-weight: bold;">
+                    <?php echo $usuario['SeguidoresCount'] ?? 0; ?>
+                </strong> Seguidores
+            </span>
+          </div>
         </div>
       </div>
       
@@ -203,11 +227,10 @@
     </div> 
   </main>
 
-  <?php if ($isOwner): ?>
-    <script src="/js/perfil.js"></script>
-  <?php endif; ?>
+
   <?php require base_path('views/partials/lateral.php'); ?>
 </div>
+<script src="/js/perfil.js"></script> 
 <?php require base_path('views/partials/modalPostear.php'); ?>
 
 </body>

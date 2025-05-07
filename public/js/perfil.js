@@ -1,138 +1,182 @@
-//LLENAR EL PERFIL CON LOS DATOS DEL USUARIO
 document.addEventListener("DOMContentLoaded", function () {
-  const userId = document.getElementById("userId").value;
+  // --- INICIO DEL CÓDIGO DEL PRIMER BLOQUE DOMContentLoaded ---
+  const userIdElement = document.getElementById("userId"); // Es buena práctica verificar si existe
+  if (userIdElement) {
+      const userId = userIdElement.value;
 
-  fetch(`/api?UsuarioID=${userId}`)
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Datos del usuario:", data);
+      fetch(`/api?UsuarioID=${userId}`) // Asegúrate que esta ruta /api esté configurada para devolver los datos del perfil
+          .then((response) => response.json())
+          .then((data) => {
+              console.log("Datos del usuario:", data);
 
-      // Rellenamos los datos en el HTML
+              // Rellenamos los datos en el HTML
+              const nombreUsuarioH2 = document.querySelector(".profile-details .name-and-edit .name-username h2");
+              if (nombreUsuarioH2) {
+                  nombreUsuarioH2.textContent = data.NombreUsuario;
+              }
 
-      document.querySelector(
-        ".profile-details .name-and-edit .name-username h2"
-      ).textContent = data.NombreUsuario;
+              const bioP = document.querySelector(".profile-info-perfil .profile-details .bio");
+              if (bioP) {
+                  bioP.textContent = data.Biografia || "Aquí puedes colocar una breve descripción o presentación.";
+              }
+              
+              const perfilImage = document.querySelector(".profile-info-perfil .profile-image img");
+              if (perfilImage && data.ImagenPerfil) {
+                  perfilImage.src = `data:image/jpeg;base64,${data.ImagenPerfil}`;
+              }
 
-      // Si existe una biografía, rellenamos ese campo
-      const bio =
-        data.Biografia ||
-        "Aquí puedes colocar una breve descripción o presentación.";
-      document.querySelector(
-        ".profile-info-perfil .profile-details .bio"
-      ).textContent = bio;
+              const bannerImage = document.querySelector(".profile-banner img");
+              if (bannerImage && data.BannerPerfil) {
+                  bannerImage.src = `data:image/jpeg;base64,${data.BannerPerfil}`;
+              }
 
-      if (data.ImagenPerfil) {
-        document.querySelector(
-          ".profile-info-perfil .profile-image img"
-        ).src = `data:image/jpeg;base64,${data.ImagenPerfil}`;
-      }
+              // Rellenar el modal de edición
+              const nameInput = document.getElementById("nameInput");
+              if (nameInput) {
+                  nameInput.value = data.NombreUsuario;
+              }
 
-      // Si tienes la imagen de banner, actualizamos la URL en formato base64
-      if (data.BannerPerfil) {
-        document.querySelector(
-          ".profile-banner img"
-        ).src = `data:image/jpeg;base64,${data.BannerPerfil}`;
-      }
+              const bioInput = document.getElementById("bioInput");
+              if (bioInput) {
+                  bioInput.value = data.Biografia || "Aquí puedes colocar una breve descripción o presentación.";
+              }
+              
+              const modalPerfilImage = document.querySelector(".modalB .profile-image img");
+              if (modalPerfilImage && data.ImagenPerfil) {
+                  modalPerfilImage.src = `data:image/jpeg;base64,${data.ImagenPerfil}`;
+              }
 
-      // Rellenar el modal de edición
-      document.getElementById("nameInput").value = data.NombreUsuario;
-      document.getElementById("bioInput").value = bio;
-      if (data.ImagenPerfil) {
-        document.querySelector(
-          ".modalB .profile-image img"
-        ).src = `data:image/jpeg;base64,${data.ImagenPerfil}`;
-      }
-      if (data.BannerPerfil) {
-        document.querySelector(
-          ".modalB .profile-banner img"
-        ).src = `data:image/jpeg;base64,${data.BannerPerfil}`;
-      }
-    })
-    .catch((error) => {
-      console.error("Error al obtener el perfil:", error);
-    });
-});
+              const modalBannerImage = document.querySelector(".modalB .profile-banner img");
+              if (modalBannerImage && data.BannerPerfil) {
+                  modalBannerImage.src = `data:image/jpeg;base64,${data.BannerPerfil}`;
+              }
+          })
+          .catch((error) => {
+              console.error("Error al obtener el perfil:", error);
+          });
+  }
+  // --- FIN DEL CÓDIGO DEL PRIMER BLOQUE DOMContentLoaded ---
 
-document
-  .getElementById("saveModalBtn")
-  .addEventListener("click", function (event) {
-    event.preventDefault(); // Prevenir la acción predeterminada del botón (recarga de página)
+  const saveModalButton = document.getElementById("saveModalBtn");
+  if (saveModalButton) {
+      saveModalButton.addEventListener("click", function (event) {
+          event.preventDefault(); 
 
-    // Obtener los valores de los campos
-    const nombreUsuario = document.getElementById("nameInput").value;
-    const biografia = document.getElementById("bioInput").value;
+          const nombreUsuario = document.getElementById("nameInput").value;
+          const biografia = document.getElementById("bioInput").value;
+          const imagenPerfilFile = document.getElementById("profileUpload").files[0];
+          const bannerPerfilFile = document.getElementById("bannerUpload").files[0];
 
-    // Obtener las imágenes (si es que el usuario las ha seleccionado)
-    const imagenPerfil = document.getElementById("profileUpload").files[0];
-    const bannerPerfil = document.getElementById("bannerUpload").files[0];
+          const formData = new FormData();
+          formData.append("action", "modificar"); 
+          formData.append("nombre_usuario", nombreUsuario);
+          formData.append("biografia", biografia);
 
-    // Crear un FormData para enviar los datos, incluidas las imágenes
-    const formData = new FormData();
-    formData.append("action", "modificar"); // Acción que se ejecutará en la API
-    formData.append("nombre_usuario", nombreUsuario);
-    formData.append("biografia", biografia);
+          if (imagenPerfilFile) {
+              formData.append("imagen_perfil", imagenPerfilFile);
+          }
+          if (bannerPerfilFile) {
+              formData.append("banner_perfil", bannerPerfilFile);
+          }
 
-    // Agregar las imágenes si existen
-    if (imagenPerfil) {
-      formData.append("imagen_perfil", imagenPerfil);
-    }
-    if (bannerPerfil) {
-      formData.append("banner_perfil", bannerPerfil);
-    }
-
-    // Enviar la solicitud AJAX
-    fetch("/api", {
-      // Reemplaza con la URL de tu API
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message) {
-          alert("Perfil actualizado con éxito");
-          document.getElementById("editProfileModal").style.display = "none"; // Cerrar modal
-          location.reload();
-        } else if (data.error) {
-          alert("Error: " + data.error);
-        }
-      })
-      .catch((error) => {
-        console.error("Error en la solicitud:", error);
-        alert("Hubo un problema al actualizar el perfil.");
+          fetch("/api", { 
+              method: "POST",
+              body: formData,
+          })
+          .then((response) => response.json())
+          .then((data) => {
+              if (data.message) {
+                  alert("Perfil actualizado con éxito");
+                  const editProfileModal = document.getElementById("editProfileModal");
+                  if (editProfileModal) {
+                      editProfileModal.style.display = "none"; 
+                  }
+                  location.reload();
+              } else if (data.error) {
+                  alert("Error: " + data.error);
+              }
+          })
+          .catch((error) => {
+              console.error("Error en la solicitud:", error);
+              alert("Hubo un problema al actualizar el perfil.");
+          });
       });
-  });
+  }
 
-document
-  .getElementById("profileUpload")
-  .addEventListener("change", function (event) {
-    const file = event.target.files[0]; // Obtener el archivo seleccionado
-    const reader = new FileReader();
+  const profileUploadInput = document.getElementById("profileUpload");
+  if (profileUploadInput) {
+      profileUploadInput.addEventListener("change", function (event) {
+          const file = event.target.files[0]; 
+          const reader = new FileReader();
+          reader.onload = function (e) {
+              const modalProfileImg = document.querySelector(".modalB .profile-image img");
+              if (modalProfileImg) {
+                  modalProfileImg.src = e.target.result;
+              }
+          };
+          if (file) {
+              reader.readAsDataURL(file); 
+          }
+      });
+  }
 
-    reader.onload = function (e) {
-      // Cambiar la fuente de la imagen del perfil a la imagen seleccionada
-      document.querySelector(".modalB .profile-image img").src =
-        e.target.result;
-    };
+  const bannerUploadInput = document.getElementById("bannerUpload");
+  if (bannerUploadInput) {
+      bannerUploadInput.addEventListener("change", function (event) {
+          const file = event.target.files[0]; 
+          const reader = new FileReader();
+          reader.onload = function (e) {
+              const modalBannerImg = document.querySelector(".modalB .profile-banner img");
+              if (modalBannerImg) {
+                  modalBannerImg.src = e.target.result;
+              }
+          };
+          if (file) {
+              reader.readAsDataURL(file); 
+          }
+      });
+  }
 
-    if (file) {
-      reader.readAsDataURL(file); // Leer la imagen como base64
-    }
-  });
+  // --- INICIO DEL CÓDIGO DEL SEGUNDO BLOQUE DOMContentLoaded (LÓGICA DEL BOTÓN SEGUIR) ---
+  const followToggleButton = document.querySelector('.follow-toggle-btn');
+  if (followToggleButton) {
+      followToggleButton.addEventListener('click', function() {
+          const profileId = this.dataset.profileId;
+          // let estaSiguiendo = this.dataset.estaSiguiendo === 'true'; // No es necesario aquí, el backend lo determinará
 
-// Mostrar la imagen seleccionada de banner
-document
-  .getElementById("bannerUpload")
-  .addEventListener("change", function (event) {
-    const file = event.target.files[0]; // Obtener el archivo seleccionado
-    const reader = new FileReader();
+          const formData = new FormData();
+          formData.append('profile_user_id', profileId);
 
-    reader.onload = function (e) {
-      // Cambiar la fuente de la imagen del banner a la imagen seleccionada
-      document.querySelector(".modalB .profile-banner img").src =
-        e.target.result;
-    };
-
-    if (file) {
-      reader.readAsDataURL(file); // Leer la imagen como base64
-    }
-  });
+          fetch('/seguimiento/toggle', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return response.json();
+          })
+          .then(data => {
+              if (data.success) {
+                  this.textContent = data.estaSiguiendo ? 'Dejar de seguir' : 'Seguir';
+                  this.dataset.estaSiguiendo = data.estaSiguiendo ? 'true' : 'false';
+                  
+                  const seguidoresCountElement = document.getElementById(`seguidores-count-${profileId}`);
+                  if (seguidoresCountElement) {
+                      seguidoresCountElement.textContent = data.nuevosSeguidoresCountDelPerfil;
+                  }
+                  // Opcionalmente, mostrar un mensaje de éxito breve
+                  // console.log(data.message); 
+              } else {
+                  alert(data.message || 'Ocurrió un error al procesar la solicitud.');
+              }
+          })
+          .catch(error => {
+              console.error('Error en la solicitud de seguimiento:', error);
+              alert('Error de conexión al intentar seguir/dejar de seguir. Revisa la consola para más detalles.');
+          });
+      });
+  }
+  // --- FIN DEL CÓDIGO DEL SEGUNDO BLOQUE DOMContentLoaded ---
+});

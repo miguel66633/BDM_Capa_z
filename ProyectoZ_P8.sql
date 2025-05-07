@@ -9,12 +9,17 @@ SELECT * FROM Mensaje;
 SELECT * FROM Guardado;
 SELECT * FROM Repost;
 SELECT * FROM UsuarioRepost;
+SELECT * FROM UsuarioSeguidor;
 
 ALTER TABLE Repost MODIFY COLUMN FechaRepost DATETIME;
 ALTER TABLE Publicacion MODIFY FechaPublicacion DATETIME DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE Guardado MODIFY FechaGuardado DATETIME DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE Chat ADD COLUMN FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE Repost MODIFY FechaRepost TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE UsuarioSeguidor ADD COLUMN FechaSeguimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE Usuario
+ADD COLUMN SeguidosCount INT DEFAULT 0 AFTER TipoUsuario,
+ADD COLUMN SeguidoresCount INT DEFAULT 0 AFTER SeguidosCount;
 
 UPDATE Usuario
 SET TipoUsuario = 2
@@ -1144,3 +1149,726 @@ BEGIN
 END //
 
 DELIMITER ;
+
+
+CREATE OR REPLACE VIEW vw_PublicacionConAutorYMultimedia AS
+SELECT
+    p.PublicacionID,
+    p.ContenidoPublicacion,
+    p.FechaPublicacion,
+    p.UsuarioID AS AutorID, -- ID del autor de la publicación
+    u.NombreUsuario AS AutorNombreUsuario,
+    u.ImagenPerfil AS AutorImagenPerfil,
+    m.TipoMultimedia
+FROM
+    Publicacion p
+LEFT JOIN
+    Usuario u ON p.UsuarioID = u.UsuarioID
+LEFT JOIN
+    Multimedia m ON p.PublicacionID = m.PublicacionID;
+    
+    
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetPublicacionesGuardadasUsuario;
+//
+CREATE PROCEDURE sp_GetPublicacionesGuardadasUsuario (
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT
+        p_info.PublicacionID,
+        p_info.ContenidoPublicacion,
+        p_info.FechaPublicacion,
+        p_info.AutorNombreUsuario AS NombreUsuario, -- Para coincidir con lo que espera la vista
+        p_info.AutorImagenPerfil AS ImagenPerfil,   -- Para coincidir con lo que espera la vista
+        p_info.TipoMultimedia,
+        g.FechaGuardado,
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p_info.PublicacionID) AS Likes,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_info.PublicacionID) AS Guardados,
+        (SELECT COUNT(*) FROM Publicacion comm WHERE comm.PublicacionPadreID = p_info.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pr.RepostID) FROM PublicacionRepost pr WHERE pr.PublicacionID = p_info.PublicacionID) AS RepostsCount,
+        EXISTS (
+            SELECT 1
+            FROM PublicacionLike pl_user
+            INNER JOIN UsuarioLike ul ON pl_user.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl_user.PublicacionID = p_info.PublicacionID
+        ) AS YaDioLike,
+        1 AS YaGuardo, -- Siempre es true ya que estamos consultando las publicaciones guardadas por el usuario
+        EXISTS (
+            SELECT 1
+            FROM Repost r_user
+            JOIN UsuarioRepost ur ON r_user.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr_user ON r_user.RepostID = pr_user.RepostID
+            WHERE ur.UsuarioID = p_CurrentUsuarioID AND pr_user.PublicacionID = p_info.PublicacionID
+        ) AS YaReposteo
+    FROM
+        Guardado g
+    INNER JOIN
+        vw_PublicacionConAutorYMultimedia p_info ON g.PublicacionID = p_info.PublicacionID
+    WHERE
+        g.UsuarioID = p_CurrentUsuarioID
+    ORDER BY
+        g.FechaGuardado DESC;
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_PublicacionConAutorYMultimedia AS
+SELECT
+    p.PublicacionID,
+    p.ContenidoPublicacion,
+    p.FechaPublicacion,
+    p.UsuarioID AS AutorID, 
+    u.NombreUsuario AS AutorNombreUsuario,
+    u.ImagenPerfil AS AutorImagenPerfil,
+    m.TipoMultimedia,
+    p.PublicacionPadreID
+FROM
+    Publicacion p
+LEFT JOIN
+    Usuario u ON p.UsuarioID = u.UsuarioID
+LEFT JOIN
+    Multimedia m ON p.PublicacionID = m.PublicacionID;
+    
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetPublicacionesHome;
+//
+CREATE PROCEDURE sp_GetPublicacionesHome (
+    IN p_CurrentUsuarioID INT -- ID del usuario que está viendo el feed
+)
+BEGIN
+    SELECT
+        p_info.PublicacionID,
+        p_info.ContenidoPublicacion,
+        p_info.FechaPublicacion,
+        p_info.AutorNombreUsuario AS NombreUsuario, -- Alias para coincidir con la vista home.view.php
+        p_info.AutorImagenPerfil AS ImagenPerfil,   -- Alias para coincidir con la vista home.view.php
+        p_info.TipoMultimedia,
+        -- Contadores de interacciones
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p_info.PublicacionID) AS Likes,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_info.PublicacionID) AS Guardados,
+        (SELECT COUNT(*) FROM Publicacion comm WHERE comm.PublicacionPadreID = p_info.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pr.RepostID) FROM PublicacionRepost pr WHERE pr.PublicacionID = p_info.PublicacionID) AS RepostsCount,
+        -- Estados de interacción del usuario actual
+        EXISTS (
+            SELECT 1
+            FROM PublicacionLike pl_user
+            INNER JOIN UsuarioLike ul ON pl_user.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl_user.PublicacionID = p_info.PublicacionID
+        ) AS YaDioLike,
+        EXISTS (
+            SELECT 1
+            FROM Guardado g_user
+            WHERE g_user.UsuarioID = p_CurrentUsuarioID AND g_user.PublicacionID = p_info.PublicacionID
+        ) AS YaGuardado,
+        EXISTS (
+            SELECT 1
+            FROM Repost r_user
+            JOIN UsuarioRepost ur ON r_user.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr_user ON r_user.RepostID = pr_user.RepostID
+            WHERE ur.UsuarioID = p_CurrentUsuarioID AND pr_user.PublicacionID = p_info.PublicacionID
+        ) AS YaReposteo
+    FROM
+        vw_PublicacionConAutorYMultimedia p_info
+    WHERE
+        p_info.PublicacionPadreID IS NULL -- Solo publicaciones principales
+    ORDER BY
+        p_info.FechaPublicacion DESC;
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetPerfilFeed;
+//
+CREATE PROCEDURE sp_GetPerfilFeed (
+    IN p_ProfileOwnerID INT, -- ID del usuario cuyo perfil se está viendo
+    IN p_CurrentUsuarioID INT  -- ID del usuario que está visitando el perfil
+)
+BEGIN
+    SELECT * FROM (
+        -- Publicaciones originales del dueño del perfil
+        SELECT
+            p_info.PublicacionID,
+            p_info.ContenidoPublicacion,
+            p_info.FechaPublicacion AS EffectiveDate,
+            p_info.FechaPublicacion AS FechaPublicacionOriginal,
+            p_info.AutorNombreUsuario,
+            p_info.AutorImagenPerfil,
+            p_info.AutorID,
+            p_info.TipoMultimedia,
+            (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p_info.PublicacionID) AS LikesCount,
+            (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_info.PublicacionID) AS SavesCount,
+            (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p_info.PublicacionID) AS CommentsCount,
+            (SELECT COUNT(DISTINCT pr_count.RepostID) FROM PublicacionRepost pr_count WHERE pr_count.PublicacionID = p_info.PublicacionID) AS RepostsCount,
+            EXISTS (
+                SELECT 1
+                FROM PublicacionLike pl
+                INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+                WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl.PublicacionID = p_info.PublicacionID
+            ) AS YaDioLike,
+            EXISTS (
+                SELECT 1
+                FROM Guardado g
+                WHERE g.UsuarioID = p_CurrentUsuarioID AND g.PublicacionID = p_info.PublicacionID
+            ) AS YaGuardo,
+            EXISTS (
+                SELECT 1
+                FROM Repost r_check
+                JOIN UsuarioRepost ur_check ON r_check.RepostID = ur_check.RepostID
+                JOIN PublicacionRepost pr_check ON r_check.RepostID = pr_check.RepostID
+                WHERE ur_check.UsuarioID = p_CurrentUsuarioID AND pr_check.PublicacionID = p_info.PublicacionID
+            ) AS YaReposteo,
+            'original' AS TipoEntrada,
+            NULL AS RepostadorNombreUsuario,
+            NULL AS RepostadorID,
+            NULL AS FechaRepostEvento
+        FROM
+            vw_PublicacionConAutorYMultimedia p_info
+        WHERE
+            p_info.AutorID = p_ProfileOwnerID AND p_info.PublicacionPadreID IS NULL
+
+        UNION ALL
+
+        -- Publicaciones reposteadas por el dueño del perfil
+        SELECT
+            p_original.PublicacionID,
+            p_original.ContenidoPublicacion,
+            r.FechaRepost AS EffectiveDate,
+            p_original.FechaPublicacion AS FechaPublicacionOriginal,
+            p_original.AutorNombreUsuario,
+            p_original.AutorImagenPerfil,
+            p_original.AutorID,
+            p_original.TipoMultimedia,
+            (SELECT COUNT(DISTINCT pl_count.LikeID) FROM PublicacionLike pl_count WHERE pl_count.PublicacionID = p_original.PublicacionID) AS LikesCount,
+            (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_original.PublicacionID) AS SavesCount,
+            (SELECT COUNT(*) FROM Publicacion comm_count WHERE comm_count.PublicacionPadreID = p_original.PublicacionID) AS CommentsCount,
+            (SELECT COUNT(DISTINCT pr_count.RepostID) FROM PublicacionRepost pr_count WHERE pr_count.PublicacionID = p_original.PublicacionID) AS RepostsCount,
+            EXISTS (
+                SELECT 1
+                FROM PublicacionLike pl
+                INNER JOIN UsuarioLike ul ON pl.LikeID = ul.LikeID
+                WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl.PublicacionID = p_original.PublicacionID
+            ) AS YaDioLike,
+            EXISTS (
+                SELECT 1
+                FROM Guardado g
+                WHERE g.UsuarioID = p_CurrentUsuarioID AND g.PublicacionID = p_original.PublicacionID
+            ) AS YaGuardo,
+            EXISTS (
+                SELECT 1
+                FROM Repost r_check
+                JOIN UsuarioRepost ur_check ON r_check.RepostID = ur_check.RepostID
+                JOIN PublicacionRepost pr_check ON r_check.RepostID = pr_check.RepostID
+                WHERE ur_check.UsuarioID = p_CurrentUsuarioID AND pr_check.PublicacionID = p_original.PublicacionID
+            ) AS YaReposteo,
+            'repost' AS TipoEntrada,
+            u_repostador.NombreUsuario AS RepostadorNombreUsuario,
+            u_repostador.UsuarioID AS RepostadorID,
+            r.FechaRepost AS FechaRepostEvento
+        FROM
+            Repost r
+        JOIN
+            UsuarioRepost ur ON r.RepostID = ur.RepostID AND ur.UsuarioID = p_ProfileOwnerID
+        JOIN
+            PublicacionRepost pr ON r.RepostID = pr.RepostID
+        JOIN
+            vw_PublicacionConAutorYMultimedia p_original ON pr.PublicacionID = p_original.PublicacionID
+        JOIN
+            Usuario u_repostador ON ur.UsuarioID = u_repostador.UsuarioID
+    ) AS ProfileFeed
+    ORDER BY
+        EffectiveDate DESC;
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
+SELECT
+    UsuarioID,
+    NombreUsuario,
+    Biografia,
+    ImagenPerfil,
+    BannerPerfil,
+    TipoUsuario -- Podría ser útil si quieres mostrar algo diferente para admins, etc.
+FROM
+    Usuario;
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetUsuarioPerfilDetalles;
+//
+CREATE PROCEDURE sp_GetUsuarioPerfilDetalles (
+    IN p_ProfileUserID INT
+)
+BEGIN
+    SELECT
+        UsuarioID,
+        NombreUsuario,
+        Biografia,
+        ImagenPerfil,
+        BannerPerfil,
+        TipoUsuario
+    FROM
+        vw_UsuarioPerfilDetalles
+    WHERE
+        UsuarioID = p_ProfileUserID
+    LIMIT 1; -- Asegurar que solo devuelva una fila
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetPublicacionDetalles;
+//
+CREATE PROCEDURE sp_GetPublicacionDetalles (
+    IN p_PostID INT,
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT
+        p_info.PublicacionID,
+        p_info.ContenidoPublicacion,
+        p_info.FechaPublicacion,
+        p_info.AutorNombreUsuario AS NombreUsuario, -- Alias para la vista post.view.php
+        p_info.AutorImagenPerfil AS ImagenPerfil,   -- Alias para la vista post.view.php
+        p_info.AutorID,
+        p_info.TipoMultimedia,     -- Multimedia de la publicación
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = p_info.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = p_info.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion comm WHERE comm.PublicacionPadreID = p_info.PublicacionID) AS CommentsCount,
+        (SELECT COUNT(DISTINCT pr.RepostID) FROM PublicacionRepost pr WHERE pr.PublicacionID = p_info.PublicacionID) AS RepostsCount,
+        EXISTS (
+            SELECT 1
+            FROM PublicacionLike pl_user
+            INNER JOIN UsuarioLike ul ON pl_user.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl_user.PublicacionID = p_info.PublicacionID
+        ) AS YaDioLike,
+        EXISTS (
+            SELECT 1
+            FROM Guardado g_user
+            WHERE g_user.UsuarioID = p_CurrentUsuarioID AND g_user.PublicacionID = p_info.PublicacionID
+        ) AS YaGuardo,
+        EXISTS (
+            SELECT 1
+            FROM Repost r_user
+            JOIN UsuarioRepost ur ON r_user.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr_user ON r_user.RepostID = pr_user.RepostID
+            WHERE ur.UsuarioID = p_CurrentUsuarioID AND pr_user.PublicacionID = p_info.PublicacionID
+        ) AS YaReposteo
+    FROM
+        vw_PublicacionConAutorYMultimedia p_info
+    WHERE
+        p_info.PublicacionID = p_PostID
+    LIMIT 1;
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetPublicacionRespuestas;
+//
+CREATE PROCEDURE sp_GetPublicacionRespuestas (
+    IN p_ParentPostID INT,
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT
+        resp_info.PublicacionID,
+        resp_info.ContenidoPublicacion,
+        resp_info.FechaPublicacion,
+        resp_info.AutorNombreUsuario AS NombreUsuario, -- Autor de la respuesta
+        resp_info.AutorImagenPerfil AS ImagenPerfil,   -- Imagen de perfil del autor de la respuesta
+        resp_info.AutorID AS RespondedorID,            -- ID del autor de la respuesta
+        resp_info.TipoMultimedia AS ImagenRespuesta,   -- Multimedia de la respuesta
+        (SELECT COUNT(DISTINCT pl.LikeID) FROM PublicacionLike pl WHERE pl.PublicacionID = resp_info.PublicacionID) AS LikesCount,
+        (SELECT COUNT(*) FROM Guardado g_count WHERE g_count.PublicacionID = resp_info.PublicacionID) AS SavesCount,
+        (SELECT COUNT(*) FROM Publicacion comm WHERE comm.PublicacionPadreID = resp_info.PublicacionID) AS RepliesToReplyCount, -- Comentarios a esta respuesta
+        (SELECT COUNT(DISTINCT pr.RepostID) FROM PublicacionRepost pr WHERE pr.PublicacionID = resp_info.PublicacionID) AS RepostsCount,
+        EXISTS (
+            SELECT 1
+            FROM PublicacionLike pl_user
+            INNER JOIN UsuarioLike ul ON pl_user.LikeID = ul.LikeID
+            WHERE ul.UsuarioID = p_CurrentUsuarioID AND pl_user.PublicacionID = resp_info.PublicacionID
+        ) AS YaDioLikeRespuesta,
+        EXISTS (
+            SELECT 1
+            FROM Guardado g_user
+            WHERE g_user.UsuarioID = p_CurrentUsuarioID AND g_user.PublicacionID = resp_info.PublicacionID
+        ) AS YaGuardoRespuesta,
+        EXISTS (
+            SELECT 1
+            FROM Repost r_user
+            JOIN UsuarioRepost ur ON r_user.RepostID = ur.RepostID
+            JOIN PublicacionRepost pr_user ON r_user.RepostID = pr_user.RepostID
+            WHERE ur.UsuarioID = p_CurrentUsuarioID AND pr_user.PublicacionID = resp_info.PublicacionID
+        ) AS YaReposteoRespuesta
+    FROM
+        vw_PublicacionConAutorYMultimedia resp_info
+    WHERE
+        resp_info.PublicacionPadreID = p_ParentPostID
+    ORDER BY
+        resp_info.FechaPublicacion ASC;
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS Usuario1ID,         -- El que inició el chat o el de menor ID si se normaliza
+    u1.NombreUsuario AS Usuario1Nombre,
+    u1.ImagenPerfil AS Usuario1ImagenPerfil,
+    c.DestinatarioID AS Usuario2ID,   -- El otro participante
+    u2.NombreUsuario AS Usuario2Nombre,
+    u2.ImagenPerfil AS Usuario2ImagenPerfil,
+    c.FechaCreacion AS FechaCreacionChat,
+    (SELECT m.ContenidoMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeContenido,
+    (SELECT m.FechaMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeFecha
+FROM
+    Chat c
+INNER JOIN
+    Usuario u1 ON c.UsuarioID = u1.UsuarioID
+INNER JOIN
+    Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
+    
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetUsuarioChatsConDetalles;
+//
+CREATE PROCEDURE sp_GetUsuarioChatsConDetalles (
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT
+        vc.ChatID,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ID
+            ELSE vc.Usuario1ID
+        END AS PersonaID,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2Nombre
+            ELSE vc.Usuario1Nombre
+        END AS NombreUsuario,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ImagenPerfil
+            ELSE vc.Usuario1ImagenPerfil
+        END AS ImagenPerfil,
+        vc.FechaCreacionChat AS FechaCreacion,
+        vc.UltimoMensajeContenido AS UltimoMensaje,
+        vc.UltimoMensajeFecha AS HoraUltimoMensaje
+    FROM
+        vw_ChatConParticipantesYUltimoMensaje vc
+    WHERE
+        vc.Usuario1ID = p_CurrentUsuarioID OR vc.Usuario2ID = p_CurrentUsuarioID
+    ORDER BY
+        HoraUltimoMensaje DESC, FechaCreacionChat DESC;
+END //
+
+DELIMITER ;
+
+ALTER TABLE Chat
+ADD COLUMN FechaUltimaActividad TIMESTAMP NULL DEFAULT NULL AFTER FechaCreacion;
+
+-- MUY RECOMENDADO:
+-- Actualizar la FechaUltimaActividad para los chats existentes una sola vez.
+-- Ejecuta esto directamente en tu cliente MySQL o como parte de tu script de migración,
+-- DESPUÉS de añadir la columna y ANTES de crear el trigger.
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE Chat c
+SET c.FechaUltimaActividad = (
+    SELECT MAX(m.FechaMensaje)
+    FROM Mensaje m
+    WHERE m.ChatID = c.ChatID
+)
+WHERE EXISTS ( -- Solo actualiza chats que tienen mensajes
+    SELECT 1
+    FROM Mensaje m
+    WHERE m.ChatID = c.ChatID
+);
+-- Para chats sin mensajes, FechaUltimaActividad podría quedar NULL o igual a FechaCreacion
+UPDATE Chat
+SET FechaUltimaActividad = FechaCreacion
+WHERE FechaUltimaActividad IS NULL;
+
+-- Reactivar el modo de actualizaciones seguras (recomendado)
+SET SQL_SAFE_UPDATES = 1;
+
+DELIMITER //
+
+DROP TRIGGER IF EXISTS trg_AfterInsert_Mensaje_UpdateChatActivity;
+//
+-- crea el triiger para la fecha de la hora en la vista de mensajes en la barra central
+CREATE TRIGGER trg_AfterInsert_Mensaje_UpdateChatActivity
+AFTER INSERT ON Mensaje
+FOR EACH ROW
+BEGIN
+    UPDATE Chat
+    SET FechaUltimaActividad = NEW.FechaMensaje -- Usar la fecha del nuevo mensaje
+    WHERE ChatID = NEW.ChatID;
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS Usuario1ID,
+    u1.NombreUsuario AS Usuario1Nombre,
+    u1.ImagenPerfil AS Usuario1ImagenPerfil,
+    c.DestinatarioID AS Usuario2ID,
+    u2.NombreUsuario AS Usuario2Nombre,
+    u2.ImagenPerfil AS Usuario2ImagenPerfil,
+    c.FechaCreacion AS FechaCreacionChat,
+    c.FechaUltimaActividad, -- <<< UTILIZA LA NUEVA COLUMNA DIRECTAMENTE
+    (SELECT m.ContenidoMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeContenido
+    -- La subconsulta para UltimoMensajeFecha ya no es necesaria aquí
+FROM
+    Chat c
+INNER JOIN
+    Usuario u1 ON c.UsuarioID = u1.UsuarioID
+INNER JOIN
+    Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetUsuarioChatsConDetalles;
+//
+CREATE PROCEDURE sp_GetUsuarioChatsConDetalles (
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT
+        vc.ChatID,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ID
+            ELSE vc.Usuario1ID
+        END AS PersonaID,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2Nombre
+            ELSE vc.Usuario1Nombre
+        END AS NombreUsuario,
+        CASE
+            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ImagenPerfil
+            ELSE vc.Usuario1ImagenPerfil
+        END AS ImagenPerfil,
+        vc.FechaCreacionChat AS FechaCreacion,
+        vc.UltimoMensajeContenido AS UltimoMensaje,
+        vc.FechaUltimaActividad AS HoraUltimoMensaje -- <<< USA EL CAMPO DE LA VISTA
+    FROM
+        vw_ChatConParticipantesYUltimoMensaje vc
+    WHERE
+        vc.Usuario1ID = p_CurrentUsuarioID OR vc.Usuario2ID = p_CurrentUsuarioID
+    ORDER BY
+        vc.FechaUltimaActividad DESC, vc.FechaCreacionChat DESC; -- <<< ORDENA POR LA NUEVA COLUMNA
+END //
+
+DELIMITER //
+
+-- Desactivar el modo de actualizaciones seguras temporalmente
+SET SQL_SAFE_UPDATES = 0;
+
+-- Actualizar SeguidosCount (cuántos usuarios sigue cada usuario)
+UPDATE Usuario u
+SET u.SeguidosCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidorID = u.UsuarioID
+);
+
+-- Actualizar SeguidoresCount (cuántos seguidores tiene cada usuario)
+UPDATE Usuario u
+SET u.SeguidoresCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidoID = u.UsuarioID
+);
+
+-- Reactivar el modo de actualizaciones seguras
+SET SQL_SAFE_UPDATES = 1;
+
+DELIMITER //
+
+DROP TRIGGER IF EXISTS trg_AfterInsert_UsuarioSeguidor;
+//
+CREATE TRIGGER trg_AfterInsert_UsuarioSeguidor
+AFTER INSERT ON UsuarioSeguidor
+FOR EACH ROW
+BEGIN
+    -- Incrementar el contador de 'Seguidos' para el usuario que realiza la acción de seguir
+    UPDATE Usuario
+    SET SeguidosCount = SeguidosCount + 1
+    WHERE UsuarioID = NEW.UsuarioSeguidorID;
+
+    -- Incrementar el contador de 'Seguidores' para el usuario que es seguido
+    UPDATE Usuario
+    SET SeguidoresCount = SeguidoresCount + 1
+    WHERE UsuarioID = NEW.UsuarioSeguidoID;
+END //
+
+DROP TRIGGER IF EXISTS trg_AfterDelete_UsuarioSeguidor;
+//
+CREATE TRIGGER trg_AfterDelete_UsuarioSeguidor
+AFTER DELETE ON UsuarioSeguidor
+FOR EACH ROW
+BEGIN
+    -- Decrementar el contador de 'Seguidos' para el usuario que deja de seguir
+    UPDATE Usuario
+    SET SeguidosCount = GREATEST(0, SeguidosCount - 1) -- Evitar conteos negativos
+    WHERE UsuarioID = OLD.UsuarioSeguidorID;
+
+    -- Decrementar el contador de 'Seguidores' para el usuario que deja de ser seguido
+    UPDATE Usuario
+    SET SeguidoresCount = GREATEST(0, SeguidoresCount - 1) -- Evitar conteos negativos
+    WHERE UsuarioID = OLD.UsuarioSeguidoID;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_ToggleSeguimiento;
+//
+CREATE PROCEDURE sp_ToggleSeguimiento (
+    IN p_UsuarioSeguidorID INT, -- ID del usuario que realiza la acción
+    IN p_UsuarioSeguidoID INT   -- ID del usuario del perfil que se está viendo/siguiendo
+)
+proc_block: BEGIN
+    DECLARE v_RelacionExiste BOOLEAN DEFAULT FALSE;
+    DECLARE v_EstaSiguiendo BOOLEAN DEFAULT FALSE;
+    DECLARE v_NuevosSeguidoresCountDelPerfil INT DEFAULT 0;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido.';
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo procesar la acción de seguimiento.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, FALSE AS EstaSiguiendo, 0 AS NuevosSeguidoresCountDelPerfil;
+    END;
+
+    IF p_UsuarioSeguidorID = p_UsuarioSeguidoID THEN
+        SET v_StatusMessage = 'No puedes seguirte a ti mismo.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, FALSE AS EstaSiguiendo, 0 AS NuevosSeguidoresCountDelPerfil;
+        LEAVE proc_block;
+    END IF;
+
+    START TRANSACTION;
+
+    SELECT EXISTS(
+        SELECT 1 FROM UsuarioSeguidor
+        WHERE UsuarioSeguidorID = p_UsuarioSeguidorID AND UsuarioSeguidoID = p_UsuarioSeguidoID
+    ) INTO v_RelacionExiste;
+
+    IF v_RelacionExiste THEN
+        -- Dejar de seguir
+        DELETE FROM UsuarioSeguidor
+        WHERE UsuarioSeguidorID = p_UsuarioSeguidorID AND UsuarioSeguidoID = p_UsuarioSeguidoID;
+        SET v_EstaSiguiendo = FALSE;
+        SET v_StatusMessage = 'Has dejado de seguir a este usuario.';
+    ELSE
+        -- Seguir
+        INSERT INTO UsuarioSeguidor (UsuarioSeguidorID, UsuarioSeguidoID)
+        VALUES (p_UsuarioSeguidorID, p_UsuarioSeguidoID);
+        SET v_EstaSiguiendo = TRUE;
+        SET v_StatusMessage = 'Ahora sigues a este usuario.';
+    END IF;
+
+    -- Obtener el nuevo conteo de seguidores del perfil que se está viendo
+    -- El trigger ya habrá actualizado este valor en la tabla Usuario
+    SELECT SeguidoresCount INTO v_NuevosSeguidoresCountDelPerfil
+    FROM Usuario
+    WHERE UsuarioID = p_UsuarioSeguidoID;
+
+    COMMIT;
+    SET v_Success = TRUE;
+
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_EstaSiguiendo AS EstaSiguiendo, v_NuevosSeguidoresCountDelPerfil AS NuevosSeguidoresCountDelPerfil;
+
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
+SELECT
+    UsuarioID,
+    NombreUsuario,
+    Biografia,
+    ImagenPerfil,
+    BannerPerfil,
+    TipoUsuario,
+    SeguidosCount,    -- <<< NUEVA COLUMNA
+    SeguidoresCount   -- <<< NUEVA COLUMNA
+FROM
+    Usuario;
+    
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetUsuarioPerfilDetalles;
+//
+CREATE PROCEDURE sp_GetUsuarioPerfilDetalles (
+    IN p_ProfileUserID INT,     -- ID del usuario cuyo perfil se está viendo
+    IN p_CurrentUsuarioID INT   -- ID del usuario que está visitando el perfil (puede ser el mismo o diferente)
+)
+BEGIN
+    SELECT
+        upd.UsuarioID,
+        upd.NombreUsuario,
+        upd.Biografia,
+        upd.ImagenPerfil,
+        upd.BannerPerfil,
+        upd.TipoUsuario,
+        upd.SeguidosCount,
+        upd.SeguidoresCount,
+        EXISTS ( -- Verificar si el visitante actual sigue al dueño del perfil
+            SELECT 1
+            FROM UsuarioSeguidor us
+            WHERE us.UsuarioSeguidorID = p_CurrentUsuarioID AND us.UsuarioSeguidoID = p_ProfileUserID
+        ) AS EstaSiguiendo
+    FROM
+        vw_UsuarioPerfilDetalles upd
+    WHERE
+        upd.UsuarioID = p_ProfileUserID
+    LIMIT 1;
+END //
+
+DELIMITER //
+
+-- Desactivar el modo de actualizaciones seguras temporalmente
+SET SQL_SAFE_UPDATES = 0;
+
+-- Actualizar SeguidosCount (cuántos usuarios sigue cada usuario)
+UPDATE Usuario u
+SET u.SeguidosCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidorID = u.UsuarioID
+);
+
+-- Actualizar SeguidoresCount (cuántos seguidores tiene cada usuario)
+UPDATE Usuario u
+SET u.SeguidoresCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidoID = u.UsuarioID
+);
+
+-- Reactivar el modo de actualizaciones seguras
+SET SQL_SAFE_UPDATES = 1;
+
+DELIMITER //
+
