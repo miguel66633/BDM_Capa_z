@@ -22,8 +22,7 @@
                             <span class="publicacion-user-handle">
                                 @<?php echo htmlspecialchars($publicacion['NombreUsuario']); ?> • 
                                 <?php 
-                                    $fechaHora = new DateTime($publicacion['FechaPublicacion']);
-                                    echo $fechaHora->format('d/m/Y H:i');
+                                    echo formatTiempoTranscurrido($publicacion['FechaPublicacion']);
                                 ?>
                             </span>
                         </div>
@@ -37,8 +36,6 @@
                         <!-- Mostrar imagen si existe -->
                         <?php if (!empty($publicacion['TipoMultimedia'])): ?>
                         <?php
-                            // Decodificar una pequeña porción para determinar el tipo MIME
-                            // Esto no es lo más eficiente. Idealmente, el tipo MIME se guardaría en la BD.
                             $multimediaContent = $publicacion['TipoMultimedia'];
                             $base64Encoded = base64_encode($multimediaContent);
                             $mimeType = mime_content_type('data://application/octet-stream;base64,' . $base64Encoded);

@@ -58,8 +58,9 @@ document.querySelector('#registerForm').addEventListener('submit', function (eve
     // Validación nombre
     if (fullName === '') {
         errores.push({ id: 'error-fullname', mensaje: 'El nombre de usuario no puede estar vacío.' });
-    } else if (!/^[a-zA-Z\s]+$/.test(fullName)) {
-        errores.push({ id: 'error-fullname', mensaje: 'El nombre de usuario solo debe contener letras.' });
+    // *** CAMBIO: Modificar la expresión regular para permitir letras, números y espacios ***
+    } else if (!/^[a-zA-Z0-9\s]+$/.test(fullName)) {
+        errores.push({ id: 'error-fullname', mensaje: 'El nombre de usuario solo debe contener letras, números y espacios.' });
     }
 
     // Validación correo

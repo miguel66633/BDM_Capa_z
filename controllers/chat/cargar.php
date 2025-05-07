@@ -7,23 +7,18 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Verificar si el usuario está autenticado
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['error' => 'Debes iniciar sesión para acceder a los chats.']);
     exit;
 }
-
-// Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
 
-// Obtener el ID del chat desde la solicitud
 $chatId = $_POST['chat_id'] ?? null;
 
 if (!$chatId) {
     echo json_encode(['error' => 'ID del chat no válido.']);
     exit;
 }
-
 $queryUser = "
     SELECT 
         u.UsuarioID,
@@ -49,14 +44,12 @@ if (!$userInfo) {
     exit;
 }
 
-// Convertir la imagen a base64 si existe
 if (!empty($userInfo['ImagenPerfil'])) {
     $userInfo['ImagenPerfil'] = 'data:image/jpeg;base64,' . base64_encode($userInfo['ImagenPerfil']);
 } else {
-    $userInfo['ImagenPerfil'] = 'Resources/images/perfilPre.jpg'; // Imagen por defecto
+    $userInfo['ImagenPerfil'] = 'Resources/images/perfilPre.jpg';
 }
 
-// Consultar los mensajes del chat
 $queryMessages = "
     SELECT 
         m.MensajeID,
@@ -76,7 +69,6 @@ $queryMessages = "
 
 $messages = $db->query($queryMessages, ['chatId' => $chatId])->get();
 
-// Devolver la información del usuario y los mensajes como JSON
 echo json_encode([
     'NombreUsuario' => $userInfo['NombreUsuario'],
     'ImagenPerfil' => $userInfo['ImagenPerfil'],

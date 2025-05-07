@@ -39,8 +39,46 @@ function base_path($path): string
     return BASE_PATH . $path;
 }
 
-function view($path,$attributes = [])
+function view($path, $attributes = [])
 {
     extract($attributes);
-    require base_path('views/') . $path;
+    require base_path('views/') . $path; // Esta es la línea 45 de tu error
+}
+
+/**
+ * Formatea el tiempo transcurrido desde una fecha dada.
+ *
+ * @param string $fechaString La fecha de la publicación en formato Y-m-d H:i:s.
+ * @return string El tiempo transcurrido formateado.
+ */
+function formatTiempoTranscurrido(string $fechaString): string {
+    try {
+
+        $databaseStorageTimeZone = new DateTimeZone('America/Mexico_City');
+
+        $fechaPublicacion = new DateTimeImmutable($fechaString, $databaseStorageTimeZone);
+
+        $ahora = new DateTimeImmutable();
+
+        $intervalo = $ahora->diff($fechaPublicacion);
+
+        if ($intervalo->days >= 1) {
+
+            return $fechaPublicacion->format('d M.');
+        }
+
+        if ($intervalo->h >= 2 && $intervalo->h <= 23) {
+            return "hace " . $intervalo->h . " horas";
+        }
+
+        if ($intervalo->h == 1) {
+            return "hace 1 hora";
+        }
+
+        return "hace " . $intervalo->i . " minutos";
+
+    } catch (Exception $e) {
+        error_log("Error al formatear fecha: " . $e->getMessage() . " | Fecha recibida: " . $fechaString);
+        return 'Fecha inválida';
+    }
 }

@@ -19,16 +19,11 @@
                             <div class="publicacion-info">
                                 <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['NombreUsuario']); ?></span>
                                 <span class="publicacion-user-handle">
-                                    @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> • 
-                                    <?php 
-                                        try {
-                                            $fechaPub = new DateTime($publicacion['FechaPublicacion']);
-                                            echo $fechaPub->format('d M.'); 
-                                        } catch (Exception $e) {
-                                            echo 'Fecha inválida';
-                                        }
-                                    ?>
-                                </span>
+                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> • 
+                                <?php 
+                                    echo formatTiempoTranscurrido($publicacion['FechaPublicacion']);
+                                ?>
+                            </span>
                             </div>
                         </div>
                         <div class="publicacion-contenido">

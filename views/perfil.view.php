@@ -3,20 +3,15 @@
   <?php require base_path('views/partials/nav.z.php'); ?>
 
   <?php
-  // ID del usuario del perfil que se está viendo (viene del controlador)
   $profileUserId = $usuario['UsuarioID'];
-  // ID del usuario logueado (de la sesión)
   $currentUserId = $_SESSION['user_id'] ?? null;
   ?>
-  <!-- Campo oculto con el ID del perfil visualizado (útil para JS si es necesario) -->
   <input type="hidden" id="profileUserId" value="<?php echo $profileUserId; ?>">
-  <!-- Campo oculto para saber si es el dueño (útil para JS si es necesario) -->
   <input type="hidden" id="isOwner" value="<?php echo $isOwner ? 'true' : 'false'; ?>">
 
 
   <main id="contenido">
     <div class="scrollable-content">
-      <!-- Encabezado con botón de regreso y nombre de usuario -->
       <div class="post-header">
         <button class="back-btn" onclick="window.history.back()">
           <img src="/resources/images/atras.svg" alt="Atrás"> 
@@ -24,51 +19,35 @@
         <h2><?php echo htmlspecialchars($usuario['NombreUsuario']); ?></h2>
       </div>
 
-      <!-- Banner -->
       <div class="profile-banner">
         <!-- *** CAMBIO: Mostrar banner del usuario *** -->
         <img src="<?php echo isset($usuario['BannerPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($usuario['BannerPerfil']) : '/Resources/images/bannerPre.jpg'; ?>" alt="Banner de <?php echo htmlspecialchars($usuario['NombreUsuario']); ?>">
       </div>
 
-      <!-- Sección de información del perfil -->
       <div class="profile-info-perfil">
-        <!-- Imagen de perfil -->
         <div class="profile-image">
-          <!-- *** CAMBIO: Mostrar imagen de perfil del usuario *** -->
           <img src="<?php echo isset($usuario['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($usuario['ImagenPerfil']) : '/Resources/images/perfilPre.jpg'; ?>" alt="Foto de Perfil de <?php echo htmlspecialchars($usuario['NombreUsuario']); ?>">
         </div>
 
-        <!-- Nombre, usuario y botón de editar -->
         <div class="profile-details">
           <div class="name-and-edit">
             <div class="name-username">
-              <!-- *** CAMBIO: Mostrar nombre del usuario *** -->
               <h2><?php echo htmlspecialchars($usuario['NombreUsuario']); ?></h2>
-              <!-- Podrías añadir el @handle si lo tienes -->
             </div>
-            <!-- *** CAMBIO: Mostrar botón solo si es el dueño *** -->
             <?php if ($isOwner): ?>
               <button class="edit-profile" id="openModalBtn">Editar perfil</button>
             <?php endif; ?>
           </div>
-
-          <!-- Biografía -->
           <p class="bio">
-            <!-- *** CAMBIO: Mostrar biografía del usuario *** -->
             <?php echo !empty($usuario['Biografia']) ? htmlspecialchars($usuario['Biografia']) : 'Este usuario aún no tiene biografía.'; ?>
           </p>
-
-          <!-- Seguidores y seguidos (Añadir lógica si la implementas) -->
-          <!-- <div class="follows"> ... </div> -->
         </div>
       </div>
-
-      <!-- Sección de Posts -->
+      
       <div class="posts-section">
         <h3>Posts</h3>
       </div>
 
-        <!-- Bucle para mostrar las publicaciones del usuario -->
         <?php if (!empty($publicaciones)): ?>
             <?php foreach ($publicaciones as $publicacion): ?>
                 <div class="publicacion" data-id="<?php echo $publicacion['PublicacionID']; ?>">
@@ -97,19 +76,11 @@
                                 <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['AutorNombreUsuario']); ?></span>
                             </a>
                             <span class="publicacion-user-handle">
-                                @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['AutorNombreUsuario']))); ?> •
-                                <?php 
-                                    try {
-                                        // EffectiveDate ya contiene la fecha correcta (FechaPublicacion o FechaRepostOriginal)
-                                        $fecha = new DateTime($publicacion['EffectiveDate']);
-                                        // Si es un repost, podrías querer mostrar la fecha del repost, no la de la publicación original
-                                        // La consulta ya devuelve EffectiveDate que es FechaRepost para los reposts.
-                                        echo $fecha->format('d M. Y H:i'); 
-                                    } catch (Exception $e) {
-                                        echo 'Fecha inválida';
-                                    }
-                                ?>
-                            </span>
+                            @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['AutorNombreUsuario']))); ?> •
+                            <?php 
+                                echo formatTiempoTranscurrido($publicacion['EffectiveDate']);
+                            ?>
+                        </span>
                         </div>
                     </div>
 
@@ -176,7 +147,7 @@
                                 >
                             </button>
                             <span class="accion-count" id="save-count-<?php echo $publicacion['PublicacionID']; ?>">
-                                <?php echo $publicacion['SavesCount'] ?? 0; // Asegúrate que tu consulta trae SavesCount
+                                <?php echo $publicacion['SavesCount'] ?? 0;
                                 ?>
                             </span>
                         </div>
@@ -189,61 +160,50 @@
 
 
 
-      <!-- *** CAMBIO: Renderizar MODAL solo si es el dueño *** -->
       <?php if ($isOwner): ?>
-      <!-- MODAL (oculto por defecto) -->
       <div class="modalB" id="editProfileModal">
         <div class="modalB-content">
-          <!-- Cabecera del modal -->
           <div class="modalB-header">
             <button class="close-modalB" id="closeModalBtn">x</button>
             <h2>Editar perfil</h2>
             <button class="save-modalB" id="saveModalBtn">Guardar</button>
           </div>
 
-          <!-- Banner editable -->
           <div class="profile-banner">
             <label for="bannerUpload">
-              <!-- Mostrar banner actual -->
               <img src="<?php echo isset($usuario['BannerPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($usuario['BannerPerfil']) : '/Resources/images/bannerPre.jpg'; ?>" alt="Banner">
             </label>
             <input type="file" id="bannerUpload" style="display: none;" accept="image/*" />
           </div>
 
-          <!-- Info editable -->
           <div class="profile-info-perfil">
-            <!-- Imagen de perfil editable -->
             <div class="profile-image">
               <label for="profileUpload">
-                <!-- Mostrar imagen actual -->
                 <img src="<?php echo isset($usuario['ImagenPerfil']) ? 'data:image/jpeg;base64,' . base64_encode($usuario['ImagenPerfil']) : '/Resources/images/perfilPre.jpg'; ?>" alt="Foto de Perfil">
               </label>
               <input type="file" id="profileUpload" style="display: none;" accept="image/*" />
             </div>
 
-            <!-- Campos editables -->
             <div class="modalB-body">
               <div class="edit-name">
                 <label for="nameInput">Nombre</label>
-                <!-- Mostrar nombre actual -->
                 <input type="text" id="nameInput" value="<?php echo htmlspecialchars($usuario['NombreUsuario']); ?>">
               </div>
               <div class="edit-bio">
                 <label for="bioInput">Biografía</label>
-                <!-- Mostrar bio actual -->
                 <textarea id="bioInput"><?php echo htmlspecialchars($usuario['Biografia'] ?? ''); ?></textarea>
               </div>
             </div>
           </div>
         </div>
       </div>
-      <?php endif; ?> <!-- Fin del if ($isOwner) para el modal -->
+      <?php endif; ?> 
 
-    </div> <!-- Fin scrollable-content -->
+    </div> 
   </main>
-  <!-- *** CAMBIO: Incluir JS solo si es el dueño (ya que maneja el modal de edición) *** -->
+
   <?php if ($isOwner): ?>
-    <script src="/js/perfil.js"></script> <!-- Asegúrate que la ruta sea correcta -->
+    <script src="/js/perfil.js"></script>
   <?php endif; ?>
   <?php require base_path('views/partials/lateral.php'); ?>
 </div>

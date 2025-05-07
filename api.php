@@ -39,6 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $nombre = $_POST['nombre_completo'] ?? '';
 
         if (!empty($nombre) && !empty($correo) && !empty($password)) {
+            // *** NUEVO: Validación del formato del nombre en el backend ***
+            if (!preg_match('/^[a-zA-Z0-9\s]+$/', $nombre)) {
+                $response['error'] = "El nombre de usuario solo puede contener letras, números y espacios.";
+            } 
+            else {
             // Verificar si el correo ya está registrado
             $query = "SELECT UsuarioID FROM Usuario WHERE Correo = :correo";
             $stmt = $conn->prepare($query);
@@ -65,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     $response['error'] = "Error al registrar el usuario: " . $stmt->errorInfo()[2];
                 }
             }
+        }
         } else {
             $response['error'] = "Todos los campos son obligatorios.";
         }

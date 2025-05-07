@@ -43,7 +43,6 @@ $query = "
     LIMIT 10;
 ";
 
-// Añadir usuarioIdActual a los parámetros
 $resultados = $db->query($query, [
     'termino' => '%' . $termino . '%',
     'usuarioIdActual' => $usuarioIdActual 

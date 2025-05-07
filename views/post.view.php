@@ -24,17 +24,17 @@
                     <div class="publicacion-info">
                         <span class="publicacion-username"><?php echo htmlspecialchars($publicacion['NombreUsuario']); ?></span>
                         <span class="publicacion-user-handle">
-                            @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> • 
-                            <?php 
-                                // Formatear la fecha
-                                try {
-                                    $fecha = new DateTime($publicacion['FechaPublicacion']);
-                                    echo $fecha->format('d M.'); // Ejemplo: 10 Feb.
-                                } catch (Exception $e) {
-                                    echo 'Fecha inválida';
-                                }
-                            ?>
-                        </span>
+                        @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $publicacion['NombreUsuario']))); ?> • 
+                    <?php 
+                        // try { // Bloque try-catch original
+                            // $fecha = new DateTime($publicacion['FechaPublicacion']);
+                            // echo $fecha->format('d M.'); 
+                        // } catch (Exception $e) {
+                            // echo 'Fecha inválida';
+                        // }
+                        echo formatTiempoTranscurrido($publicacion['FechaPublicacion']);
+                    ?>
+                </span>
                     </div>
                 </div>
                 <!-- Contenido de la publicación -->
@@ -164,17 +164,11 @@
                                     <div class="comentario-info">
                                         <span class="comentario-username"><?php echo htmlspecialchars($respuesta['NombreUsuario']); ?></span>
                                         <span class="comentario-user-handle">
-                                            @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $respuesta['NombreUsuario']))); ?> • 
-                                            <?php 
-                                                try {
-                                                    // ***** CAMBIO: Usar FechaPublicacion de la respuesta *****
-                                                    $fechaRespuesta = new DateTime($respuesta['FechaPublicacion']); 
-                                                    echo $fechaRespuesta->format('d M.'); 
-                                                } catch (Exception $e) {
-                                                    echo 'Fecha inválida';
-                                                }
-                                            ?>
-                                        </span>
+                                        @<?php echo htmlspecialchars(strtolower(str_replace(' ', '', $respuesta['NombreUsuario']))); ?> • 
+                                        <?php 
+                                            echo formatTiempoTranscurrido($respuesta['FechaPublicacion']);
+                                        ?>
+                                    </span>
                                     </div>
                                 </div>
                                 <!-- ***** CAMBIO: Usar ContenidoPublicacion de la respuesta ***** -->

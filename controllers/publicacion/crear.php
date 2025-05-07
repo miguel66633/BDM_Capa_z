@@ -24,7 +24,7 @@ $tipoImagen = $_FILES['imagen']['type'] ?? null;
 
 $errors = [];
 
-if (empty($contenido) && !$imagen) { // Permitir post solo con imagen/video o solo texto
+if (empty($contenido) && !$imagen) {
     $errors['contenido'] = 'El contenido no puede estar vacío si no se sube un archivo.';
 }
 
@@ -41,14 +41,12 @@ if ($imagen) {
     if ($_FILES['imagen']['size'] > 50000000) { $errors['imagen'] = 'El archivo es demasiado grande (máx 50MB).'; }
 }
 
-// Si hay errores, redirigir con mensajes de error
 if (!empty($errors)) {
     $_SESSION['error'] = $errors;
     header('Location: /inicio');
     exit;
 }
 
-// Insertar la publicación en la base de datos
 $query = "INSERT INTO Publicacion (ContenidoPublicacion, UsuarioID, FechaPublicacion) VALUES (:contenido, :usuarioId, NOW())";
 $resultado = $db->query($query, [
     'contenido' => $contenido,

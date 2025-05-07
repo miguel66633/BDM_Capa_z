@@ -2,7 +2,7 @@
 
 session_start();
 const BASE_PATH = __DIR__.'/../';
-
+date_default_timezone_set('UTC');
 require BASE_PATH.'Core/functions.php';
 
 
