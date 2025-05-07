@@ -69,12 +69,7 @@
               <button class="ubicacion-button" id="ubicacion-button">
                   <img src="resources/images/localizacion.svg" alt="localizacion">
               </button>
-              
-              <!--Botón para subir imagen -->
-              <!-- <label for="imageUpload" class="upload-button">
-                <img src="resources/images/img.svg" alt="Cargar imagen">
-              </label>
-              <input id="imageUpload" type="file" accept="image/*" style="display: none;"> -->
+        
 
               <!-- Input de texto -->
               <input type="text" class="chat-input" id="chat-input" placeholder="Escribe tu mensaje...">

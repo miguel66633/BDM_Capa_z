@@ -106,6 +106,5 @@
     <?php require base_path('views/partials/lateral.php'); ?>
 </div>
 <?php require base_path('views/partials/modalPostear.php'); ?>
-<!-- <script src="js/home.js" defer></script> -->
 </body>
 </html>

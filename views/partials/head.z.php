@@ -9,4 +9,4 @@
     <script defer src="/js/home.js"></script>
 
 </head>
-<body>
+<body <?php echo isset($_SESSION['user_id']) ? 'data-user-id="' . htmlspecialchars($_SESSION['user_id']) . '"' : ''; ?>>

@@ -42,5 +42,5 @@ $queryMessages = "
 $messages = $db->query($queryMessages, ['chatId' => $chatId])->get();
 
 // Devolver los mensajes como JSON
-echo json_encode(['Mensajes' => $messages, 'UsuarioID' => $_SESSION['user_id']]);
+echo json_encode(['Mensajes' => $messages]); // Simplificado, ya que el JS obtiene el UsuarioID del body.
 exit;

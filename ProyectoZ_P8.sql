@@ -664,5 +664,48 @@ BEGIN
     SELECT v_Liked AS YaDioLike, v_LikesCount AS LikesCount;
 END //
 
+DELIMITER //
+
+CREATE PROCEDURE sp_GetChatParticipantInfo (
+    IN p_ChatID INT,
+    IN p_CurrentUsuarioID INT
+)
+BEGIN
+    SELECT 
+        u.UsuarioID,
+        u.NombreUsuario,
+        u.ImagenPerfil
+    FROM 
+        Chat c
+    INNER JOIN 
+        Usuario u ON (u.UsuarioID = c.DestinatarioID AND c.ChatID = p_ChatID AND u.UsuarioID != p_CurrentUsuarioID)
+                 OR (u.UsuarioID = c.UsuarioID AND c.ChatID = p_ChatID AND u.UsuarioID != p_CurrentUsuarioID)
+    LIMIT 1;
+END //
+
+DELIMITER //
+
+CREATE PROCEDURE sp_GetChatMessages (
+    IN p_ChatID INT
+)
+BEGIN
+    SELECT 
+        m.MensajeID,
+        m.RemitenteID, -- Es crucial que esta columna se seleccione
+        m.ContenidoMensaje,
+        m.FechaMensaje,
+        u.NombreUsuario AS RemitenteNombre -- Nombre del remitente del mensaje
+    FROM 
+        Mensaje m
+    INNER JOIN 
+        Usuario u ON m.RemitenteID = u.UsuarioID
+    WHERE 
+        m.ChatID = p_ChatID
+    ORDER BY 
+        m.FechaMensaje ASC;
+END //
+
 DELIMITER ;
+DROP PROCEDURE IF EXISTS sp_GetChatParticipantInfo;
+
 
