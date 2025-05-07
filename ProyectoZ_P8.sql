@@ -778,5 +778,109 @@ proc_block: BEGIN
     SELECT v_FinalChatID AS ChatID, v_StatusMessage AS StatusMessage, v_Success AS Success;
 END //
 
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_EnviarMensaje; -- Para asegurar que se actualiza si ya existe
+//
+CREATE PROCEDURE sp_EnviarMensaje (
+    IN p_RemitenteID INT,
+    IN p_ContenidoMensaje VARCHAR(100), -- Asegúrate que coincida con la longitud de tu columna Mensaje.ContenidoMensaje
+    IN p_ChatID INT
+)
+BEGIN
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255);
+    DECLARE v_MensajeID INT DEFAULT NULL;
+
+    -- Manejador de errores SQL generales
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK; -- Revertir la transacción en caso de error
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo enviar el mensaje.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_MensajeID AS MensajeID;
+    END;
+
+    -- Iniciar transacción
+    START TRANSACTION;
+
+    -- Insertar el mensaje
+    INSERT INTO Mensaje (RemitenteID, ContenidoMensaje, ChatID, FechaMensaje)
+    VALUES (p_RemitenteID, p_ContenidoMensaje, p_ChatID, NOW());
+
+    -- Verificar si la inserción fue exitosa
+    IF ROW_COUNT() > 0 THEN
+        SET v_MensajeID = LAST_INSERT_ID();
+        SET v_Success = TRUE;
+        SET v_StatusMessage = 'Mensaje enviado exitosamente.';
+        COMMIT; -- Confirmar la transacción
+    ELSE
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error: El mensaje no pudo ser guardado.';
+        ROLLBACK; -- Revertir si ROW_COUNT() es 0 (aunque el handler de SQLEXCEPTION lo cubriría para errores)
+    END IF;
+
+    -- Devolver el resultado
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_MensajeID AS MensajeID;
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_CrearPublicacion;
+//
+CREATE PROCEDURE sp_CrearPublicacion (
+    IN p_UsuarioID INT,
+    IN p_ContenidoPublicacion VARCHAR(100),
+    IN p_ContenidoMultimedia LONGBLOB
+)
+-- Etiquetar el bloque principal del procedimiento
+proc_block: BEGIN
+    DECLARE v_NewPublicacionID INT DEFAULT NULL;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido al crear la publicación.';
+
+    -- Manejador de errores SQL generales
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK; 
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo crear la publicación.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO Publicacion (UsuarioID, ContenidoPublicacion, FechaPublicacion, PublicacionPadreID)
+    VALUES (p_UsuarioID, p_ContenidoPublicacion, NOW(), NULL);
+
+    SET v_NewPublicacionID = LAST_INSERT_ID();
+
+    IF v_NewPublicacionID IS NULL OR v_NewPublicacionID = 0 THEN
+        SET v_StatusMessage = 'Error: No se pudo obtener el ID de la nueva publicación.';
+        ROLLBACK;
+        SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, NULL AS PublicacionID;
+        LEAVE proc_block; -- Usar la etiqueta para salir del procedimiento
+    END IF;
+
+    IF p_ContenidoMultimedia IS NOT NULL THEN
+        INSERT INTO Multimedia (PublicacionID, TipoMultimedia)
+        VALUES (v_NewPublicacionID, p_ContenidoMultimedia);
+
+        IF ROW_COUNT() = 0 THEN
+            SET v_StatusMessage = 'Error: La publicación se creó pero no se pudo guardar el archivo multimedia.';
+            ROLLBACK;
+            SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+            LEAVE proc_block; -- Usar la etiqueta para salir del procedimiento
+        END IF;
+    END IF;
+
+    COMMIT;
+    SET v_Success = TRUE;
+    SET v_StatusMessage = 'Publicación creada exitosamente.';
+    
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
+
+END //
+
 DELIMITER ;
 
