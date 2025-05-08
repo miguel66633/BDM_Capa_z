@@ -113,28 +113,36 @@ function logout() {
             const img = button.querySelector('.accion-icon');
 
             fetch('/guardar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `publicacion_id=${publicacionId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    const currentSaves = parseInt(saveCountElement.textContent, 10);
-                    if (data.guardado) {
-                        saveCountElement.textContent = currentSaves + 1;
-                        img.setAttribute('src', '/Resources/images/guardados.svg'); // Cambiar a imagen de "guardado activo"
-                    } else {
-                        saveCountElement.textContent = currentSaves - 1;
-                        img.setAttribute('src', '/Resources/images/saved.svg'); // Cambiar a imagen de "guardado inactivo"
-                    }
-                }
-            })
-            .catch(error => console.error('Error:', error));
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: `publicacion_id=${publicacionId}`
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) { // Comprobar el éxito general de la operación
+                  // Actualizar el contador directamente con el valor del backend
+                  if (saveCountElement) {
+                      saveCountElement.textContent = data.savesCount;
+                  }
+                  
+                  // Actualizar el ícono del botón
+                  if (data.guardado) { // 'guardado' viene de 'YaGuardo' en el SP
+                      img.setAttribute('src', '/Resources/images/guardados.svg'); // Icono de "guardado activo"
+                  } else {
+                      img.setAttribute('src', '/Resources/images/saved.svg');   // Icono de "guardado inactivo"
+                  }
+                  // console.log(data.message); // Opcional: para depuración o feedback
+              } else {
+                  // Mostrar el mensaje de error del backend
+                  alert(data.message || 'Ocurrió un error al procesar la acción.');
+              }
+          })
+          .catch(error => {
+              console.error('Error en la petición de guardado:', error);
+              alert('Error de conexión al intentar guardar/dejar de guardar.');
+          });
         });
     });
 });

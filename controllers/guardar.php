@@ -29,31 +29,24 @@ if (!$publicacionId) {
 }
 
 try {
-    // Verificar si el usuario ya guardó la publicación
-    $queryCheck = "SELECT * FROM Guardado WHERE PublicacionID = :publicacionId AND UsuarioID = :usuarioId";
-    $guardadoExistente = $db->query($queryCheck, [
-        'publicacionId' => $publicacionId,
-        'usuarioId' => $usuarioId
-    ])->get();
+    $result = $db->callProcedure('sp_ToggleGuardado', [$usuarioId, $publicacionId]);
 
-    if (!empty($guardadoExistente)) {
-        // Eliminar el "guardado"
-        $queryDelete = "DELETE FROM Guardado WHERE PublicacionID = :publicacionId AND UsuarioID = :usuarioId";
-        $db->query($queryDelete, [
-            'publicacionId' => $publicacionId,
-            'usuarioId' => $usuarioId
+    if ($result && isset($result[0])) {
+        $spResponse = $result[0];
+        // Mapear la respuesta del SP a la estructura que el frontend espera
+        echo json_encode([
+            'success' => (bool)$spResponse['Success'],      // Éxito general de la operación
+            'message' => $spResponse['StatusMessage'],
+            'guardado' => (bool)$spResponse['YaGuardo'],    // El nuevo estado de si está guardado o no
+            'savesCount' => (int)$spResponse['SavesCount']  // El nuevo conteo de guardados
         ]);
-        echo json_encode(['success' => 'Guardado eliminado.', 'guardado' => false]);
     } else {
-        // Agregar un nuevo "guardado"
-        $queryInsert = "INSERT INTO Guardado (EstadoGuardado, UsuarioID, PublicacionID, FechaGuardado) VALUES (1, :usuarioId, :publicacionId, NOW())";
-        $db->query($queryInsert, [
-            'usuarioId' => $usuarioId,
-            'publicacionId' => $publicacionId
-        ]);
-        echo json_encode(['success' => 'Guardado agregado.', 'guardado' => true]);
+        error_log("Error inesperado: sp_ToggleGuardado no devolvió un resultado válido para UsuarioID: {$usuarioId}, PublicacionID: {$publicacionId}");
+        echo json_encode(['success' => false, 'message' => 'Error inesperado del servidor al procesar el guardado.']);
     }
-} catch (Exception $e) {
-    echo json_encode(['error' => 'Ocurrió un error al procesar el guardado.']);
+
+} catch (\PDOException $e) { // Capturar excepciones PDO específicamente
+    error_log("Error en controllers/guardar.php: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'Error crítico al procesar el guardado. Intente de nuevo.']);
 }
 exit;

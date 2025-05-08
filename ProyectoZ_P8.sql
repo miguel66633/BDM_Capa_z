@@ -1848,27 +1848,192 @@ END //
 
 DELIMITER //
 
--- Desactivar el modo de actualizaciones seguras temporalmente
-SET SQL_SAFE_UPDATES = 0;
+DROP PROCEDURE IF EXISTS sp_ToggleGuardado;
+//
+CREATE PROCEDURE sp_ToggleGuardado (
+    IN p_UsuarioID INT,
+    IN p_PublicacionID INT
+)
+proc_block: BEGIN
+    DECLARE v_GuardadoExistenteID INT DEFAULT NULL;
+    DECLARE v_YaGuardo BOOLEAN DEFAULT FALSE;
+    DECLARE v_SavesCount INT DEFAULT 0;
+    DECLARE v_Success BOOLEAN DEFAULT FALSE;
+    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido al procesar el guardado.';
 
--- Actualizar SeguidosCount (cuántos usuarios sigue cada usuario)
-UPDATE Usuario u
-SET u.SeguidosCount = (
-    SELECT COUNT(*)
-    FROM UsuarioSeguidor us
-    WHERE us.UsuarioSeguidorID = u.UsuarioID
-);
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SET v_Success = FALSE;
+        SET v_StatusMessage = 'Error SQL: No se pudo procesar la acción de guardado.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, FALSE AS YaGuardo, 0 AS SavesCount;
+    END;
 
--- Actualizar SeguidoresCount (cuántos seguidores tiene cada usuario)
-UPDATE Usuario u
-SET u.SeguidoresCount = (
-    SELECT COUNT(*)
-    FROM UsuarioSeguidor us
-    WHERE us.UsuarioSeguidoID = u.UsuarioID
-);
+    IF p_UsuarioID IS NULL OR p_PublicacionID IS NULL THEN
+        SET v_StatusMessage = 'UsuarioID y PublicacionID no pueden ser nulos.';
+        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, FALSE AS YaGuardo, 0 AS SavesCount;
+        LEAVE proc_block;
+    END IF;
 
--- Reactivar el modo de actualizaciones seguras
-SET SQL_SAFE_UPDATES = 1;
+    START TRANSACTION;
+
+    -- 1. Verificar si el usuario ya guardó la publicación
+    SELECT GuardadoID INTO v_GuardadoExistenteID
+    FROM Guardado
+    WHERE UsuarioID = p_UsuarioID AND PublicacionID = p_PublicacionID
+    LIMIT 1;
+
+    IF v_GuardadoExistenteID IS NOT NULL THEN
+        -- Ya existe, entonces eliminar (dejar de guardar)
+        DELETE FROM Guardado
+        WHERE GuardadoID = v_GuardadoExistenteID;
+
+        SET v_YaGuardo = FALSE;
+        SET v_StatusMessage = 'Publicación eliminada de guardados.';
+    ELSE
+        -- No existe, entonces insertar (guardar)
+        INSERT INTO Guardado (UsuarioID, PublicacionID, EstadoGuardado, FechaGuardado)
+        VALUES (p_UsuarioID, p_PublicacionID, 1, NOW());
+        
+        SET v_YaGuardo = TRUE;
+        SET v_StatusMessage = 'Publicación guardada exitosamente.';
+    END IF;
+
+    -- 2. Obtener el nuevo conteo de guardados para esta publicación
+    SELECT COUNT(*) INTO v_SavesCount
+    FROM Guardado
+    WHERE PublicacionID = p_PublicacionID;
+
+    COMMIT;
+    SET v_Success = TRUE;
+    
+    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_YaGuardo AS YaGuardo, v_SavesCount AS SavesCount;
+
+END //
 
 DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_GetEstadisticasSitio;
+//
+CREATE PROCEDURE sp_GetEstadisticasSitio()
+BEGIN
+    SELECT
+        PublicacionesGenerales,
+        UsuariosRegistrados
+    FROM
+        Estadisticas
+    LIMIT 1; -- La vista Estadisticas está diseñada para devolver una sola fila
+END //
+
+DELIMITER ;
+
+CREATE OR REPLACE VIEW vw_ChatDetallesCompletos AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS IniciadorID,
+    u1.NombreUsuario AS NombreIniciador,
+    u1.ImagenPerfil AS ImagenIniciador,
+    c.DestinatarioID AS DestinatarioID,
+    u2.NombreUsuario AS NombreDestinatario,
+    u2.ImagenPerfil AS ImagenDestinatario,
+    (SELECT Contenido FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaEnvio DESC LIMIT 1) AS UltimoMensaje,
+    (SELECT FechaEnvio FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaEnvio DESC LIMIT 1) AS FechaUltimoMensaje,
+    c.FechaCreacion AS FechaCreacionChat
+FROM
+    Chat c
+INNER JOIN
+    Usuario u1 ON c.UsuarioID = u1.UsuarioID  -- Detalles del usuario que inició el chat
+INNER JOIN
+    Usuario u2 ON c.DestinatarioID = u2.UsuarioID; -- Detalles del usuario destinatario
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_ObtenerChatsPorUsuario;
+//
+CREATE PROCEDURE sp_ObtenerChatsPorUsuario (
+    IN p_UsuarioID INT
+)
+BEGIN
+    SELECT
+        vcdc.ChatID,
+        CASE
+            WHEN vcdc.IniciadorID = p_UsuarioID THEN vcdc.DestinatarioID
+            ELSE vcdc.IniciadorID
+        END AS OtroUsuarioID,
+        CASE
+            WHEN vcdc.IniciadorID = p_UsuarioID THEN vcdc.NombreDestinatario
+            ELSE vcdc.NombreIniciador
+        END AS OtroNombreUsuario,
+        CASE
+            WHEN vcdc.IniciadorID = p_UsuarioID THEN vcdc.ImagenDestinatario
+            ELSE vcdc.ImagenIniciador
+        END AS OtroImagenPerfil,
+        vcdc.UltimoMensaje,
+        vcdc.FechaUltimoMensaje,
+        vcdc.FechaCreacionChat
+    FROM
+        vw_ChatDetallesCompletos vcdc
+    INNER JOIN
+        UsuarioChat uc ON vcdc.ChatID = uc.ChatID -- Asegura que el usuario es parte del chat
+    WHERE
+        uc.UsuarioID = p_UsuarioID -- Filtra los chats para el usuario especificado
+    ORDER BY
+        vcdc.FechaUltimoMensaje DESC, vcdc.FechaCreacionChat DESC;
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_ObtenerTodasPublicaciones;
+//
+CREATE PROCEDURE sp_ObtenerTodasPublicaciones()
+BEGIN
+    SELECT
+        PublicacionID,
+        ContenidoPublicacion,
+        FechaPublicacion,
+        AutorID,
+        AutorNombreUsuario,
+        AutorImagenPerfil,
+        TipoMultimedia, -- Este es el LONGBLOB del contenido multimedia
+        PublicacionPadreID
+    FROM
+        vw_PublicacionConAutorYMultimedia
+    WHERE PublicacionPadreID IS NULL -- Para obtener solo publicaciones principales, no comentarios
+    ORDER BY
+        FechaPublicacion DESC;
+END //
+
+DELIMITER //
+
+DROP PROCEDURE IF EXISTS sp_BuscarUsuariosLateral;
+//
+CREATE PROCEDURE sp_BuscarUsuariosLateral (
+    IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
+)
+BEGIN
+    IF p_SearchTerm IS NOT NULL AND p_SearchTerm != '' THEN
+        -- Si hay un término de búsqueda, filtrar por NombreUsuario o Correo
+        SELECT
+            UsuarioID,
+            NombreUsuario,
+            Correo,
+            ImagenPerfil
+        FROM
+            vw_UsuariosParaBusquedaLateral -- Esta vista selecciona UsuarioID, NombreUsuario, Correo, ImagenPerfil
+        WHERE
+            NombreUsuario LIKE CONCAT('%', p_SearchTerm, '%') OR
+            Correo LIKE CONCAT('%', p_SearchTerm, '%');
+    ELSE
+        -- Si no hay término de búsqueda o está vacío, devolver todos los usuarios de la vista
+        SELECT
+            UsuarioID,
+            NombreUsuario,
+            Correo,
+            ImagenPerfil
+        FROM
+            vw_UsuariosParaBusquedaLateral;
+    END IF;
+END //
+
+DELIMITER ;
 

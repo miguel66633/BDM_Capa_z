@@ -39,12 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $nombre = $_POST['nombre_completo'] ?? '';
 
         if (!empty($nombre) && !empty($correo) && !empty($password)) {
-            // *** NUEVO: Validación del formato del nombre en el backend ***
             if (!preg_match('/^[a-zA-Z0-9\s]+$/', $nombre)) {
                 $response['error'] = "El nombre de usuario solo puede contener letras, números y espacios.";
             } 
             else {
-            // Verificar si el correo ya está registrado
             $query = "SELECT UsuarioID FROM Usuario WHERE Correo = :correo";
             $stmt = $conn->prepare($query);
             $stmt->bindParam(':correo', $correo);
@@ -53,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($stmt->rowCount() > 0) {
                 $response['error'] = "El correo ya está registrado. Por favor, usa otro.";
             } else {
-                // Hashear la contraseña
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
                 // Insertar usuario
@@ -90,7 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     $imagenPerfilBase64 = base64_encode($usuario['ImagenPerfil']);
                 }
 
-                // Iniciar sesión y almacenar datos del usuario
                 if (session_status() === PHP_SESSION_NONE) {
                     session_start();
                 }

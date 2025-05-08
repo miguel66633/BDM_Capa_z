@@ -291,7 +291,7 @@ body::-webkit-scrollbar {
 }
 
 .popup {
-    background: black;
+    background: rgb(10, 10, 10);
     color: white;
     padding: 30px;
     width: 550px;
@@ -314,7 +314,7 @@ body::-webkit-scrollbar {
 }
 
 #ReporteContenido{
-    width: 500px;
+    width: 300px;
     height: 250px;
     resize: none;
     font-size: 16px;
@@ -387,3 +387,38 @@ body::-webkit-scrollbar {
     margin-right: 20px; 
     margin-left: 15px; 
   }
+
+  #reports-content {
+    /* Aumenta max-height para que la lista sea más alta.
+       Puedes usar un valor fijo en px o un valor relativo como vh (viewport height).
+       Por ejemplo, 60vh significa el 60% de la altura de la ventana. */
+    max-height: 90vh; /* Antes era 400px, prueba con un valor mayor como 65vh o 700px */
+    overflow-y: auto;  /* Mantiene la barra de scroll vertical si es necesario */
+    padding-right: 10px; /* Para evitar que la barra de scroll tape el contenido */
+    
+    /* Opcional: Quita el borde si no te gusta cómo se ve el "recuadro" */
+    /* border: 1px solid #ddd; */ /* Comenta o elimina esta línea */
+    /* border-radius: 5px; */    /* Comenta o elimina esta línea si quitaste el borde */
+    
+    flex-grow: .1; /* Permite que este div crezca para llenar el espacio en #reports */
+}
+#reports {
+    flex-basis: 50%; /* O el valor que tenías */
+    display: flex;
+    flex-direction: column;
+    /* Si #reports necesita ocupar más altura de la que tiene,
+       asegúrate de que su contenedor padre (#admin-content) se lo permita.
+       Con flex-grow: 1 en #admin-content y height: 100vh en .container,
+       #admin-content debería estirarse, y por ende #reports también. */
+}
+
+#reports-content ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#reports-content ul li {
+    padding: 8px 0; /* Espaciado entre elementos de la lista */
+    /* Otros estilos que ya tengas para los <li> */
+}

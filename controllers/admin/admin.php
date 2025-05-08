@@ -1,40 +1,68 @@
 <?php
-
 use Core\App;
 use Core\Database;
 
 // Resolver la conexión a la base de datos
 $db = App::resolve(Database::class);
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Verificar si el usuario es administrador (asumiendo que tienes un middleware o verificación similar)
+// Ejemplo: if (!($_SESSION['user_role'] ?? null === 2)) { header('Location: /inicio'); exit; }
+
 
 // Manejo de solicitudes AJAX para obtener el reporte sin recargar la página
 if (isset($_GET['UsuarioID']) && isset($_GET['ajax'])) {
-    $usuarioId = $_GET['UsuarioID'];
+    $usuarioIdAjax = $_GET['UsuarioID']; // Renombrar para evitar colisión
 
     // Llamar al procedimiento almacenado para obtener el reporte del usuario
-    $reporte = $db->callProcedure("sp_EventosAdmin", ['REPORTE', $usuarioId]);
+    $reporteAjax = $db->callProcedure("sp_EventosAdmin", ['REPORTE', $usuarioIdAjax]);
 
     // Formatear la respuesta en JSON
     header('Content-Type: application/json');
-    echo json_encode($reporte);
+    echo json_encode($reporteAjax);
     exit; // Evitar que se cargue la vista completa
 }
 
-// Obtener el ID del usuario para mostrar su reporte en la vista
-$usuarioId = $_GET['UsuarioID'] ?? $_SESSION['user_id'];
+$usuarioIdParaReporte = $_GET['UsuarioID'] ?? ($_SESSION['user_id'] ?? null);
+$reporte = []; // Inicializar
 
-// Llamar al procedimiento almacenado para obtener el reporte en la vista
-$reporte = $db->callProcedure("sp_EventosAdmin", ['REPORTE', $usuarioId]);
+if ($usuarioIdParaReporte) {
+    // Llamar al procedimiento almacenado para obtener el reporte en la vista
+    $reporte = $db->callProcedure("sp_EventosAdmin", ['REPORTE', $usuarioIdParaReporte]);
+}
 
-// Obtener la lista de usuarios para mostrarlos en la interfaz
-$usuarios = $db->query("SELECT UsuarioID, NombreUsuario, ImagenPerfil FROM Usuario")->get();
 
-$estadisticas = $db->query("SELECT * FROM Estadisticas")->find();
+// Obtener la lista de usuarios para mostrarlos en la interfaz usando el SP
+$usuarios = [];
+try {
+    // Llamar a sp_BuscarAdminUsuarios con NULL para obtener todos los usuarios
+    $usuarios = $db->callProcedure('sp_BuscarAdminUsuarios', [null]);
+} catch (\PDOException $e) {
+    error_log("Error en controllers/admin/admin.php al llamar sp_BuscarAdminUsuarios: " . $e->getMessage());
+    // $usuarios ya está inicializado como array vacío
+}
+
+// Obtener las estadísticas usando el SP
+$estadisticas = null;
+try {
+    $resultEstadisticas = $db->callProcedure('sp_GetEstadisticasSitio');
+    if ($resultEstadisticas && isset($resultEstadisticas[0])) {
+        $estadisticas = $resultEstadisticas[0];
+    }
+} catch (\PDOException $e) {
+    error_log("Error en controllers/admin/admin.php al llamar sp_GetEstadisticasSitio: " . $e->getMessage());
+    // $estadisticas permanecerá null o puedes definir valores por defecto
+    $estadisticas = ['UsuariosRegistrados' => 0, 'PublicacionesGenerales' => 0]; // Fallback
+}
+
 
 // Pasar los datos a la vista para que se muestren en la UI
 view("admin.view.php", [
-    'heading' => 'Administración de Usuarios',
-    'reporte' => $reporte, // Reporte del usuario seleccionado
+    'heading' => 'Administración', // Título más genérico para la página de admin
+    'reporte' => $reporte, // Reporte del usuario seleccionado (puede estar vacío si no hay $usuarioIdParaReporte)
     'usuarios' => $usuarios, // Lista de usuarios disponibles
-    'estadisticas' => $estadisticas
+    'estadisticas' => $estadisticas // Estadísticas del sitio
 ]);

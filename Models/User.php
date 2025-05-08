@@ -13,26 +13,19 @@ class User
         $this->db = $db;
     }
 
+    /**
+     * Searches for users by name or email.
+     *
+     * @param string|null $searchTerm The term to search for. If null or empty, all users are returned (if SP is modified as suggested).
+     * @return array An array of users matching the search term. Each user array will contain UsuarioID, NombreUsuario, Correo, ImagenPerfil.
+     */
     public function searchUsers($searchTerm)
     {
-        // Crear la consulta SQL base
-        $sql = "SELECT * FROM Usuario";
-        $params = [];
+        $result = $this->db->callProcedure(
+            'sp_BuscarUsuariosLateral',
+            [$searchTerm] // Pasar el término de búsqueda directamente
+        );
 
-        // Si hay un término de búsqueda, añadir un WHERE
-        if ($searchTerm) {
-            $sql .= " WHERE NombreUsuario LIKE :searchTerm OR Correo LIKE :searchTerm";
-            $params = ['searchTerm' => '%' . $searchTerm . '%'];
-        }
-
-        // Debug: Verifica la consulta SQL y los parámetros
-        echo "Consulta SQL: $sql<br>";  // Muestra la consulta SQL
-        var_dump($params);  // Muestra los parámetros de la consulta
-
-        // Ejecutar la consulta
-        $this->db->query($sql, $params);
-
-        // Obtener los resultados
-        return $this->db->get();
+        return $result; // callProcedure ya devuelve el resultado procesado (array de arrays asociativos)
     }
 }
