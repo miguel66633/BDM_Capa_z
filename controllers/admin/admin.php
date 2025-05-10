@@ -45,17 +45,14 @@ try {
     // $usuarios ya está inicializado como array vacío
 }
 
-// Obtener las estadísticas usando el SP
+// Obtener estadísticas usando funciones
 $estadisticas = null;
 try {
-    $resultEstadisticas = $db->callProcedure('sp_GetEstadisticasSitio');
-    if ($resultEstadisticas && isset($resultEstadisticas[0])) {
-        $estadisticas = $resultEstadisticas[0];
-    }
+    $estadisticas = $db->getEstadisticas();
 } catch (\PDOException $e) {
-    error_log("Error en controllers/admin/admin.php al llamar sp_GetEstadisticasSitio: " . $e->getMessage());
-    // $estadisticas permanecerá null o puedes definir valores por defecto
-    $estadisticas = ['UsuariosRegistrados' => 0, 'PublicacionesGenerales' => 0]; // Fallback
+    error_log("Error en controllers/admin/admin.php al obtener estadísticas con funciones: " . $e->getMessage());
+    // Fallback en caso de error
+    $estadisticas = ['UsuariosRegistrados' => 0, 'PublicacionesGenerales' => 0];
 }
 
 

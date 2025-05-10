@@ -91,4 +91,16 @@ class Database
         }
     }
 
+
+    public function getEstadisticas()
+    {
+        $this->query("
+            SELECT fn_GetTotalPublicaciones() AS PublicacionesGenerales, 
+                   fn_GetUsuariosRegistrados() AS UsuariosRegistrados
+        ");
+    
+        return $this->find(); // Devuelve una sola fila con las estadísticas
+    }
+
+
 }

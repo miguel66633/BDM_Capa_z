@@ -11,23 +11,10 @@ SELECT * FROM Repost;
 SELECT * FROM UsuarioRepost;
 SELECT * FROM UsuarioSeguidor;
 
-ALTER TABLE Repost MODIFY COLUMN FechaRepost DATETIME;
-ALTER TABLE Publicacion MODIFY FechaPublicacion DATETIME DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Guardado MODIFY FechaGuardado DATETIME DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Chat ADD COLUMN FechaCreacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Repost MODIFY FechaRepost TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE UsuarioSeguidor ADD COLUMN FechaSeguimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-ALTER TABLE Usuario
-ADD COLUMN SeguidosCount INT DEFAULT 0 AFTER TipoUsuario,
-ADD COLUMN SeguidoresCount INT DEFAULT 0 AFTER SeguidosCount;
-
+-- Cambio de usuarios a administradores --
 UPDATE Usuario
 SET TipoUsuario = 2
 WHERE UsuarioID = 2;
-
-ALTER TABLE Mensaje
-ADD CONSTRAINT FK_RemitenteID
-FOREIGN KEY (RemitenteID) REFERENCES Usuario(UsuarioID);
 
 CREATE TABLE Usuario(
     UsuarioID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -38,12 +25,14 @@ CREATE TABLE Usuario(
 	FechaRegistro DATE DEFAULT (CURRENT_DATE),
 	ImagenPerfil LONGBLOB,
     BannerPerfil LONGBLOB,
-    TipoUsuario INT
+    TipoUsuario INT,
+    SeguidosCount INT DEFAULT 0,
+    SeguidoresCount INT DEFAULT 0
 );
 
 CREATE TABLE Publicacion(
     PublicacionID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	FechaPublicacion DATE DEFAULT (CURRENT_DATE),
+	FechaPublicacion DATETIME DEFAULT CURRENT_TIMESTAMP,
 	ContenidoPublicacion VARCHAR (100),
     UsuarioID INT,
     FOREIGN KEY (UsuarioID) REFERENCES Usuario(UsuarioID),
@@ -66,6 +55,7 @@ CREATE TABLE Mensaje(
 	ContenidoMensaje VARCHAR(100),
 	FechaMensaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ChatID INT,
+    FOREIGN KEY (RemitenteID) REFERENCES Usuario(UsuarioID),
     FOREIGN KEY (ChatID) REFERENCES Chat(ChatID)
 );
 
@@ -77,14 +67,6 @@ CREATE TABLE Busqueda(
 	FOREIGN KEY (UsuarioID) REFERENCES Usuario(UsuarioID)
 );
 
-CREATE TABLE Bloqueo (
-    BloqueoID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	AfectadoID INT,
-    FOREIGN KEY (AfectadoID) REFERENCES Usuario(UsuarioID),
-	EstadoBloqueo INT,
-	FechaBloqueo DATE DEFAULT (CURRENT_DATE)
-);
-
 CREATE TABLE TablaLike(
     LikeID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	FechaLike DATE DEFAULT (CURRENT_DATE)
@@ -92,13 +74,13 @@ CREATE TABLE TablaLike(
 
 CREATE TABLE Repost(
     RepostID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-	FechaRepost DATE DEFAULT (CURRENT_DATE)
+	FechaRepost TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE Guardado(
     GuardadoID INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
 	EstadoGuardado INT,
-    FechaGuardado DATE DEFAULT (CURRENT_DATE),
+    FechaGuardado DATETIME DEFAULT CURRENT_TIMESTAMP,
     UsuarioID INT,
     FOREIGN KEY (UsuarioID) REFERENCES Usuario (UsuarioID),
     PublicacionID INT,
@@ -116,6 +98,7 @@ CREATE TABLE Multimedia(
 CREATE TABLE UsuarioSeguidor(
     UsuarioSeguidorID INT,
 	UsuarioSeguidoID INT,
+    FechaSeguimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (UsuarioSeguidorID, UsuarioSeguidoID),
 	FOREIGN KEY (UsuarioSeguidorID) REFERENCES Usuario (UsuarioID),
 	FOREIGN KEY (UsuarioSeguidoID) REFERENCES Usuario (UsuarioID)
@@ -137,14 +120,6 @@ CREATE TABLE UsuarioRepost(
 	FOREIGN KEY (RepostID) REFERENCES Repost (RepostID) ON DELETE CASCADE
 );
 
-CREATE TABLE UsuarioBloqueo(
-    UsuarioID INT,
-	BloqueoID INT,
-	PRIMARY KEY (UsuarioID, BloqueoID),
-	FOREIGN KEY (UsuarioID) REFERENCES Usuario (UsuarioID),
-	FOREIGN KEY (BloqueoID) REFERENCES Bloqueo (BloqueoID)
-);
-
 CREATE TABLE PublicacionRepost(
     PublicacionID INT,
 	RepostID INT,
@@ -161,405 +136,7 @@ CREATE TABLE PublicacionLike(
     FOREIGN KEY (LikeID) REFERENCES TablaLike(LikeID) ON DELETE CASCADE
 );
 
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarUsuario (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_UsuarioID INT,
-IN PARAM_NombreUsuario VARCHAR(50),
-IN PARAM_Correo VARCHAR(50),
-IN PARAM_PasswordUsu VARCHAR(20),
-IN PARAM_Biografia VARCHAR(100), 
-IN PARAM_ImagenPerfil LONGBLOB,
-IN PARAM_BannerPerfil LONGBLOB,
-IN PARAM_TipoUsuario INT)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Usuario --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Usuario (NombreUsuario, Correo, PasswordUsu, Biografia, ImagenPerfil, BannerPerfil, TipoUsuario)
-        VALUES (PARAM_NombreUsuario, PARAM_Correo, PARAM_PasswordUsu, PARAM_Biografia, PARAM_ImagenPerfil, PARAM_BannerPerfil, PARAM_TipoUsuario);
-    
-    -- Editar Usuario --
-    ELSEIF PARAM_Accion = 'UPDATE' THEN
-        UPDATE Usuario
-        SET NombreUsuario = PARAM_NombreUsuario, Correo = PARAM_Correo, PasswordUsu = PARAM_PasswordUsu, Biografia = PARAM_Biografia,
-            ImagenPerfil = PARAM_ImagenPerfil, BannerPerfil = PARAM_BannerPerfil
-        WHERE UsuarioID = PARAM_UsuarioID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarPublicacion (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_ContenidoPublicacion VARCHAR (100),
-IN PARAM_UsuarioID INT,
-IN PARAM_PublicacionPadreID INT,
-IN PARAM_TipoMultimedia LONGBLOB,
-IN PARAM_URL VARCHAR(100),
-IN PARAM_CantidadArchivos INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-DECLARE i INT DEFAULT 1;
-
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Publicacion --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Publicacion (ContenidoPublicacion, UsuarioID, PublicacionPadreID)
-        VALUES (PARAM_ContenidoPublicacion, PARAM_UsuarioID, PARAM_PublicacionPadreID);
-    
-    -- Agregar publicacion con archivos --
-	ELSEIF PARAM_Accion = 'INSERT_W_MULTI' THEN
-        INSERT INTO Publicacion (ContenidoPublicacion, UsuarioID, PublicacionPadreID)
-        VALUES (PARAM_ContenidoPublicacion, PARAM_UsuarioID, PARAM_PublicacionPadreID);
-        
-		SET @LastPublicacionID = LAST_INSERT_ID();
-        
-		WHILE i <= PARAM_CantidadArchivos DO
-            INSERT INTO Multimedia (TipoMultimedia, URL, PublicacionID)
-            VALUES (PARAM_TipoMultimedia, PARAM_URL, @LastPublicacionID);
-            SET i = i + 1;
-	    END WHILE;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
--- NOTA: Al momento de hacer publicaciones con archivos multimedia hay que regresar una variable
--- que cuente la cantidad de archivos que hay para que los guarde todos
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarChat (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_UsuarioID INT,
-IN PARAM_DestinatarioID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Chat --
-    
-    IF PARAM_Accion = 'INSERT' THEN
-    IF NOT EXISTS (SELECT 1 FROM Chat WHERE UsuarioID = LEAST(PARAM_UsuarioID, PARAM_DestinatarioID) AND
-	DestinatarioID = GREATEST(PARAM_UsuarioID, PARAM_DestinatarioID)) THEN
-        INSERT INTO Chat (UsuarioID, DestinatarioID)
-        VALUES (LEAST(PARAM_UsuarioID, PARAM_DestinatarioID), GREATEST(PARAM_UsuarioID, PARAM_DestinatarioID));
-	ELSE
-        SELECT 'El chat ya existe.' AS Mensaje;
-	END IF;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarMensaje (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_RemitenteID INT,
-IN PARAM_ContenidoMensaje VARCHAR(100),
-IN PARAM_ChatID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Mensaje --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Mensaje (RemitenteID, ContenidoMensaje, ChatID)
-        VALUES (PARAM_RemitenteID, PARAM_ContenidoMensaje, PARAM_ChatID);
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarBusqueda (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_TerminoBusqueda VARCHAR(50),
-IN PARAM_UsuarioID VARCHAR(50)
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Busqueda --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Busqueda (TerminoBusqueda, UsuarioID)
-        VALUES (PARAM_TerminoBusqueda, PARAM_UsuarioID);
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-    
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarBloqueo (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_BloqueoID INT,
-IN PARAM_UsuarioID INT,
-IN PARAM_AfectadoID INT,
-IN PARAM_EstadoBloqueo INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Bloqueo --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Bloqueo (AfectadoID, EstadoBloqueo)
-        VALUES (PARAM_AfectadoID, 1);
-        
-        SET @LastBloqueoID = LAST_INSERT_ID();
-        INSERT INTO UsuarioBloqueo (UsuarioID, BloqueoID)
-        VALUES (PARAM_UsuarioID, @LastBloqueoID);
-	
-    -- Editar Bloqueo --
-	ELSEIF PARAM_Accion = 'UPDATE' THEN
-        UPDATE Bloqueo
-        SET EstadoBloqueo = PARAM_EstadoBloqueo, FechaBloqueo = CURRENT_DATE
-        WHERE BloqueoID = PARAM_BloqueoID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarLike (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_LikeID INT,
-IN PARAM_UsuarioID INT,
-IN PARAM_PublicacionID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Like --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO TablaLike ()
-        VALUES ();
-        
-        SET @LastLikeID = LAST_INSERT_ID();
-        INSERT INTO UsuarioLike (UsuarioID, LikeID)
-        VALUES (PARAM_UsuarioID, @LastLikeID);
-        
-        INSERT INTO PublicacionLike (PublicacionID, LikeID)
-        VALUES (PARAM_PublicacionID, @LastLikeID);
-	
-    -- Eliminar Like --
-	ELSEIF PARAM_Accion = 'DELETE' THEN
-        DELETE FROM TablaLike
-        WHERE LikeID = PARAM_LikeID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarRepost (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_RepostID INT,
-IN PARAM_UsuarioID INT,
-IN PARAM_PublicacionID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Repost --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Repost ()
-        VALUES ();
-        
-        SET @LastRepostID = LAST_INSERT_ID();
-        INSERT INTO UsuarioRepost (UsuarioID, RepostID)
-        VALUES (PARAM_UsuarioID, @LastRepostID);
-        
-        INSERT INTO PublicacionRepost (PublicacionID, RepostID)
-        VALUES (PARAM_PublicacionID, @LastRepostID);
-	
-    -- Eliminar Repost --
-	ELSEIF PARAM_Accion = 'DELETE' THEN
-        DELETE FROM Repost
-        WHERE RepostID = PARAM_RepostID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarGuardado (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_GuardadoID INT,
-IN PARAM_EstadoGuardado INT,
-IN PARAM_UsuarioID INT,
-IN PARAM_PublicacionID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Guardado --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO Guardado (EstadoGuardado, UsuarioID, PublicacionID)
-        VALUES (1, PARAM_UsuarioID, PARAM_PublicacionID);
-	
-    -- Actualizar Guardado --
-	ELSEIF PARAM_Accion = 'UPDATE' THEN
-        UPDATE Guardado
-        SET EstadoGuardado = PARAM_EstadoGuardado, FechaGuardado = CURRENT_DATE
-        WHERE GuardadoID = PARAM_GuardadoID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
-
-
-
-DELIMITER //
-CREATE PROCEDURE sp_AdministrarSeguidor (
-IN PARAM_Accion VARCHAR(50),
-IN PARAM_UsuarioSeguidorID INT,
-IN PARAM_UsuarioSeguidoID INT
-)
-BEGIN
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	-- Si ocurre un error, se realiza el rollback --
-    BEGIN
-        ROLLBACK;
-        SELECT 'Error: La transacción fue revertida.';
-    END;
-    
-    -- Iniciar la transacción
-    START TRANSACTION;
-    -- Agregar Seguidor --
-    IF PARAM_Accion = 'INSERT' THEN
-        INSERT INTO UsuarioSeguidor (UsuarioSeguidorID, UsuarioSeguidoID)
-        VALUES (PARAM_UsuarioSeguidorID, PARAM_UsuarioSeguidoID);
-	
-    -- Eliminar Seguidor --
-	ELSEIF PARAM_Accion = 'DELETE' THEN
-        DELETE FROM UsuarioSeguidor
-        WHERE UsuarioSeguidorID = PARAM_UsuarioSeguidorID AND UsuarioSeguidoID = PARAM_UsuarioSeguidoID;
-    
-    END IF;
-    
-    -- Confirmar la transacción
-    COMMIT;
-
-END //
-DELIMITER ;
+-- PROCEDURES --
 
 DELIMITER //
 CREATE PROCEDURE sp_EventosAdmin (
@@ -590,40 +167,8 @@ END //
     
 DELIMITER ;
 
-CALL sp_EventosAdmin ('REPORTE', 2);
-
--- VIEWS --
-CREATE OR REPLACE VIEW Reporte AS
-SELECT 
-    u.UsuarioID,
-    u.NombreUsuario,
-    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NULL THEN p.PublicacionID END) AS TotalPublicaciones,
-    COUNT(DISTINCT ul.LikeID) AS TotalLikes,
-    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NOT NULL THEN p.PublicacionID END) AS TotalComentarios,
-    COUNT(DISTINCT g.GuardadoID) AS TotalGuardados
-FROM Usuario u
-LEFT JOIN Publicacion p ON p.UsuarioID = u.UsuarioID
-LEFT JOIN UsuarioLike ul ON ul.UsuarioID = u.UsuarioID
-LEFT JOIN Guardado g ON g.UsuarioID = u.UsuarioID
-GROUP BY u.UsuarioID, u.NombreUsuario;
-
-SELECT * FROM Reporte;
-
-
-CREATE OR REPLACE VIEW Estadisticas AS
-SELECT
-    (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID IS NULL) AS PublicacionesGenerales,
-    (SELECT COUNT(*) FROM Usuario) AS UsuariosRegistrados;
-
-SELECT * FROM Estadisticas;
-
 
 DELIMITER //
-
-
--- todo esto es lo que yo empece a hacer yo -- 
--- stored procedures
-
 CREATE PROCEDURE sp_ToggleLikeAndGetCounts (
     IN p_UsuarioID INT,
     IN p_PublicacionID INT
@@ -673,8 +218,10 @@ BEGIN
     SELECT v_Liked AS YaDioLike, v_LikesCount AS LikesCount;
 END //
 
-DELIMITER //
+DELIMITER ;
 
+
+DELIMITER //
 CREATE PROCEDURE sp_GetChatParticipantInfo (
     IN p_ChatID INT,
     IN p_CurrentUsuarioID INT
@@ -692,8 +239,10 @@ BEGIN
     LIMIT 1;
 END //
 
-DELIMITER //
+DELIMITER ;
 
+
+DELIMITER //
 CREATE PROCEDURE sp_GetChatMessages (
     IN p_ChatID INT
 )
@@ -715,14 +264,9 @@ BEGIN
 END //
 
 DELIMITER ;
-DROP PROCEDURE IF EXISTS sp_GetChatParticipantInfo;
 
 
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetOrCreateChat; -- Añadir por si ya existe y necesitas reemplazarlo
-//
-
 CREATE PROCEDURE sp_GetOrCreateChat (
     IN p_UsuarioID_Solicitante INT, -- ID del usuario que inicia la acción
     IN p_DestinatarioID INT      -- ID del usuario con el que se quiere chatear
@@ -783,10 +327,10 @@ proc_block: BEGIN
     SELECT v_FinalChatID AS ChatID, v_StatusMessage AS StatusMessage, v_Success AS Success;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_EnviarMensaje; -- Para asegurar que se actualiza si ya existe
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_EnviarMensaje (
     IN p_RemitenteID INT,
     IN p_ContenidoMensaje VARCHAR(100), -- Asegúrate que coincida con la longitud de tu columna Mensaje.ContenidoMensaje
@@ -829,68 +373,10 @@ BEGIN
     SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_MensajeID AS MensajeID;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_CrearPublicacion;
-//
-CREATE PROCEDURE sp_CrearPublicacion (
-    IN p_UsuarioID INT,
-    IN p_ContenidoPublicacion VARCHAR(100),
-    IN p_ContenidoMultimedia LONGBLOB
-)
--- Etiquetar el bloque principal del procedimiento
-proc_block: BEGIN
-    DECLARE v_NewPublicacionID INT DEFAULT NULL;
-    DECLARE v_Success BOOLEAN DEFAULT FALSE;
-    DECLARE v_StatusMessage VARCHAR(255) DEFAULT 'Error desconocido al crear la publicación.';
-
-    -- Manejador de errores SQL generales
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK; 
-        SET v_Success = FALSE;
-        SET v_StatusMessage = 'Error SQL: No se pudo crear la publicación.';
-        SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
-    END;
-
-    START TRANSACTION;
-
-    INSERT INTO Publicacion (UsuarioID, ContenidoPublicacion, FechaPublicacion, PublicacionPadreID)
-    VALUES (p_UsuarioID, p_ContenidoPublicacion, NOW(), NULL);
-
-    SET v_NewPublicacionID = LAST_INSERT_ID();
-
-    IF v_NewPublicacionID IS NULL OR v_NewPublicacionID = 0 THEN
-        SET v_StatusMessage = 'Error: No se pudo obtener el ID de la nueva publicación.';
-        ROLLBACK;
-        SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, NULL AS PublicacionID;
-        LEAVE proc_block; -- Usar la etiqueta para salir del procedimiento
-    END IF;
-
-    IF p_ContenidoMultimedia IS NOT NULL THEN
-        INSERT INTO Multimedia (PublicacionID, TipoMultimedia)
-        VALUES (v_NewPublicacionID, p_ContenidoMultimedia);
-
-        IF ROW_COUNT() = 0 THEN
-            SET v_StatusMessage = 'Error: La publicación se creó pero no se pudo guardar el archivo multimedia.';
-            ROLLBACK;
-            SELECT FALSE AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
-            LEAVE proc_block; -- Usar la etiqueta para salir del procedimiento
-        END IF;
-    END IF;
-
-    COMMIT;
-    SET v_Success = TRUE;
-    SET v_StatusMessage = 'Publicación creada exitosamente.';
-    
-    SELECT v_Success AS Success, v_StatusMessage AS StatusMessage, v_NewPublicacionID AS PublicacionID;
-
-END //
 
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_CrearPublicacion;
-//
 CREATE PROCEDURE sp_CrearPublicacion (
     IN p_UsuarioID INT,
     IN p_ContenidoPublicacion VARCHAR(100), -- Coincide con la definición de la tabla Publicacion.ContenidoPublicacion
@@ -952,10 +438,10 @@ proc_block: BEGIN
 
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_ToggleRepost;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_ToggleRepost (
     IN p_UsuarioID INT,
     IN p_PublicacionID INT
@@ -1028,19 +514,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_AdminUsuarios AS
-SELECT 
-    UsuarioID, 
-    NombreUsuario, 
-    Correo, 
-    ImagenPerfil 
-FROM 
-    Usuario;
-    
-    DELIMITER //
 
-DROP PROCEDURE IF EXISTS sp_BuscarAdminUsuarios;
-//
+DELIMITER //
 CREATE PROCEDURE sp_BuscarAdminUsuarios (
     IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
 )
@@ -1072,19 +547,7 @@ END //
 DELIMITER ;
 
 
-CREATE OR REPLACE VIEW vw_UsuariosParaChat AS
-SELECT 
-    UsuarioID, 
-    NombreUsuario, 
-    ImagenPerfil 
-FROM 
-    Usuario;
-    
-    
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_BuscarUsuariosParaChat;
-//
 CREATE PROCEDURE sp_BuscarUsuariosParaChat (
     IN p_SearchTerm VARCHAR(255), -- Término para buscar por NombreUsuario
     IN p_CurrentUsuarioID INT     -- ID del usuario actual, para excluirlo de los resultados
@@ -1103,75 +566,9 @@ BEGIN
 END //
 
 DELIMITER ;
-    
-CREATE OR REPLACE VIEW vw_UsuariosParaBusquedaLateral AS
-SELECT 
-    UsuarioID, 
-    NombreUsuario, 
-    Correo, 
-    ImagenPerfil 
-FROM 
-    Usuario;
-    
-    DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_BuscarUsuariosLateral;
-//
-CREATE PROCEDURE sp_BuscarUsuariosLateral (
-    IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
-)
-BEGIN
-    IF p_SearchTerm IS NOT NULL AND p_SearchTerm != '' THEN
-        -- Si hay un término de búsqueda, filtrar por NombreUsuario o Correo
-        SELECT 
-            UsuarioID, 
-            NombreUsuario, 
-            Correo, 
-            ImagenPerfil 
-        FROM 
-            vw_UsuariosParaBusquedaLateral
-        WHERE 
-            NombreUsuario LIKE CONCAT('%', p_SearchTerm, '%') OR 
-            Correo LIKE CONCAT('%', p_SearchTerm, '%');
-    ELSE
-        -- Si no hay término de búsqueda o está vacío, no devolver resultados
-        -- (o podrías optar por devolver todos, pero el PHP actual no lo hace)
-        SELECT 
-            UsuarioID, 
-            NombreUsuario, 
-            Correo, 
-            ImagenPerfil 
-        FROM 
-            vw_UsuariosParaBusquedaLateral
-        WHERE 
-            1 = 0; -- Condición falsa para no devolver filas
-    END IF;
-END //
-
-DELIMITER ;
 
 
-CREATE OR REPLACE VIEW vw_PublicacionConAutorYMultimedia AS
-SELECT
-    p.PublicacionID,
-    p.ContenidoPublicacion,
-    p.FechaPublicacion,
-    p.UsuarioID AS AutorID, -- ID del autor de la publicación
-    u.NombreUsuario AS AutorNombreUsuario,
-    u.ImagenPerfil AS AutorImagenPerfil,
-    m.TipoMultimedia
-FROM
-    Publicacion p
-LEFT JOIN
-    Usuario u ON p.UsuarioID = u.UsuarioID
-LEFT JOIN
-    Multimedia m ON p.PublicacionID = m.PublicacionID;
-    
-    
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetPublicacionesGuardadasUsuario;
-//
 CREATE PROCEDURE sp_GetPublicacionesGuardadasUsuario (
     IN p_CurrentUsuarioID INT
 )
@@ -1214,27 +611,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_PublicacionConAutorYMultimedia AS
-SELECT
-    p.PublicacionID,
-    p.ContenidoPublicacion,
-    p.FechaPublicacion,
-    p.UsuarioID AS AutorID, 
-    u.NombreUsuario AS AutorNombreUsuario,
-    u.ImagenPerfil AS AutorImagenPerfil,
-    m.TipoMultimedia,
-    p.PublicacionPadreID
-FROM
-    Publicacion p
-LEFT JOIN
-    Usuario u ON p.UsuarioID = u.UsuarioID
-LEFT JOIN
-    Multimedia m ON p.PublicacionID = m.PublicacionID;
-    
-DELIMITER //
 
-DROP PROCEDURE IF EXISTS sp_GetPublicacionesHome;
-//
+DELIMITER //
 CREATE PROCEDURE sp_GetPublicacionesHome (
     IN p_CurrentUsuarioID INT -- ID del usuario que está viendo el feed
 )
@@ -1278,10 +656,10 @@ BEGIN
         p_info.FechaPublicacion DESC;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_GetPerfilFeed;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_GetPerfilFeed (
     IN p_ProfileOwnerID INT, -- ID del usuario cuyo perfil se está viendo
     IN p_CurrentUsuarioID INT  -- ID del usuario que está visitando el perfil
@@ -1384,43 +762,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
-SELECT
-    UsuarioID,
-    NombreUsuario,
-    Biografia,
-    ImagenPerfil,
-    BannerPerfil,
-    TipoUsuario -- Podría ser útil si quieres mostrar algo diferente para admins, etc.
-FROM
-    Usuario;
 
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetUsuarioPerfilDetalles;
-//
-CREATE PROCEDURE sp_GetUsuarioPerfilDetalles (
-    IN p_ProfileUserID INT
-)
-BEGIN
-    SELECT
-        UsuarioID,
-        NombreUsuario,
-        Biografia,
-        ImagenPerfil,
-        BannerPerfil,
-        TipoUsuario
-    FROM
-        vw_UsuarioPerfilDetalles
-    WHERE
-        UsuarioID = p_ProfileUserID
-    LIMIT 1; -- Asegurar que solo devuelva una fila
-END //
-
-DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetPublicacionDetalles;
-//
 CREATE PROCEDURE sp_GetPublicacionDetalles (
     IN p_PostID INT,
     IN p_CurrentUsuarioID INT
@@ -1463,10 +806,10 @@ BEGIN
     LIMIT 1;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_GetPublicacionRespuestas;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_GetPublicacionRespuestas (
     IN p_ParentPostID INT,
     IN p_CurrentUsuarioID INT
@@ -1512,141 +855,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
-SELECT
-    c.ChatID,
-    c.UsuarioID AS Usuario1ID,         -- El que inició el chat o el de menor ID si se normaliza
-    u1.NombreUsuario AS Usuario1Nombre,
-    u1.ImagenPerfil AS Usuario1ImagenPerfil,
-    c.DestinatarioID AS Usuario2ID,   -- El otro participante
-    u2.NombreUsuario AS Usuario2Nombre,
-    u2.ImagenPerfil AS Usuario2ImagenPerfil,
-    c.FechaCreacion AS FechaCreacionChat,
-    (SELECT m.ContenidoMensaje
-     FROM Mensaje m
-     WHERE m.ChatID = c.ChatID
-     ORDER BY m.FechaMensaje DESC
-     LIMIT 1) AS UltimoMensajeContenido,
-    (SELECT m.FechaMensaje
-     FROM Mensaje m
-     WHERE m.ChatID = c.ChatID
-     ORDER BY m.FechaMensaje DESC
-     LIMIT 1) AS UltimoMensajeFecha
-FROM
-    Chat c
-INNER JOIN
-    Usuario u1 ON c.UsuarioID = u1.UsuarioID
-INNER JOIN
-    Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
-    
-DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetUsuarioChatsConDetalles;
-//
-CREATE PROCEDURE sp_GetUsuarioChatsConDetalles (
-    IN p_CurrentUsuarioID INT
-)
-BEGIN
-    SELECT
-        vc.ChatID,
-        CASE
-            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ID
-            ELSE vc.Usuario1ID
-        END AS PersonaID,
-        CASE
-            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2Nombre
-            ELSE vc.Usuario1Nombre
-        END AS NombreUsuario,
-        CASE
-            WHEN vc.Usuario1ID = p_CurrentUsuarioID THEN vc.Usuario2ImagenPerfil
-            ELSE vc.Usuario1ImagenPerfil
-        END AS ImagenPerfil,
-        vc.FechaCreacionChat AS FechaCreacion,
-        vc.UltimoMensajeContenido AS UltimoMensaje,
-        vc.UltimoMensajeFecha AS HoraUltimoMensaje
-    FROM
-        vw_ChatConParticipantesYUltimoMensaje vc
-    WHERE
-        vc.Usuario1ID = p_CurrentUsuarioID OR vc.Usuario2ID = p_CurrentUsuarioID
-    ORDER BY
-        HoraUltimoMensaje DESC, FechaCreacionChat DESC;
-END //
-
-DELIMITER ;
-
-ALTER TABLE Chat
-ADD COLUMN FechaUltimaActividad TIMESTAMP NULL DEFAULT NULL AFTER FechaCreacion;
-
--- MUY RECOMENDADO:
--- Actualizar la FechaUltimaActividad para los chats existentes una sola vez.
--- Ejecuta esto directamente en tu cliente MySQL o como parte de tu script de migración,
--- DESPUÉS de añadir la columna y ANTES de crear el trigger.
-
-SET SQL_SAFE_UPDATES = 0;
-
-UPDATE Chat c
-SET c.FechaUltimaActividad = (
-    SELECT MAX(m.FechaMensaje)
-    FROM Mensaje m
-    WHERE m.ChatID = c.ChatID
-)
-WHERE EXISTS ( -- Solo actualiza chats que tienen mensajes
-    SELECT 1
-    FROM Mensaje m
-    WHERE m.ChatID = c.ChatID
-);
--- Para chats sin mensajes, FechaUltimaActividad podría quedar NULL o igual a FechaCreacion
-UPDATE Chat
-SET FechaUltimaActividad = FechaCreacion
-WHERE FechaUltimaActividad IS NULL;
-
--- Reactivar el modo de actualizaciones seguras (recomendado)
-SET SQL_SAFE_UPDATES = 1;
 
 DELIMITER //
-
-DROP TRIGGER IF EXISTS trg_AfterInsert_Mensaje_UpdateChatActivity;
-//
--- crea el triiger para la fecha de la hora en la vista de mensajes en la barra central
-CREATE TRIGGER trg_AfterInsert_Mensaje_UpdateChatActivity
-AFTER INSERT ON Mensaje
-FOR EACH ROW
-BEGIN
-    UPDATE Chat
-    SET FechaUltimaActividad = NEW.FechaMensaje -- Usar la fecha del nuevo mensaje
-    WHERE ChatID = NEW.ChatID;
-END //
-
-DELIMITER ;
-
-CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
-SELECT
-    c.ChatID,
-    c.UsuarioID AS Usuario1ID,
-    u1.NombreUsuario AS Usuario1Nombre,
-    u1.ImagenPerfil AS Usuario1ImagenPerfil,
-    c.DestinatarioID AS Usuario2ID,
-    u2.NombreUsuario AS Usuario2Nombre,
-    u2.ImagenPerfil AS Usuario2ImagenPerfil,
-    c.FechaCreacion AS FechaCreacionChat,
-    c.FechaUltimaActividad, -- <<< UTILIZA LA NUEVA COLUMNA DIRECTAMENTE
-    (SELECT m.ContenidoMensaje
-     FROM Mensaje m
-     WHERE m.ChatID = c.ChatID
-     ORDER BY m.FechaMensaje DESC
-     LIMIT 1) AS UltimoMensajeContenido
-    -- La subconsulta para UltimoMensajeFecha ya no es necesaria aquí
-FROM
-    Chat c
-INNER JOIN
-    Usuario u1 ON c.UsuarioID = u1.UsuarioID
-INNER JOIN
-    Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
-
-DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_GetUsuarioChatsConDetalles;
-//
 CREATE PROCEDURE sp_GetUsuarioChatsConDetalles (
     IN p_CurrentUsuarioID INT
 )
@@ -1676,72 +886,10 @@ BEGIN
         vc.FechaUltimaActividad DESC, vc.FechaCreacionChat DESC; -- <<< ORDENA POR LA NUEVA COLUMNA
 END //
 
-DELIMITER //
-
--- Desactivar el modo de actualizaciones seguras temporalmente
-SET SQL_SAFE_UPDATES = 0;
-
--- Actualizar SeguidosCount (cuántos usuarios sigue cada usuario)
-UPDATE Usuario u
-SET u.SeguidosCount = (
-    SELECT COUNT(*)
-    FROM UsuarioSeguidor us
-    WHERE us.UsuarioSeguidorID = u.UsuarioID
-);
-
--- Actualizar SeguidoresCount (cuántos seguidores tiene cada usuario)
-UPDATE Usuario u
-SET u.SeguidoresCount = (
-    SELECT COUNT(*)
-    FROM UsuarioSeguidor us
-    WHERE us.UsuarioSeguidoID = u.UsuarioID
-);
-
--- Reactivar el modo de actualizaciones seguras
-SET SQL_SAFE_UPDATES = 1;
-
-DELIMITER //
-
-DROP TRIGGER IF EXISTS trg_AfterInsert_UsuarioSeguidor;
-//
-CREATE TRIGGER trg_AfterInsert_UsuarioSeguidor
-AFTER INSERT ON UsuarioSeguidor
-FOR EACH ROW
-BEGIN
-    -- Incrementar el contador de 'Seguidos' para el usuario que realiza la acción de seguir
-    UPDATE Usuario
-    SET SeguidosCount = SeguidosCount + 1
-    WHERE UsuarioID = NEW.UsuarioSeguidorID;
-
-    -- Incrementar el contador de 'Seguidores' para el usuario que es seguido
-    UPDATE Usuario
-    SET SeguidoresCount = SeguidoresCount + 1
-    WHERE UsuarioID = NEW.UsuarioSeguidoID;
-END //
-
-DROP TRIGGER IF EXISTS trg_AfterDelete_UsuarioSeguidor;
-//
-CREATE TRIGGER trg_AfterDelete_UsuarioSeguidor
-AFTER DELETE ON UsuarioSeguidor
-FOR EACH ROW
-BEGIN
-    -- Decrementar el contador de 'Seguidos' para el usuario que deja de seguir
-    UPDATE Usuario
-    SET SeguidosCount = GREATEST(0, SeguidosCount - 1) -- Evitar conteos negativos
-    WHERE UsuarioID = OLD.UsuarioSeguidorID;
-
-    -- Decrementar el contador de 'Seguidores' para el usuario que deja de ser seguido
-    UPDATE Usuario
-    SET SeguidoresCount = GREATEST(0, SeguidoresCount - 1) -- Evitar conteos negativos
-    WHERE UsuarioID = OLD.UsuarioSeguidoID;
-END //
-
 DELIMITER ;
 
-DELIMITER //
 
-DROP PROCEDURE IF EXISTS sp_ToggleSeguimiento;
-//
+DELIMITER //
 CREATE PROCEDURE sp_ToggleSeguimiento (
     IN p_UsuarioSeguidorID INT, -- ID del usuario que realiza la acción
     IN p_UsuarioSeguidoID INT   -- ID del usuario del perfil que se está viendo/siguiendo
@@ -1803,23 +951,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
-SELECT
-    UsuarioID,
-    NombreUsuario,
-    Biografia,
-    ImagenPerfil,
-    BannerPerfil,
-    TipoUsuario,
-    SeguidosCount,    -- <<< NUEVA COLUMNA
-    SeguidoresCount   -- <<< NUEVA COLUMNA
-FROM
-    Usuario;
-    
-DELIMITER //
 
-DROP PROCEDURE IF EXISTS sp_GetUsuarioPerfilDetalles;
-//
+DELIMITER //
 CREATE PROCEDURE sp_GetUsuarioPerfilDetalles (
     IN p_ProfileUserID INT,     -- ID del usuario cuyo perfil se está viendo
     IN p_CurrentUsuarioID INT   -- ID del usuario que está visitando el perfil (puede ser el mismo o diferente)
@@ -1846,10 +979,10 @@ BEGIN
     LIMIT 1;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_ToggleGuardado;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_ToggleGuardado (
     IN p_UsuarioID INT,
     IN p_PublicacionID INT
@@ -1911,11 +1044,12 @@ proc_block: BEGIN
 
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_GetEstadisticasSitio;
-//
-CREATE PROCEDURE sp_GetEstadisticasSitio()
+
+DROP PROCEDURE sp_GetEstadisticasSitio;
+DELIMITER //
+CREATE PROCEDURE sp_GetEstadisticasSitio() -- Cambio a funcion --
 BEGIN
     SELECT
         PublicacionesGenerales,
@@ -1927,29 +1061,8 @@ END //
 
 DELIMITER ;
 
-CREATE OR REPLACE VIEW vw_ChatDetallesCompletos AS
-SELECT
-    c.ChatID,
-    c.UsuarioID AS IniciadorID,
-    u1.NombreUsuario AS NombreIniciador,
-    u1.ImagenPerfil AS ImagenIniciador,
-    c.DestinatarioID AS DestinatarioID,
-    u2.NombreUsuario AS NombreDestinatario,
-    u2.ImagenPerfil AS ImagenDestinatario,
-    (SELECT Contenido FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaEnvio DESC LIMIT 1) AS UltimoMensaje,
-    (SELECT FechaEnvio FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaEnvio DESC LIMIT 1) AS FechaUltimoMensaje,
-    c.FechaCreacion AS FechaCreacionChat
-FROM
-    Chat c
-INNER JOIN
-    Usuario u1 ON c.UsuarioID = u1.UsuarioID  -- Detalles del usuario que inició el chat
-INNER JOIN
-    Usuario u2 ON c.DestinatarioID = u2.UsuarioID; -- Detalles del usuario destinatario
 
 DELIMITER //
-
-DROP PROCEDURE IF EXISTS sp_ObtenerChatsPorUsuario;
-//
 CREATE PROCEDURE sp_ObtenerChatsPorUsuario (
     IN p_UsuarioID INT
 )
@@ -1981,10 +1094,10 @@ BEGIN
         vcdc.FechaUltimoMensaje DESC, vcdc.FechaCreacionChat DESC;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_ObtenerTodasPublicaciones;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_ObtenerTodasPublicaciones()
 BEGIN
     SELECT
@@ -2003,10 +1116,10 @@ BEGIN
         FechaPublicacion DESC;
 END //
 
-DELIMITER //
+DELIMITER ;
 
-DROP PROCEDURE IF EXISTS sp_BuscarUsuariosLateral;
-//
+
+DELIMITER //
 CREATE PROCEDURE sp_BuscarUsuariosLateral (
     IN p_SearchTerm VARCHAR(255) -- Puede ser NULL o un término de búsqueda
 )
@@ -2037,3 +1150,306 @@ END //
 
 DELIMITER ;
 
+-- PROCEDURES --
+
+
+
+-- VIEWS --
+CREATE OR REPLACE VIEW Reporte AS
+SELECT 
+    u.UsuarioID,
+    u.NombreUsuario,
+    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NULL THEN p.PublicacionID END) AS TotalPublicaciones,
+    COUNT(DISTINCT ul.LikeID) AS TotalLikes,
+    COUNT(DISTINCT CASE WHEN p.PublicacionPadreID IS NOT NULL THEN p.PublicacionID END) AS TotalComentarios,
+    COUNT(DISTINCT g.GuardadoID) AS TotalGuardados
+FROM Usuario u
+LEFT JOIN Publicacion p ON p.UsuarioID = u.UsuarioID
+LEFT JOIN UsuarioLike ul ON ul.UsuarioID = u.UsuarioID
+LEFT JOIN Guardado g ON g.UsuarioID = u.UsuarioID
+GROUP BY u.UsuarioID, u.NombreUsuario;
+
+SELECT * FROM Reporte;
+
+
+CREATE OR REPLACE VIEW Estadisticas AS
+SELECT
+    (SELECT COUNT(*) FROM Publicacion WHERE PublicacionPadreID IS NULL) AS PublicacionesGenerales,
+    (SELECT COUNT(*) FROM Usuario) AS UsuariosRegistrados;
+
+SELECT * FROM Estadisticas;
+
+
+CREATE OR REPLACE VIEW vw_AdminUsuarios AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    Correo, 
+    ImagenPerfil 
+FROM Usuario;
+
+
+CREATE OR REPLACE VIEW vw_UsuariosParaChat AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    ImagenPerfil 
+FROM Usuario;    
+
+
+CREATE OR REPLACE VIEW vw_UsuariosParaBusquedaLateral AS
+SELECT 
+    UsuarioID, 
+    NombreUsuario, 
+    Correo, 
+    ImagenPerfil 
+FROM Usuario;
+
+
+CREATE OR REPLACE VIEW vw_PublicacionConAutorYMultimedia AS
+SELECT
+    p.PublicacionID,
+    p.ContenidoPublicacion,
+    p.FechaPublicacion,
+    p.UsuarioID AS AutorID, 
+    u.NombreUsuario AS AutorNombreUsuario,
+    u.ImagenPerfil AS AutorImagenPerfil,
+    m.TipoMultimedia,
+    p.PublicacionPadreID
+FROM Publicacion p
+LEFT JOIN Usuario u ON p.UsuarioID = u.UsuarioID
+LEFT JOIN Multimedia m ON p.PublicacionID = m.PublicacionID;
+
+
+CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
+SELECT
+    UsuarioID,
+    NombreUsuario,
+    Biografia,
+    ImagenPerfil,
+    BannerPerfil,
+    TipoUsuario -- Podría ser útil si quieres mostrar algo diferente para admins, etc.
+FROM Usuario;
+
+
+CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS Usuario1ID,         -- El que inició el chat o el de menor ID si se normaliza
+    u1.NombreUsuario AS Usuario1Nombre,
+    u1.ImagenPerfil AS Usuario1ImagenPerfil,
+    c.DestinatarioID AS Usuario2ID,   -- El otro participante
+    u2.NombreUsuario AS Usuario2Nombre,
+    u2.ImagenPerfil AS Usuario2ImagenPerfil,
+    c.FechaCreacion AS FechaCreacionChat,
+    (SELECT m.ContenidoMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeContenido,
+    (SELECT m.FechaMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeFecha
+FROM Chat c
+INNER JOIN Usuario u1 ON c.UsuarioID = u1.UsuarioID
+INNER JOIN Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
+
+
+CREATE OR REPLACE VIEW vw_ChatConParticipantesYUltimoMensaje AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS Usuario1ID,
+    u1.NombreUsuario AS Usuario1Nombre,
+    u1.ImagenPerfil AS Usuario1ImagenPerfil,
+    c.DestinatarioID AS Usuario2ID,
+    u2.NombreUsuario AS Usuario2Nombre,
+    u2.ImagenPerfil AS Usuario2ImagenPerfil,
+    c.FechaCreacion AS FechaCreacionChat,
+    c.FechaUltimaActividad, -- <<< UTILIZA LA NUEVA COLUMNA DIRECTAMENTE
+    (SELECT m.ContenidoMensaje
+     FROM Mensaje m
+     WHERE m.ChatID = c.ChatID
+     ORDER BY m.FechaMensaje DESC
+     LIMIT 1) AS UltimoMensajeContenido
+    -- La subconsulta para UltimoMensajeFecha ya no es necesaria aquí
+FROM Chat c
+INNER JOIN Usuario u1 ON c.UsuarioID = u1.UsuarioID
+INNER JOIN Usuario u2 ON c.DestinatarioID = u2.UsuarioID;
+
+
+CREATE OR REPLACE VIEW vw_UsuarioPerfilDetalles AS
+SELECT
+    UsuarioID,
+    NombreUsuario,
+    Biografia,
+    ImagenPerfil,
+    BannerPerfil,
+    TipoUsuario,
+    SeguidosCount,    -- <<< NUEVA COLUMNA
+    SeguidoresCount   -- <<< NUEVA COLUMNA
+FROM Usuario;
+
+
+CREATE OR REPLACE VIEW vw_ChatDetallesCompletos AS
+SELECT
+    c.ChatID,
+    c.UsuarioID AS IniciadorID,
+    u1.NombreUsuario AS NombreIniciador,
+    u1.ImagenPerfil AS ImagenIniciador,
+    c.DestinatarioID AS DestinatarioID,
+    u2.NombreUsuario AS NombreDestinatario,
+    u2.ImagenPerfil AS ImagenDestinatario,
+    (SELECT ContenidoMensaje FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaMensaje DESC LIMIT 1) AS UltimoMensaje,
+    (SELECT FechaMensaje FROM Mensaje m WHERE m.ChatID = c.ChatID ORDER BY m.FechaMensaje DESC LIMIT 1) AS FechaUltimoMensaje,
+    c.FechaCreacion AS FechaCreacionChat
+FROM Chat c
+INNER JOIN Usuario u1 ON c.UsuarioID = u1.UsuarioID  -- Detalles del usuario que inició el chat
+INNER JOIN Usuario u2 ON c.DestinatarioID = u2.UsuarioID; -- Detalles del usuario destinatario
+
+-- VIEWS --
+
+
+
+-- TRIGGERS --
+DELIMITER //
+-- Crea el trgiger para la fecha de la hora en la vista de mensajes en la barra central
+CREATE TRIGGER trg_AfterInsert_Mensaje_UpdateChatActivity
+AFTER INSERT ON Mensaje
+FOR EACH ROW
+BEGIN
+    UPDATE Chat
+    SET FechaUltimaActividad = NEW.FechaMensaje -- Usar la fecha del nuevo mensaje
+    WHERE ChatID = NEW.ChatID;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER trg_AfterInsert_UsuarioSeguidor
+AFTER INSERT ON UsuarioSeguidor
+FOR EACH ROW
+BEGIN
+    -- Incrementar el contador de 'Seguidos' para el usuario que realiza la acción de seguir
+    UPDATE Usuario
+    SET SeguidosCount = SeguidosCount + 1
+    WHERE UsuarioID = NEW.UsuarioSeguidorID;
+
+    -- Incrementar el contador de 'Seguidores' para el usuario que es seguido
+    UPDATE Usuario
+    SET SeguidoresCount = SeguidoresCount + 1
+    WHERE UsuarioID = NEW.UsuarioSeguidoID;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+CREATE TRIGGER trg_AfterDelete_UsuarioSeguidor
+AFTER DELETE ON UsuarioSeguidor
+FOR EACH ROW
+BEGIN
+    -- Decrementar el contador de 'Seguidos' para el usuario que deja de seguir
+    UPDATE Usuario
+    SET SeguidosCount = GREATEST(0, SeguidosCount - 1) -- Evitar conteos negativos
+    WHERE UsuarioID = OLD.UsuarioSeguidorID;
+
+    -- Decrementar el contador de 'Seguidores' para el usuario que deja de ser seguido
+    UPDATE Usuario
+    SET SeguidoresCount = GREATEST(0, SeguidoresCount - 1) -- Evitar conteos negativos
+    WHERE UsuarioID = OLD.UsuarioSeguidoID;
+END //
+
+DELIMITER ;
+
+-- TRIGGERS --
+
+
+
+-- FUNCTIONS --
+DELIMITER //
+CREATE FUNCTION fn_GetTotalPublicaciones() RETURNS INT  
+DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE v_Total INT;
+    SELECT PublicacionesGenerales INTO v_Total FROM Estadisticas;
+    RETURN v_Total;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+CREATE FUNCTION fn_GetUsuariosRegistrados() RETURNS INT  
+DETERMINISTIC READS SQL DATA
+BEGIN
+    DECLARE v_Total INT;
+    SELECT UsuariosRegistrados INTO v_Total FROM Estadisticas;
+    RETURN v_Total;
+END //
+
+DELIMITER ;
+
+-- FUNCTIONS --
+
+
+
+
+
+
+
+-- CAMBIOS IMPORTANTES --
+ALTER TABLE Chat
+ADD COLUMN FechaUltimaActividad TIMESTAMP NULL DEFAULT NULL AFTER FechaCreacion;
+
+-- MUY RECOMENDADO:
+-- Actualizar la FechaUltimaActividad para los chats existentes una sola vez.
+-- Ejecuta esto directamente en tu cliente MySQL o como parte de tu script de migración,
+-- DESPUÉS de añadir la columna y ANTES de crear el trigger.
+
+SET SQL_SAFE_UPDATES = 0;
+
+UPDATE Chat c
+SET c.FechaUltimaActividad = (
+    SELECT MAX(m.FechaMensaje)
+    FROM Mensaje m
+    WHERE m.ChatID = c.ChatID
+)
+WHERE EXISTS ( -- Solo actualiza chats que tienen mensajes
+    SELECT 1
+    FROM Mensaje m
+    WHERE m.ChatID = c.ChatID
+);
+-- Para chats sin mensajes, FechaUltimaActividad podría quedar NULL o igual a FechaCreacion
+UPDATE Chat
+SET FechaUltimaActividad = FechaCreacion
+WHERE FechaUltimaActividad IS NULL;
+
+-- Reactivar el modo de actualizaciones seguras (recomendado)
+SET SQL_SAFE_UPDATES = 1;
+
+
+-- CAMBIO 2 --
+-- Desactivar el modo de actualizaciones seguras temporalmente
+SET SQL_SAFE_UPDATES = 0;
+
+-- Actualizar SeguidosCount (cuántos usuarios sigue cada usuario)
+UPDATE Usuario u
+SET u.SeguidosCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidorID = u.UsuarioID
+);
+
+-- Actualizar SeguidoresCount (cuántos seguidores tiene cada usuario)
+UPDATE Usuario u
+SET u.SeguidoresCount = (
+    SELECT COUNT(*)
+    FROM UsuarioSeguidor us
+    WHERE us.UsuarioSeguidoID = u.UsuarioID
+);
+
+-- Reactivar el modo de actualizaciones seguras
+SET SQL_SAFE_UPDATES = 1;
