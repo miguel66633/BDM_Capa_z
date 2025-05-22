@@ -101,7 +101,7 @@ document.querySelector('#registerForm').addEventListener('submit', function (eve
     const formData = new FormData(this);
     formData.append('action', 'register'); // Agregar acción de registro
 
-    fetch('api/', {
+    fetch('/api/', {
         method: 'POST',
         body: formData
     })
