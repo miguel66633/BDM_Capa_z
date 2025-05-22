@@ -2,10 +2,10 @@
 
 return [
     "database" => [
-        "host" => "localhost",
-        "user" => "root",
-        "password" => "1234",
-        "dbname" => "PROYECTO_Z",
+        "host" => "bdmpwci2025.mysql.database.azure.com",
+        "user" => "adminpwci@bdmpwci2025",
+        "password" => "Miguel8390!",
+        "dbname" => "PROYECTO_Z2", 
         "port" => "3306",
     ],
 ];
