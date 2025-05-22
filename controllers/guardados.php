@@ -19,7 +19,7 @@ if (!$usuarioId) {
     exit;
 }
 
-$publicacionesGuardadas = []; // Inicializar por si ocurre un error
+$publicacionesGuardadas = []; 
 
 try {
     // Llamar al Stored Procedure para obtener las publicaciones guardadas
