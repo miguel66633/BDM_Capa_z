@@ -3,7 +3,7 @@
 session_start();
 const BASE_PATH = __DIR__.'/../';
 date_default_timezone_set('UTC');
-require BASE_PATH.'Core/functions.php';
+require BASE_PATH.'/Core/functions.php';
 
 
 spl_autoload_register(function ($class) {
@@ -11,10 +11,10 @@ spl_autoload_register(function ($class) {
     require base_path("{$class}.php");
 });
 
-require base_path('bootstrap.php');
+require base_path('/bootstrap.php');
 
 $router = new \Core\Router();
-$routes = require base_path('routes.php');
+$routes = require base_path('/routes.php');
 
 $uri = parse_url($_SERVER['REQUEST_URI'])['path'];
 $method = $_POST['_method'] ?? $_SERVER['REQUEST_METHOD'];
