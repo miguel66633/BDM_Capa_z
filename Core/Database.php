@@ -13,9 +13,12 @@ class Database
     {
         $dsn = 'mysql:' . http_build_query($config, '', ';');
 
-        $this->connection = new PDO($dsn, $username, $password, [
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-        ]);
+        $options = [
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_SSL_CA => BASE_PATH . 'BaltimoreCyberTrustRoot.crt.pem', // Ruta al certificado
+        ];
+
+        $this->connection = new PDO($dsn, $username, $password, $options);
     }
 
     public function getConnection()
