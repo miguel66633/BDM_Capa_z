@@ -2,7 +2,7 @@
 
 session_start();
 const BASE_PATH = __DIR__.'/../';
-date_default_timezone_set('UTC');
+date_default_timezone_set('America/Mexico_City'); 
 require BASE_PATH.'/Core/functions.php';
 
 
