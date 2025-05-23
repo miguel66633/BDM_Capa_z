@@ -15,7 +15,7 @@ class Database
 
         $options = [
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::MYSQL_ATTR_SSL_CA => BASE_PATH . 'BaltimoreCyberTrustRoot.crt.pem', // Ruta al certificado
+            PDO::MYSQL_ATTR_SSL_CA => '/home/site/wwwroot/BaltimoreCyberTrustRoot.crt.pem',
         ];
 
         $this->connection = new PDO($dsn, $username, $password, $options);
